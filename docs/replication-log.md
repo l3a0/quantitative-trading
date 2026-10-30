@@ -11012,8 +11012,9 @@ which fades the jump, as Entry 40 found for the unfiltered figures. The
 momentum sign the text describes gives the same numbers negated.
 
 **No script ships for location 3509, and the FSTX alignment was found by
-search.** Neither public mirror of Chan's code holds a file that applies the
-filter, so the specification is inferred from the printed figures rather than
+search.** None of the three public copies of Chan's code this repository has
+read, ivanliu1989/algorithmic_trading, ericnberwick/EpchanPreview and
+burakbayramli/books at `43c0bb4`, holds a file that applies the filter, so the specification is inferred from the printed figures rather than
 read from code. The plan on
 [issue 359](https://github.com/l3a0/quantitative-trading/issues/359) tried six
 ways of aligning VIX with FSTX's calendar and two ways of averaging, and saw
@@ -11072,9 +11073,10 @@ windows, so a guard over either whole window would refuse. `chan.vix_filter`
 guards VIX over two spans in each window instead. The first runs from the
 window's first joined day to 2007-02-26 and the second from 2007-02-27 to its
 last joined day, 2012-04-24 for buy on gap and 2012-05-08 for FSTX. Together
-they guard every day-over-day move the run reads except the one real move,
-and nothing flags in either. Entry 41 met the same day and guarded VIX only
-from an anchor after it, which differs from this case, because no figure there
+they guard every day-over-day move the run reads from each window's first
+joined day on, except the one real move, and nothing flags in either. Entry
+41 met the same day and guarded VIX only from an anchor after it, which
+differs from this case, because no figure there
 reads VIX before the anchor and here every close before the flag feeds the
 filter. A rescale smaller than 1.6 times passes the guard on any span, and
 row 16 shows such a rescale moving a figure. FSTX is guarded over its whole
@@ -11119,7 +11121,7 @@ rule today.
 | 8 | Each FSTX day kept when the latest VIX close strictly before it is above 35, with no join | 188 days, 0.025319 and 0.163555 | `TestTheReadingsThatMiss::test_the_latest_close_before_each_day_prints_2_5` and `::test_the_latest_close_reading_adds_three_us_holidays` |
 | 9 | VIX placed on FSTX's 2,000 days with NaN where it has no close, then moved one row | 185 days, 0.045238 and 0.291589 | `TestTheReadingsThatMiss::test_one_row_back_on_fstx_s_own_calendar_lands_neither` and `::test_the_own_calendar_reading_swaps_the_day_after_each_holiday_for_the_holiday` |
 | 10 | VIX forward-filled onto FSTX's 2,000 days, then moved one row | 188 days, 0.025319 and 0.163555, the same days as row 8. The two read different closes on 23 days and none crosses 35 | `TestTheReadingsThatMiss::test_vix_forward_filled_one_row_back_keeps_the_latest_close_s_days` and `::test_the_forward_fill_and_the_latest_close_read_different_closes_on_23_days` |
-| 11 | Each FSTX day kept when VIX closed above 35 on the same date, NaN on US holidays | 185 days, −0.047063 and −0.297416 | `TestTheReadingsThatMiss::test_same_day_vix_with_nan_on_holidays_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
+| 11 | Each FSTX day kept when VIX closed above 35 on the same date, NaN on days the US exchanges were shut | 185 days, −0.047063 and −0.297416 | `TestTheReadingsThatMiss::test_same_day_vix_with_nan_on_holidays_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
 | 12 | Each FSTX day kept when VIX closed above 35 on the same date, forward-filled | 188 days, −0.046312 and −0.295046 | `TestTheReadingsThatMiss::test_same_day_vix_forward_filled_is_negative` and `::test_the_same_day_readings_read_vix_on_the_trade_s_own_date` |
 | 13 | The joined calendars | buy on gap 1,500 of 1,500, FSTX 1,945 of 2,000, losing 7 days after 2012-05-08 and 48 the CBOE did not trade | `TestTheJoin::test_buy_on_gap_keeps_all_1500_days`, `::test_fstx_keeps_1945_of_its_2000_days` and `::test_fstx_loses_7_days_after_vix_ends_and_48_the_cboe_did_not_trade`, and for the 7 days, `TestTheReadingsThatMiss::test_the_seven_days_after_vix_ends_could_not_qualify_either_way` |
 | 14 | The qualifying days, and the days each rule held a position on them | both from 2008-09-18 to 2011-11-10, after VIX's first close above 35 inside either window on 2008-09-17. Buy on gap held on 20 of 190, FSTX on 43 of 185, long on 21 and short on 22 | `TestBesideTheReplication::test_both_rules_keep_the_days_from_2008_09_18_to_2011_11_10`, `::test_vix_first_closes_above_35_inside_either_window_on_2008_09_17`, `::test_buy_on_gap_held_a_position_on_20_of_its_190_kept_days`, `::test_fstx_held_a_position_on_43_of_its_185_kept_days` and `::test_no_vix_close_sits_exactly_on_35` |
@@ -11147,9 +11149,9 @@ rule today.
 | 13 | none | none, not a replication | The 7 FSTX days after 2012-05-08 have no VIX close, so the join drops them. Under row 8's reading they would read 2012-05-08's close of 19.05, below 35, so none of them could qualify either way. |
 | 14 | none | none, not a replication | Buy on gap held nothing on 170 of its 190 qualifying days, so its filtered figures rest on 20 days of trading. No VIX close sits exactly on 35, so the strict test decides no day here, and `TestTheRules` holds it on synthetic closes. |
 | 15 | none | none, not a replication | The join leaves buy on gap's calendar unchanged, so its unfiltered figures are Entry 18's. It moves FSTX's to figures that print as 14 percent and 1.6, so location 3509's "around 13 percent and 1.4" is Example 7.1's full calendar, which Entry 40's rows 3 and 4 reproduce. The filtered and unfiltered FSTX figures therefore come from different calendars. |
-| 16 | none | none, not a replication | The two spans guard every day-over-day move the run reads except the one real move, which `tests/test_scale_breaks.py` pins. The guard sees only a move of 1.6 times or more, on any span. A rescale of 1.47 times would carry 23.81 past 35, so a rescale inside that blind band could move a day into the filter unseen, and a planted rescale of 1.48 times does. |
-| 17 | none | none, not a replication | Dropping the 48 days the CBOE did not trade moves the position on 11 joined days and on none of the qualifying days. On ten of them the open is set against the high or low of the joined day before, two sessions back, and that alone moves them. 2005-09-20 moves through the 90-day spread alone. The 7 days after 2012-05-08 come after every joined day, so dropping them moves nothing. So rows 3 and 4 cannot tell whether Chan filtered before or after running the rule. |
-| 18 | none | none, not a replication | Neither p is below 0.4, so on neither rule are the qualifying days' returns distinguishable from the other days' by this test. Chan prints no test, and the figures he prints are point estimates. |
+| 16 | none | none, not a replication | The two spans guard every day-over-day move the run reads from each window's first joined day on, except the one real move, which `tests/test_scale_breaks.py` pins. The guard sees only a move of more than 1.6 times, on any span. A rescale of 1.47 times would carry 23.81 past 35, so a rescale inside that blind band could move a day into the filter unseen, and a planted rescale of 1.48 times does. |
+| 17 | none | none, not a replication | Dropping the 48 days the CBOE did not trade moves the position on 11 joined days and on none of the qualifying days. On ten of them the open is set against the high or low of the joined day before, two sessions back, and that alone moves them. 2005-09-20 moves through the 90-day spread alone. The 7 days after 2012-05-08 come after every joined day, so dropping them moves nothing. So rows 3 and 4 cannot tell whether Chan joined the calendars before or after running the rule. |
+| 18 | none | none, not a replication | Neither p is below 0.4, so on neither rule is the qualifying days' mean return distinguishable from the other days' by this test. Chan prints no test, and the figures he prints are point estimates. |
 
 ### What the entry concludes
 
@@ -11169,16 +11171,17 @@ which `TestWhatThePostMeasured` in
    describes earns each day's return negated. On the joined calendar it gives
    −0.139950 as `252 · mean` over all 1,945 days and −0.025730 over the 185
    kept, so for it the kept days are the less bad ones, the reverse of the
-   fade. Row 18 tests the difference and finds none. Welch's t is −0.684181
+   fade. Row 18 tests the difference in mean return and finds it no larger
+   than chance would often produce. Welch's t is −0.684181
    for the fade, with p = 0.494679, treating each day as independent. So
    Chan's reading, that VIX above 35 tells the gap trader to stay out, rests
-   on point estimates this test cannot tell from noise for either sign. It is
-   exploratory and decides nothing.
-3. **One phrase names two formulas in one sentence.** The unfiltered
-   "annualized average return" of 8.7 percent is buy on gap's compounded APR,
-   as Entry 18 found, and the filtered 17.2 percent is the arithmetic
-   `252 · mean`, as rows 1 and 6 show. Reading the label alone would pin one
-   of them against the wrong formula.
+   on mean returns this test cannot tell from noise for either sign, and on
+   Sharpe ratios nothing here tests. It is exploratory and decides nothing.
+3. **One phrase names two formulas in two consecutive sentences.** The
+   unfiltered "annualized average return" of 8.7 percent is buy on gap's
+   compounded APR, as Entry 18 found, and the filtered 17.2 percent is the
+   arithmetic `252 · mean`, as rows 1 and 6 show. Reading the label alone
+   would pin one of them against the wrong formula.
 4. **The kept days are few and bunched.** Inside FSTX's window, from
    2004-07-16 to 2012-05-08, VIX closed above 35 on 190 days in 15 runs, the
    highest 80.86 on 2008-11-20. Buy on gap's kept days number 68, 83, 9 and
@@ -11187,9 +11190,11 @@ which `TestWhatThePostMeasured` in
    consecutive joined days, the longest from 2008-09-30 to 2009-04-17. Buy on
    gap's daily returns sum to 0.129625 over its kept days, and one day,
    2009-04-21, returned 0.093601 of it. Without that day the other 189 give
-   0.048032 and a Sharpe ratio of 0.855003. FSTX's sum to 0.018889 under the
-   fade and −0.018889 under momentum. `VIX.csv` also closes above 35 on 100
-   days before 2004-07-15, the first on 1990-08-06, so 2008-09-17 is the first
+   0.048032 and a Sharpe ratio of 0.855003, below the 0.069600 that
+   `252 · mean` gives over every day but that one, so without it the kept
+   days earn less than every day rather than more. FSTX's sum to 0.018889
+   under the fade and −0.018889 under momentum. `VIX.csv` also closes above
+   35 on 100 days before 2004-07-16, the first on 1990-08-06, so 2008-09-17 is the first
    close above 35 inside either window and not in the file. Measured after
    the run, so exploratory, and it decides nothing.
 
@@ -11204,8 +11209,14 @@ them, which cannot rule out a seventh alignment that also lands both.
 
 **Whether the filter guards either rule out of sample.** The threshold, the
 rules and the windows are Chan's, and every qualifying day falls between
-2008-09-18 and 2011-11-10. A registered test would fix the threshold and the
-alignment first and run them on data after 2012.
+2008-09-18 and 2011-11-10. A registered test would fix at least these
+choices in writing first and then run on data after 2012: the threshold, the
+alignment, `252 · mean`, each rule's own settings, the sign of FSTX's return
+line, the stocks buy on gap may choose from, the costs, the direction each
+rule's mean return should move on the qualifying days, and the test that compares the qualifying days
+with the rest, with the p below which it counts chosen for the two rules
+together, and the later data itself, meaning its first and last day, its
+source and the date it was saved.
 
 **What buy on gap earned on the index as it stood each day.** Every stock here
 was in the S&P 500 in late 2011, so Entry 18's caveat holds for the filtered
@@ -11214,7 +11225,27 @@ days too.
 **Whether VIX's 2007-02-27 print is clean.** The guard flags it, the move
 reads as real, and nothing here checks it against a second source. A wrong
 print would move a figure only if the true close were above 35, more than
-three times the 11.15 of the day before.
+three times the 11.15 of the day before. That answer covers one wrong close.
+A change of scale starting that day would move every later close instead,
+and the two spans leave that ratio out. Divided by 18.31 / 11.15 from that
+day on, the lowest close after it, 11.98 on 2007-04-16, would be 7.3, below
+every earlier close in the file, the lowest of which is 9.31 on 1993-12-22.
+Each rule would then keep the same 34 days, from 2008-10-09 to 2008-12-10,
+rather than 190 and 185. Buy on gap would hold a position on one of them,
+2008-12-09, and lose, giving −0.026449 against its 0.085279 on every day,
+and FSTX would give 0.419673 against its 0.139950 on every joined day, so
+both of Chan's comparisons would point the other way. Read the other way,
+with every close before that day too low by the same factor, the earlier
+closes would run from 15.29 to 75.11, so the lowest of them would be 15.3,
+above 11.98. Then 23.81 on 2006-06-13 would be 39.1 and 21.46 on 2006-06-14
+would be 35.2, so each rule would keep 2006-06-14 and 2006-06-15 too, and
+buy on gap would give 0.170133 on 192 days and FSTX 0.025455 on 187. Those
+print as 17.0 and 2.5 percent rather than the book's 17.2 and 2.6, and
+neither of Chan's comparisons would change direction. The two readings
+differ by 18.31 / 11.15 on every day, so nothing in `VIX.csv` can favour
+one over the other. Under either, the lowest close after the flag sits below
+every earlier close by the same proportion, and only a second source could
+say which level is right.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
@@ -11223,6 +11254,30 @@ since that post quotes most of these figures. So does its one figure, which
 `uv run python -m chan.vix_filter_figures` redraws, and the third open
 question of [blog/opening-gap-lessons.md](../blog/opening-gap-lessons.md),
 which points at the post.
+
+The post also carries two whiteboard sketches, one in Lesson 3 and one in
+Lesson 4, added in the first round of its review before publishing.
+
+1. **One US holiday, four readings**, after the paragraph on which readings
+   land the book's figures. It draws 2008-11-26 to 2008-11-28, with VIX's
+   closes of 54.92 and 55.28 either side of a US holiday with no close. The
+   join leaves the holiday off its calendar and keeps the Friday on the
+   Wednesday's close. The latest close and the forward fill keep both days
+   on that close. A row back keeps the holiday and drops the Friday.
+2. **What buy on gap’s kept days earned**, after the paragraph on how few
+   kept days were traded. It draws the 190 kept days, the 170 that held
+   nothing, and the 20 held days as bars to one scale, 8 gaining and 12
+   losing, with 2009-04-21's 0.093601 struck out and its share, 0.722090 of
+   the 0.129625 summed, beside the other 189 days' 0.048032 and Sharpe ratio
+   of 0.855003.
+
+Both read their figures from the committed files, and only their layouts are
+schematic. The second takes its figures from `vix_filters`. The first takes
+each day's read from `common_days`, `latest_close_before` and `qualifies`,
+which the run's readings are built on, since the run keeps only each
+reading's totals. A change to those figures moves the sketches too, and
+`uv run python -m chan.vix_filter_whiteboard` redraws both through the same
+`read_sources`.
 
 ## Entry 48: the low-beta rule at leverage a broker would lend, Chan's *Quantitative Trading*
 
