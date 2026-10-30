@@ -18,6 +18,7 @@ chosen after Entry 45's figures had been seen, and the standard error and the
 
 from __future__ import annotations
 
+import re
 from statistics import NormalDist
 
 import numpy as np
@@ -41,7 +42,7 @@ from chan.low_beta_leverage import build_portfolios, read_sources
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import GOOD, INK, LOST, MUTED
 from chan.vintage import VintageUnavailable
-from tests.test_low_beta_capped import AFTER_THE_RUN, spec
+from tests.test_low_beta_capped import AFTER_THE_RUN, POST, spec
 from tests.test_regime_figure import png_size
 
 CEILINGS = (2.0, 5.0)
@@ -446,6 +447,39 @@ class TestTheLabels:
                         & (xy[:, 1] <= box.y1)
                     )
                     assert not inside.any(), (ceiling, gid, line.get_gid())
+
+
+class TestThePost:
+    def test_the_alt_text_quotes_ceiling_2s_labels_and_the_title_in_order(
+        self, figure, axes
+    ) -> None:
+        """The alt text quotes the top panel's legend and labels and the figure's
+        title word for word, each label's line breaks read as spaces. So a
+        relabelled chart, a reworded quotation, or ceiling 5's figure quoted in
+        one of ceiling 2's labels fails here. The alt text's figures outside the
+        quoted labels, such as each panel's standard error, are read in place by
+        ``tests/test_low_beta_capped.py``'s ``test_the_prose_figures``."""
+        name = re.escape(LOW_BETA_CAPPED_FIGURE)
+        match = re.search(rf"!\[([^\]]+)\]\(\.\./docs/figures/{name}\)", POST.read_text("utf-8"))
+        assert match, POST
+        alt, at = match.group(1), 0
+        ax = axes[2.0]
+        handles, names = ax.get_legend_handles_labels()
+        legend = {h.get_gid(): n for h, n in zip(handles, names, strict=True)}
+        texts = _by_gid(ax.texts)
+        labels = [
+            legend["null"],
+            texts["line-label"].get_text(),
+            legend["alternative"],
+            texts["y-label"].get_text(),
+            legend["shaded"],
+            texts["estimate-label"].get_text(),
+            figure._suptitle.get_text(),
+        ]
+        for label in (" ".join(t.split()) for t in labels):
+            found = alt.find(f"“{label}”", at)
+            assert found >= 0, label
+            at = found + len(label) + 2
 
 
 class TestTheHelpers:

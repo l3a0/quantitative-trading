@@ -1,7 +1,9 @@
 """The pins for location 4709's low-beta rule at leverage a broker would lend. Exploratory.
 
 This file is the single authority for every number any prose surface quotes
-about [issue 516](https://github.com/l3a0/quantitative-trading/issues/516).
+about [issue 516](https://github.com/l3a0/quantitative-trading/issues/516),
+apart from the Entry 45 figures it reads unchanged, which
+``tests/test_low_beta_leverage.py`` pins.
 ``docs/replication-log.md`` Entry 48 carries the result and points here row by
 row.
 
@@ -15,7 +17,8 @@ and carried, with the ceiling, in every figure's failure message through
   ``load_panel``. ``spy_chan.csv``, the adjusted-close column of Chan's
   ``example6_2.xls``, chan-xls adjusted, saved 2008-01-29. FRED's TB3MS,
   downloaded 2026-09-30. The stock file is the S&P 500 as it stood on
-  2007-11-23, so every figure here is about survivors.
+  2007-11-23, carried backwards, so every figure here is about survivors,
+  apart from the earlier company's prices WYN, DFS and SE also carry.
 - **Specification.** :mod:`chan.low_beta_capped` as the issue's plan fixed it
   on 2026-10-11 before any capped number. Entry 45's portfolios unchanged,
   the low fifth levered by min(k, C) at the bill rate, d against the unlevered
@@ -40,6 +43,7 @@ from __future__ import annotations
 
 import math
 import re
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -78,21 +82,25 @@ from chan.low_beta_leverage import (
     UnreadableStandardError,
     build_portfolios,
     growth,
+    kelly,
     read_sources,
     realised_beta,
     ruined_months,
     ruinous_leverage,
 )
 from chan.pca_factor_momentum import one_sided_p
+from chan.series import SCALE_BREAK_BOUND, scale_breaks
 from chan.vintage import VintageUnavailable
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "capped-low-beta-lessons.md"
 
 SPEC = (
     "spx_20071123/ chan-mat adjusted saved 2007-11-24 against spy_chan.csv chan-xls adjusted "
     "saved 2008-01-29 and TB3MS dl 2026-09-30, Entry 45's portfolios unchanged, low fifth "
     "levered by min(k, C) at the bill, d against the unlevered high fifth December 2000 to "
     "October 2007, Newey-West default lag, Benjamini-Hochberg 0.05 across ceilings 2 and 5 in "
-    "each direction, planned 2026-10-11 before any capped number, exploratory, survivors only, "
-    "not a holdout"
+    "each direction, planned 2026-10-11 before any capped number, exploratory, built from "
+    "survivors, not a holdout"
 )
 
 
@@ -271,8 +279,18 @@ class TestTheRun:
             f"{realised_beta(portfolios.high, portfolios):.4f}"
         ) in out
         assert "quite wary of using too much leverage on normally low-beta stocks" in out
-        for label in ("Exploratory.", "Survivor-only.", "Not a holdout.", "bill rate flatters"):
+        for label in ("Exploratory.", "Not a holdout.", "bill rate flatters"):
             assert label in out
+        assert (
+            "  2. Built from survivors. The panel holds the stocks in the index on 2007-11-23, "
+            "carried backwards, so it counts each stock that joined\n"
+            "  after November 1999 for the years it traded before it joined, and WYN, DFS and SE "
+            "also carry an earlier company's prices.\n"
+        ) in out
+        assert (
+            "  3. Not a holdout. The years 2000 to 2007 were past prices by the time the book "
+            "printed the claim.\n"
+        ) in out
         assert (
             "1. Exploratory. Entry 45's calendar, its leverage path, the ruin, eight months of "
             "both groups' returns and its side figures,"
@@ -362,6 +380,304 @@ class TestWhatThePostMeasured:
             "2002-07-31",
         ), f"{SPEC}; {AFTER_THE_RUN}"
         assert max(CEILINGS) < needed.min()
+
+    def test_wyn_dfs_and_se_carry_an_earlier_company_into_36_holding_months(
+        self, sources, portfolios: Portfolios
+    ) -> None:
+        """Each symbol holds two companies, split by more than a year with no close.
+
+        ``data/README.md`` names WYN and DFS. SE's closes stop on 2005-11-09
+        and start again on 2007-01-03, the day Spectra Energy began
+        regular-way trading after Duke Energy spun it off, so the closes before
+        the gap are another company's. Their ratio across the gap, 0.7638, is
+        within the scale-break check's bound of 1.6 either way, so
+        :func:`chan.series.scale_breaks` does not catch it, as Entry 48 says.
+        A holding month counts when any of the three sits in either fifth
+        before its gap. None of them sits in a fifth after its restart. October
+        2001 holds both SE and WYN, and 2002-08 and 2002-09 hold both WYN and
+        DFS.
+        """
+        _, closes, _, _, _, _ = sources
+        for symbol, (end, restart) in EARLIER_COMPANIES.items():
+            held = closes[symbol].dropna().index
+            longest = int((held[1:] - held[:-1]).argmax())
+            assert (held[longest], held[longest + 1]) == (end, restart), symbol
+        se = closes["SE"].dropna()
+        end, restart = EARLIER_COMPANIES["SE"]
+        assert round(float(se[restart] / se[end]), 4) == 0.7638, f"{SPEC}; {AFTER_THE_RUN}"
+        assert round(math.exp(SCALE_BREAK_BOUND), 4) == 1.6
+        assert scale_breaks(se) == []
+        later = {
+            held_to
+            for held_to, low, high in zip(
+                portfolios.held_to, portfolios.low_members, portfolios.high_members, strict=True
+            )
+            for symbol, (_, restart) in EARLIER_COMPANIES.items()
+            if held_to >= restart and (symbol in low or symbol in high)
+        }
+        assert later == set()
+        both = {
+            held_to
+            for held_to, low, high in zip(
+                portfolios.held_to, portfolios.low_members, portfolios.high_members, strict=True
+            )
+            if sum(s in low or s in high for s in EARLIER_COMPANIES) > 1
+        }
+        assert both == {pd.Timestamp(d) for d in ("2001-10-31", "2002-08-30", "2002-09-30")}
+        months = earlier_company_months(portfolios)
+        assert (len(months), len(portfolios.held_to)) == (36, 83), f"{SPEC}; {AFTER_THE_RUN}"
+
+
+class TestThePostQuotesTheRun:
+    """The figures ``blog/capped-low-beta-lessons.md`` takes from the run, read from the post.
+
+    The tests above derive these numbers and the post states them, so before
+    this class a typo in the post passed every test. In round 1 of the post's
+    review, a mutation run changed every figure in the post, and no test
+    failed. Each assertion formats the run's own value at the post's precision,
+    so a re-pin that leaves the post behind fails here too.
+
+    The first four tests read one copy of each figure in the place it sits,
+    so they also catch a figure moved to another figure's place. The second
+    also reads the subtitle's two leads and the chart alt text's figures for
+    each panel outside its quoted labels, including the 20 capped months. The
+    fourth
+    reads the dates: the file's last day and first month, the years its
+    earlier companies' prices end, Entry 45's two ruined months, and the first
+    and last of the eight sorts whose returns Entry 45 had shown. The last
+    reads every figure in the post written with a decimal point, every copy,
+    and holds that each is one the run computes or one of the constants listed
+    below. That covers the subtitle, the lessons' list, the trader's habits
+    and both alt texts, and it catches a copy that gains or drops a digit. It
+    does not hold where a figure from the run sits, and it does not read a
+    figure written as a whole number or in words, such as Lesson 3's
+    eighty-three months.
+
+    Chan's quotations and Kindle pages and the plan's date are not figures from
+    the run. The last test also accepts these decimal figures from outside the
+    run. It accepts 0.8416 and 1.645 anywhere. It accepts each of the others
+    only in the phrases where the post uses it, and fails when one of those
+    phrases is missing or the constant appears anywhere else.
+
+    - 0.8416 and 1.645, which :data:`chan.low_beta_leverage.POWER` and
+      :data:`chan.low_beta_leverage.CRITICAL` name.
+    - 0.05, which :data:`chan.low_beta_capped.FALSE_DISCOVERY` names, with
+      half of it, 0.025, and 1 minus it, 0.95. The post also uses 0.05 as an
+      example of a month's return.
+    - 0.0975, which is 1 − 0.95², in both its copies.
+    - 0.20, the margin whose leverage is the higher ceiling, 5.
+    - 0.04, Lesson 4's example p-value.
+    - −0.4 and 0.8, the chart's outer tick labels, where the alt text gives
+      its axis.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_two_tables(self, outcomes) -> None:
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        june = pd.Timestamp("2001-06-29")
+
+        def row(label: str, a: float, b: float, digits: int = 4) -> str:
+            return f"{label} & {a:.{digits}f} & {b:.{digits}f}"
+
+        rows = [
+            row(r"\text{Mean leverage}", two.mean_leverage, five.mean_leverage),
+            row(r"\text{Months capped}", two.binds, five.binds, 0),
+            row(
+                r"\text{June 2001}",
+                float(two.portfolios.levered.loc[june]),
+                float(five.portfolios.levered.loc[june]),
+            ),
+            row(r"\text{July 2002, the worst month}", two.worst().capped, five.worst().capped),
+            row(r"\text{Growth a year}", two.realised_growth, five.realised_growth),
+            row(r"\text{Gap a year}", two.gap, five.gap),
+            row(r"\text{Newey-West } t", two.t, five.t),
+            row(r"\text{One-sided } p", two.p_claim, five.p_claim),
+            row("Y", two.detectable, five.detectable),
+        ]
+        assert [r for r in rows if r not in self.text] == [], SPEC
+
+    def test_the_prose_figures(self, outcomes, portfolios: Portfolios) -> None:
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        assert all(
+            0 < c.gap < five_percent_line(c) and 2 * c.gap < c.detectable for c in (two, five)
+        ), SPEC
+        worst = two.worst()
+        se_two, se_five = yearly_standard_error(two), yearly_standard_error(five)
+        words = ("no", "one", "two", "three", "four", "five", "six")
+        assert two.binds == two.months, SPEC
+        fragments = [
+            f"It led by {two.gap:.4f} and {five.gap:.4f} a year in compounded growth",
+            f"The top chart is a ceiling of 2, a constant leverage of {two.mean_leverage:g}, "
+            f"with a standard error of {se_two:.4f} a year.",
+            f"The bottom chart is a ceiling of 5, a mean leverage of {five.mean_leverage:.4f} "
+            f"capped in {five.binds} of {five.months} months, with a standard error of "
+            f"{se_five:.4f} a year.",
+            f"The dashed line sits further right at {five_percent_line(five):.4f}, the black "
+            f"curve is centred on Y at {five.detectable:.4f}, and the red diamond sits at "
+            f"{five.gap:.4f} with a t of {five.t:.4f}, again left of the line.",
+            f"which gives {two.months} holding months from {portfolios.held_to[0]:%B %Y} to "
+            f"{portfolios.held_to[-1]:%B %Y}.",
+            f"correlated with the d of the {words[two.lag]} months before it",
+            f"The match never fell below {two.k.min():.4f}",
+            f"realised betas were {two.realised_beta:.4f} at a ceiling of 2 and "
+            f"{five.realised_beta:.4f} at 5",
+            f"whose portfolios were formed on {worst.formed.date()}",
+            f"{five.binds} of the {five.months} months at 5, so the beta match set the leverage "
+            f"in the other {int((five.k <= 5.0).sum())}",
+            f"The Newey-West standard error of the yearly gap is {se_two:.4f} at a ceiling of 2 "
+            f"and {se_five:.4f} at 5",
+            f"puts the 5 percent line at {five_percent_line(two):.4f} at a ceiling of 2 and "
+            f"{five_percent_line(five):.4f} at 5",
+            "Both point estimates fall short of their line.",
+            "Each point estimate is under half of its own Y.",
+            "each point estimate was under half of its Y",
+            outcomes[2.0].line(),
+            f"the gap rose from {two.gap:.4f} to {five.gap:.4f}, about "
+            f"{five.gap / two.gap:.2f} times",
+            f"Its standard error rose from {se_two:.4f} to {se_five:.4f}, about "
+            f"{se_five / se_two:.2f} times",
+            f"Against the claim they are {two.p_contrary:.4f} and {five.p_contrary:.4f}",
+            f"At a ceiling of 2 it is {break_even_spread(two.portfolios):.4f} a year, and at a "
+            f"ceiling of 5 it is {break_even_spread(five.portfolios):.4f}",
+            f"The lead at 5 is about {five.gap / two.gap:.2f} times the lead at 2, but the "
+            f"portfolio at 5 borrows about "
+            f"{(five.mean_leverage - 1) / (two.mean_leverage - 1):.2f} times as much",
+            f"It borrows a mean of {five.mean_leverage - 1:.4f} for each unit of capital, one "
+            f"less than its mean leverage of {five.mean_leverage:.4f}",
+            f"Those earlier prices sit in one of the two fifths in "
+            f"{len(earlier_company_months(portfolios))} of the {len(portfolios.held_to)} months "
+            f"the portfolios were held.",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+    def test_entry_45s_figures(self, portfolios: Portfolios) -> None:
+        june = pd.Timestamp("2001-06-29")
+        needed = ruinous_leverage(portfolios.low, portfolios.rf)
+        fragments = [
+            f"so the [match asked for leverages up to {portfolios.leverage.max():.4f}]",
+            f"At a leverage of {portfolios.leverage.loc[june]:.4f}, the [levered portfolio",
+            f"the low fifth compounded at {growth(portfolios.low):.4f} a year against the high "
+            f"fifth’s {growth(portfolios.high):.4f}",
+            f"was {kelly(portfolios).leverage:.4f}.",
+            f"against the high fifth’s {realised_beta(portfolios.high, portfolios):.4f}",
+            f"June 2001 returned {minus(float(portfolios.levered.loc[june]))} at a leverage of "
+            f"{portfolios.leverage.loc[june]:.4f}",
+            f"Across all {len(needed)} months the smallest is {needed.min():.4f}, for "
+            f"{needed.idxmin():%B %Y}, "
+            f"when the low fifth returned {minus(float(portfolios.low.min()))}, its worst month",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+    def test_the_dates(self, sources, portfolios: Portfolios) -> None:
+        """The dates the post takes from the file and from Entry 45's run."""
+        _, closes, _, _, _, _ = sources
+        ruins = ruined_months(portfolios)
+        assert len(ruins) == 2, SPEC
+        assert EARLIER_COMPANIES["DFS"][0].year == EARLIER_COMPANIES["SE"][0].year
+        fragments = [
+            f"in the S&P 500 on {closes.index[-1].date()}, with their prices back to "
+            f"{closes.index[0]:%B %Y}",
+            f"up to {EARLIER_COMPANIES['WYN'][0].year} for WYN and "
+            f"{EARLIER_COMPANIES['DFS'][0].year} for the other two",
+            f"lost more than its capital in {ruins[0].held_to:%B %Y}](",
+            f"for [{ruins[0].held_to:%B} and {ruins[1].held_to:%B %Y}](",
+            f"for the eight months held after the sorts from {portfolios.formed[0].date()} to "
+            f"{portfolios.formed[7].date()}",
+        ]
+        assert [f for f in fragments if f not in self.text] == [], SPEC
+
+    def test_every_decimal_figure_is_one_the_run_computes(
+        self, outcomes, portfolios: Portfolios
+    ) -> None:
+        june = pd.Timestamp("2001-06-29")
+        values = [POWER]
+        for c in (o.capped for o in outcomes.values()):
+            values += [
+                c.gap,
+                c.t,
+                c.p_claim,
+                c.p_contrary,
+                c.detectable,
+                c.realised_growth,
+                c.mean_leverage,
+                c.mean_leverage - 1,
+                c.realised_beta,
+                c.worst().capped,
+                float(c.portfolios.levered.loc[june]),
+                yearly_standard_error(c),
+                five_percent_line(c),
+                break_even_spread(c.portfolios),
+            ]
+        values += [
+            portfolios.leverage.max(),
+            portfolios.leverage.loc[june],
+            float(portfolios.levered.loc[june]),
+            growth(portfolios.low),
+            growth(portfolios.high),
+            kelly(portfolios).leverage,
+            realised_beta(portfolios.high, portfolios),
+            ruinous_leverage(portfolios.low, portfolios.rf).min(),
+            float(portfolios.low.min()),
+            outcomes[2.0].capped.k.min(),
+        ]
+        two, five = outcomes[2.0].capped, outcomes[5.0].capped
+        computed = {f"{abs(v):.4f}" for v in values} | {
+            f"{five.gap / two.gap:.2f}",
+            f"{yearly_standard_error(five) / yearly_standard_error(two):.2f}",
+            f"{(five.mean_leverage - 1) / (two.mean_leverage - 1):.2f}",
+            f"{CRITICAL}",
+        }
+        # The constants from outside the run, each accepted only where the post uses it.
+        rate, half, ceiling = FALSE_DISCOVERY, FALSE_DISCOVERY / 2, max(CEILINGS)
+        constants = [
+            "a month returning 0.05 gained 5 percent",
+            f"a leverage of 1 / {1 / ceiling:.2f}, or {ceiling:.0f}.",
+            f"the chance is 1 − {1 - rate}², or {1 - (1 - rate) ** 2:.4f}.",
+            f"their chance sits below {1 - (1 - rate) ** 2:.4f}.",
+            f"at most i/m × {rate}.",
+            f"both pass when both p-values are at most {rate}.",
+            f"only if it is at most {half}.",
+            f"Both are above {rate}, and the smaller is above {half},",
+            f"Both p-values are above {rate}, so",
+            "come in at a p-value of 0.04 beside",
+            f"If the other ceiling’s p-value is above {rate},",
+            f"must then be at most {half}.",
+            "running from −0.4 to 0.8.",
+        ]
+        rest = self.text
+        for fragment in constants:
+            assert fragment in rest, fragment
+            rest = rest.replace(fragment, " ")
+        quoted = re.findall(r"(?<![\d.])\d+\.\d+(?!\d)", rest)
+        assert quoted, POST
+        assert [q for q in quoted if q not in computed] == [], SPEC
+
+
+def minus(x: float) -> str:
+    """A negative figure as the post prints it, with a typographic minus sign."""
+    return f"{x:.4f}".replace("-", "\u2212")
+
+
+#: The symbols in Chan's file that carry an earlier company's closes before a
+#: gap of more than a year, with the last close before the gap and the restart.
+EARLIER_COMPANIES = {
+    "WYN": (pd.Timestamp("2002-10-18"), pd.Timestamp("2006-08-01")),
+    "DFS": (pd.Timestamp("2005-11-25"), pd.Timestamp("2007-07-02")),
+    "SE": (pd.Timestamp("2005-11-09"), pd.Timestamp("2007-01-03")),
+}
+
+
+def earlier_company_months(portfolios: Portfolios) -> set[pd.Timestamp]:
+    """The holding months with an earlier company's closes in either fifth."""
+    return {
+        held_to
+        for held_to, low, high in zip(
+            portfolios.held_to, portfolios.low_members, portfolios.high_members, strict=True
+        )
+        for symbol, (end, _) in EARLIER_COMPANIES.items()
+        if held_to <= end and (symbol in low or symbol in high)
+    }
 
 
 # --- the rules, on portfolios built by hand ------------------------------------
