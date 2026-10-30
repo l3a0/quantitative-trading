@@ -1,15 +1,19 @@
 """Pins for Chan's Examples 8.1 and 8.2, constant leverage and capped Kelly allocation.
 
-This file is the single authority for every number a prose surface quotes
-about these examples. The one exception is
-``blog/capped-kelly-allocation-lessons.md``:
+This file is the single authority for every number a prose surface quotes about
+these examples. The one exception is
+``blog/capped-kelly-allocation-lessons.md``.
 ``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
-and README lists what it says that nothing asserts. Every other figure the post
-quotes is pinned here, and :class:`TestBesideTheClaim`,
+``tests/test_kelly_allocation_whiteboard.py`` holds the words its two sketches
+print and their alt texts quote, and README lists what it says that nothing
+asserts. Every other figure the post quotes is pinned here.
+:class:`TestTheCorner`, :class:`TestBesideTheClaim`,
 :class:`TestWhereTheCornerStopsWinning` and :class:`TestTheLongOnlyLimit` hold
-the ones the entry's thirteen rows do not. ``docs/replication-log.md`` Entry 20
-states its numbers and derives none of them, and
-``src/chan/kelly_allocation.py`` carries the reasoning.
+the ones the entry's thirteen rows do not, the slope and the corner's margin
+over the proportional split among them. :class:`TestWhatThePostSays` reads one
+copy of each from the post itself. ``docs/replication-log.md`` Entry 20 states
+its numbers and derives none of them, and ``src/chan/kelly_allocation.py``
+carries the reasoning.
 
 Every pin names its specification, because a number alone does not say which
 of several plausible formulas produced it. Unless a class says otherwise, that
@@ -26,6 +30,8 @@ assertion carries the replication and which carries the specification.
 from __future__ import annotations
 
 import dataclasses
+import math
+import re
 from decimal import ROUND_HALF_DOWN, ROUND_HALF_EVEN, ROUND_HALF_UP, Decimal
 from fractions import Fraction
 
@@ -47,12 +53,16 @@ from chan.kelly_allocation import (
     corner_threshold,
     covariance,
     growth_rate,
+    growth_terms,
     kelly_leverages,
     main,
     proportional_cap,
     report,
     segment_stationary_point,
+    unbounded_allocation_at_cap,
 )
+from chan.kelly_allocation_figures import BEYOND_CAP
+from chan.paths import REPO_ROOT
 
 
 @pytest.fixture(scope="module")
@@ -66,8 +76,9 @@ def kelly(cov):
 
 
 def _book(value: float, places: int) -> str:
-    """Round half up from the true value. Only row 10 sits on a tie, and there
-    half to even gives the same digit, so the choice of rule moves nothing."""
+    """Round half up from the true value. No value this file passes in sits on
+    a tie, so half to even would give the same digits. Row 10's tie is held in
+    :class:`TestTheCorner`."""
     quantum = Decimal(1).scaleb(-places)
     return str(Decimal(repr(float(value))).quantize(quantum, rounding=ROUND_HALF_UP))
 
@@ -253,10 +264,29 @@ class TestTheCorner:
         assert (f1, f2) == pytest.approx((0.0, MAX_LEVERAGE), abs=1e-9)
         assert g == pytest.approx(0.955, abs=1e-12)
 
+    @pytest.mark.parametrize("correlation", (-1.0, -0.5, 0.0, 0.5, 0.95, 1.0))
+    def test_no_correlation_makes_a_short_pay_at_a_cap_of_two(self, correlation) -> None:
+        """Chan's means and volatilities at his cap of 2, with the correlation
+        varied. A short never beats the best long-only allocation, so the hedge in
+        :class:`TestTheLongOnlyLimit` needs its other inputs too, not only the
+        correlation of 0.95."""
+        varied = covariance(VOLS, correlation)
+        assert varied[0, 1] == pytest.approx(correlation * VOLS[0] * VOLS[1], abs=1e-15)
+        g, f1, f2 = _gross_boundary_grid(MEANS, varied, MAX_LEVERAGE, points=4_001)
+        assert f1 >= 0.0 and f2 >= 0.0
+        assert g == pytest.approx(
+            best_allocation_at_cap(MEANS, varied, MAX_LEVERAGE).growth, abs=1e-5
+        )
+
     def test_the_slope_along_the_line_is_positive_up_to_the_cap(self, cov) -> None:
         """Along ``F1 = 2 - F2`` the growth rate is a parabola, so its slope is a
         line in F2: 0.4352 at F2 = 0, falling by 0.1901 per unit. It is still
-        positive at F2 = 2, which is why the peak is the corner."""
+        positive at F2 = 2, which is why the peak is the corner.
+
+        ``blog/capped-kelly-allocation-lessons.md`` names the parts. The 0.4352
+        is strategy 2's extra mean of 0.30 plus the drag shed off strategy 1,
+        0.1352, its variance of 0.0676 times its leverage of 2. The 0.1901 is
+        the two variances, 0.0676 and 0.1225, added together."""
 
         def slope(f2: float, h: float = 1e-6) -> float:
             up = growth_rate((MAX_LEVERAGE - f2 - h, f2 + h), MEANS, cov)
@@ -266,6 +296,12 @@ class TestTheCorner:
         assert slope(0.0) == pytest.approx(0.4352, abs=1e-8)
         assert slope(1.0) - slope(0.0) == pytest.approx(-0.1901, abs=1e-8)
         assert slope(MAX_LEVERAGE) == pytest.approx(0.0550, abs=1e-8)
+        c11, c22 = cov[0, 0], cov[1, 1]
+        assert round(MEANS[1] - MEANS[0], 6) == 0.30
+        assert (round(c11, 6), round(c22, 6)) == (0.0676, 0.1225)
+        assert round(c11 * MAX_LEVERAGE, 6) == 0.1352
+        assert slope(0.0) == pytest.approx(MEANS[1] - MEANS[0] + c11 * MAX_LEVERAGE, abs=1e-8)
+        assert slope(1.0) - slope(0.0) == pytest.approx(-(c11 + c22), abs=1e-8)
 
     def test_the_growth_rate_is_exactly_a_tie(self, cov) -> None:
         g = best_allocation_at_cap(MEANS, cov).growth
@@ -290,7 +326,7 @@ class TestTheCorner:
         assert f"{g:.3f}" == "0.955"
 
     def test_the_corner_beats_the_proportional_allocation(self, cov, kelly) -> None:
-        """Chan's claim, which is what row 8's verdict rests on."""
+        """Chan's claim, which is what row 10's verdict rests on."""
         corner = best_allocation_at_cap(MEANS, cov).growth
         proportional = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
         assert corner - proportional == pytest.approx(0.138202, abs=5e-7)
@@ -309,6 +345,11 @@ class TestTheNearMisses:
         assert growth_rate(line, MEANS, cov) == pytest.approx(0.962956, abs=5e-7)
         assert abs(line[0]) + abs(line[1]) == pytest.approx(2.578643, abs=5e-7)
         assert growth_rate(line, MEANS, cov) > best_allocation_at_cap(MEANS, cov).growth
+        peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        assert unbounded_allocation_at_cap(MEANS, cov) == peak
+        assert peak.leverages == line
+        assert peak.growth == growth_rate(line, MEANS, cov)
+        assert peak.gross == pytest.approx(2.578643, abs=5e-7)
 
     def test_reading_location_3319_literally_gives_0_676(self, kelly) -> None:
         """The recovered text reads ``f2m2/2``. With the mean in place of the
@@ -372,6 +413,29 @@ class TestWhereTheCornerStopsWinning:
         assert _book(share(total), 3) == "0.525"
         assert all(share(cap) > 0.5 for cap in np.linspace(0.01, total, 1_000))
 
+    def test_spending_the_whole_cap_stays_best_up_to_the_kelly_gross(self, cov, kelly) -> None:
+        """Leaving part of the cap unspent beats every split of the whole cap only
+        once the cap passes the gross of the best long-only allocation with no cap.
+        On these inputs that is the Kelly pair. Up to its total, the split is the
+        best on the line, where the slope along it is zero or, at the corner, still
+        rising. Adding leverage to either strategy there still raises the growth
+        rate, ``M - CF`` has no negative part, and the growth rate is concave, so no
+        allocation with less gross beats the split. Lesson 6's case is where a part
+        turns negative, at its cap of 4."""
+        total = float(np.abs(kelly).sum())
+        for cap in np.linspace(0.5, total, 60):
+            f1, f2 = best_allocation_at_cap(MEANS, cov, float(cap)).leverages
+            gradient = np.asarray(MEANS) - cov @ np.array([f1, f2])
+            slope = gradient[1] - gradient[0]
+            if f2 == cap:
+                assert slope >= -1e-12
+            else:
+                assert 0.0 < f2 and slope == pytest.approx(0.0, abs=1e-12)
+            assert gradient.min() >= -1e-12
+        case = TestTheLongOnlyLimit()
+        whole = np.array(best_allocation_at_cap(case.MEANS, case.COV, case.CAP).leverages)
+        assert (np.asarray(case.MEANS) - case.COV @ whole).min() < 0.0
+
 
 class TestTheKellyGrowthRate:
     """Equation 8.3, whose printed value the highlights did not capture."""
@@ -412,6 +476,22 @@ class TestCorrelatedStrategies:
         det = c11 * c22 - c12**2
         expected = ((c22 * 0.30 - c12 * 0.60) / det, (c11 * 0.60 - c12 * 0.30) / det)
         assert tuple(kelly_leverages(self.MEANS, self.COV)) == pytest.approx(expected, abs=1e-12)
+
+    def test_the_two_terms_are_the_return_and_half_the_variance(self) -> None:
+        """:func:`growth_terms` is the one place the formula is written, so it is
+        held here to the arithmetic by hand, cross term included, and
+        :func:`growth_rate` to the risk-free rate plus their difference."""
+        (c11, c12), (_, c22) = self.COV
+        f1, f2 = 0.7, 1.3
+        ret, drag = growth_terms((f1, f2), self.MEANS, self.COV)
+        assert ret == pytest.approx(f1 * 0.30 + f2 * 0.60, abs=1e-15)
+        assert drag == pytest.approx(
+            (f1 * f1 * c11 + 2 * f1 * f2 * c12 + f2 * f2 * c22) / 2, abs=1e-15
+        )
+        for r in (0.0, 0.04):
+            assert growth_rate((f1, f2), self.MEANS, self.COV, r) == pytest.approx(
+                r + ret - drag, abs=1e-15
+            )
 
     def test_the_growth_rate_carries_the_cross_term(self) -> None:
         f = (1.0, 1.0)
@@ -465,11 +545,10 @@ class TestTheLongOnlyLimit:
         return (f2 - self.CAP, f2)
 
     def _return(self, leverages) -> float:
-        return float(np.asarray(leverages, dtype=float) @ np.asarray(self.MEANS))
+        return growth_terms(leverages, self.MEANS, self.COV)[0]
 
     def _drag(self, leverages) -> float:
-        f = np.asarray(leverages, dtype=float)
-        return float(f @ self.COV @ f / 2.0)
+        return growth_terms(leverages, self.MEANS, self.COV)[1]
 
     def test_the_whole_cap_on_strategy_two(self) -> None:
         best = best_allocation_at_cap(self.MEANS, self.COV, self.CAP)
@@ -537,6 +616,47 @@ class TestTheLongOnlyLimit:
         assert on_the_short + displaced == pytest.approx(given_up, abs=1e-12)
         assert saved > given_up
 
+    def test_the_drag_falls_in_two_steps_and_the_short_earns_most_of_the_lead(self) -> None:
+        """The two changes one at a time, the displaced long first, so the gross
+        never passes the cap. Cutting the long nets almost nothing, and the
+        short, through the correlation, earns most of the hedge's lead over the
+        whole cap. Taking the short first passes through a gross of 5, and there
+        the short earns more than the whole lead, so "most" holds in either order.
+
+        "Barely more" is read as a net under 5 percent of the return given up,
+        and the run's net is 4.96 percent. "About half" is read as within 0.05
+        of one half, and the run cancels 0.524.
+        """
+        hedge, corner = self._hedge(), (0.0, self.CAP)
+        cut = (0.0, hedge[1])
+        long_saves = self._drag(corner) - self._drag(cut)
+        long_gives_up = self._return(corner) - self._return(cut)
+        short_saves = self._drag(cut) - self._drag(hedge)
+        short_gives_up = self._return(cut) - self._return(hedge)
+        assert long_saves == pytest.approx(0.315769, abs=5e-7)
+        assert short_saves == pytest.approx(0.211730, abs=5e-7)
+        assert long_gives_up == pytest.approx(0.300855, abs=5e-7)
+        assert short_gives_up == pytest.approx(0.050142, abs=5e-7)
+        assert 0.0 < long_saves - long_gives_up < 0.05 * long_gives_up
+
+        def g(leverages) -> float:
+            return growth_rate(leverages, self.MEANS, self.COV)
+
+        lead = g(hedge) - g(corner)
+        short_first = (hedge[0], self.CAP)
+        assert cut[1] < self.CAP
+        assert round(abs(short_first[0]) + short_first[1]) == 5
+        assert g(hedge) - g(cut) > lead / 2
+        assert g(short_first) - g(corner) > lead
+        h, f2 = np.asarray(hedge), hedge[1]
+        cancelled = 1.0 - (h @ self.COV @ h) / (f2 * f2 * self.COV[1, 1])
+        assert abs(cancelled - 0.5) < 0.05
+        assert round(100 * (long_saves - long_gives_up) / long_gives_up, 2) == 4.96
+        assert round(cancelled, 3) == 0.524
+        uncorrelated = covariance((0.30, 0.30), 0.0)
+        no_hedge = growth_terms(cut, self.MEANS, uncorrelated)[1]
+        assert growth_terms(hedge, self.MEANS, uncorrelated)[1] > no_hedge
+
 
 class TestTheInputsAreChecked:
     def test_the_capped_search_takes_two_strategies(self) -> None:
@@ -553,15 +673,18 @@ class TestTheInputsAreChecked:
             segment_stationary_point((0.3, 0.3), covariance((0.2, 0.2), 1.0), 2.0)
 
     def test_a_threshold_needs_strategy_two_to_carry_its_own_risk(self) -> None:
-        with pytest.raises(ValueError, match="no largest cap"):
+        with pytest.raises(ValueError, match="variance does not exceed its covariance"):
             corner_threshold((0.3, 0.6), covariance((0.2, 0.2), 1.0))
-        with pytest.raises(ValueError, match="no largest cap"):
+        with pytest.raises(ValueError, match="variance does not exceed its covariance"):
             corner_threshold((0.3, 0.6), covariance((0.4, 0.2), 0.9))
 
     def test_a_threshold_needs_strategy_two_to_have_the_higher_mean(self) -> None:
-        """With the means swapped the formula gives -2.448980, a cap nothing can be."""
-        with pytest.raises(ValueError, match="not above"):
+        """With the means swapped the formula gives -2.448980, a cap nothing can be.
+        With them equal it gives 0, which is no cap either."""
+        with pytest.raises(ValueError, match="not above .* so the formula names no largest cap"):
             corner_threshold((0.60, 0.30), covariance(VOLS))
+        with pytest.raises(ValueError, match="not above .* so the formula names no largest cap"):
+            corner_threshold((0.30, 0.30), covariance(VOLS))
 
     def test_a_cap_below_zero_is_refused(self) -> None:
         with pytest.raises(ValueError, match="below zero"):
@@ -578,19 +701,19 @@ class TestBesideTheClaim:
 
     ``blog/capped-kelly-allocation-lessons.md`` splits the growth rate into
     its two terms, the return ``F'M`` and the drag ``F'CF / 2``, to say why
-    the corner beats the proportional split. Each term is computed here from
-    the run's own leverages and covariance, and each pair is held to
-    :func:`growth_rate`, so a split that stopped adding up fails too.
+    the corner beats the proportional split. Each term comes from
+    :func:`growth_terms` at the run's own leverages and covariance, and each
+    pair is held to :func:`growth_rate`, so a split that stopped adding up
+    fails too.
     """
 
     @staticmethod
     def _return(leverages) -> float:
-        return float(np.asarray(leverages, dtype=float) @ np.asarray(MEANS))
+        return growth_terms(leverages, MEANS, covariance(VOLS, CORRELATION))[0]
 
     @staticmethod
     def _drag(leverages, cov) -> float:
-        f = np.asarray(leverages, dtype=float)
-        return float(f @ cov @ f / 2.0)
+        return growth_terms(leverages, MEANS, cov)[1]
 
     def _split(self, leverages, cov) -> tuple[float, float]:
         ret, drag = self._return(leverages), self._drag(leverages, cov)
@@ -698,8 +821,7 @@ class TestTheReportSaysWhatItComputed:
             for row in capsys.readouterr().out.splitlines()
             if "growth rate, everything on strategy 2" in row
         )
-        assert "0.955" in line
-        assert line.rstrip().endswith("0.96")
+        assert line.split()[-2:] == ["0.955", "0.96"]
 
     def test_the_curve_rises_to_the_corner(self, capsys) -> None:
         report()
@@ -720,3 +842,423 @@ class TestTheReportSaysWhatItComputed:
         monkeypatch.setattr("sys.argv", ["kelly_allocation", "--cap", "3"])
         with pytest.raises(SystemExit):
             main()
+
+
+# ============================================================
+# The post, read against the run
+# ============================================================
+
+POST = REPO_ROOT / "blog" / "capped-kelly-allocation-lessons.md"
+
+
+def _cell(latex: str) -> str:
+    """A table cell as the reader sees it, so ``\\text{sell } 40\\text{K}`` is
+    ``sell 40K`` and ``490{,}000`` is ``490,000``."""
+    text = re.sub(r"\\text\{([^}]*)\}", r"\1", latex).replace("{,}", ",")
+    return " ".join(text.replace("{", "").replace("}", "").split())
+
+
+def _table(text: str, header: str) -> dict[str, list[list[str]]]:
+    """The one ``array`` block holding ``header``, its rows keyed by their first
+    cell. A label used twice, as Example 8.1's "Trade back to 5" is, maps to
+    each of its rows in order."""
+    bodies = re.findall(r"\\begin\{array\}\{[^}]*\}(.*?)\\end\{array\}", text, re.S)
+    (body,) = [found for found in bodies if header in found]
+    table: dict[str, list[list[str]]] = {}
+    for line in body.split("\\\\"):
+        cells = [_cell(cell) for cell in line.replace("\\hline", "").split("&")]
+        table.setdefault(cells[0], []).append(cells[1:])
+    return table
+
+
+def _six(value: float) -> str:
+    """``value`` at the six decimals the post prints, with a typographic minus."""
+    return f"{value:.6f}".replace("-", "−")
+
+
+def _short(value: float) -> str:
+    """An exact figure as the post writes it, with no trailing zeros, such as 1.2."""
+    return f"{value:.6f}".rstrip("0").rstrip(".")
+
+
+def _dollars(value: float) -> str:
+    """A dollar figure as the post's prose writes it, ``\\$40,000``."""
+    return f"\\${abs(value):,.0f}"
+
+
+def _thousands(value: float) -> str:
+    """A dollar figure as the book prints it, ``40K``."""
+    return f"{abs(value) / 1000:.0f}K"
+
+
+class TestWhatThePostSays:
+    """One copy of each figure the capped Kelly allocation post quotes, read from the post.
+
+    The post is ``blog/capped-kelly-allocation-lessons.md``. Other copies of
+    the same figure elsewhere in the post are not always read, and the figures
+    the two whiteboard sketches print are read from their alt texts by
+    ``tests/test_kelly_allocation_whiteboard.py``. Each expected value comes
+    from the run, through the functions the pins above hold, and is compared at
+    the precision the post prints it. The book's figures in Lesson 1's tables
+    are compared with the run's at the book's precision. A table is read by its
+    row labels, and a sentence by the clause around its number or around a word
+    that would make it false if reversed, so a reword elsewhere in it passes.
+
+    The prose states these numbers and the tests above derive them, so before
+    this class a typo in the post passed every test. Round 1 of the post's
+    review changed 34 single numbers across its prose, tables and alt text,
+    one at a time in a copy of the post, and none failed a test.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def _has(self, *sentences: str) -> None:
+        for sentence in sentences:
+            assert sentence in self.text, sentence
+
+    def test_the_title_and_headings(self, cov) -> None:
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self._has(
+            f"# Under a cap of {MAX_LEVERAGE:g}, Chan’s fastest-growing Kelly allocation holds "
+            "one strategy, and every figure in his examples’ text reproduces\n",
+            f"## Two strategies and a cap of {MAX_LEVERAGE:g}\n",
+            f"### Selling into a loss to hold a leverage of {EX81_LEVERAGE:g}\n",
+            f"## Lesson 3: the printed {printed} depends on a rounding mode\n",
+            f"the part headed “Selling into a loss to hold a leverage of {EX81_LEVERAGE:g}” works "
+            "through both trades.",
+        )
+
+    def test_lesson_1_s_table_for_example_8_1(self) -> None:
+        loss, gain = constant_leverage_chain()
+        assert _table(self.text, "Example 8.1") == {
+            "Example 8.1": [["Computed", "Book"]],
+            "Position after loss": [
+                [f"{loss.position_after_move:,.0f}", _thousands(loss.position_after_move)]
+            ],
+            "Trade back to 5": [
+                [f"{loss.trade:+,.0f}", f"sell {_thousands(loss.trade)}"],
+                [f"{gain.trade:+,.0f}", f"buy {_thousands(gain.trade)}"],
+            ],
+            "Position after gain": [
+                [f"{gain.position_after_move:,.0f}", _thousands(gain.position_after_move)]
+            ],
+        }
+
+    def test_lesson_1_s_table_for_example_8_2(self, cov, kelly) -> None:
+        capped = proportional_cap(kelly, MAX_LEVERAGE)
+        total = float(np.abs(kelly).sum())
+        scaled = growth_rate(capped, MEANS, cov)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        printed = Decimal(f"{corner:.3f}")
+        assert _table(self.text, "Example 8.2") == {
+            "Example 8.2": [["Computed", "Book"]],
+            "Kelly F_1": [[_six(kelly[0]), _book(kelly[0], 1)]],
+            "Kelly F_2": [[_six(kelly[1]), _book(kelly[1], 1)]],
+            "Kelly F_1 + F_2": [[_six(total), _book(total, 1)]],
+            "Scaled F_1": [[_six(capped[0]), _book(capped[0], 2)]],
+            "Scaled F_2": [[_six(capped[1]), _book(capped[1], 2)]],
+            "g at scaled F": [[_six(scaled), _book(scaled, 2)]],
+            "g , all on F_2": [
+                [str(printed), str(printed.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))]
+            ],
+        }
+
+    def test_the_opening_s_findings(self, cov, kelly) -> None:
+        scaled = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        threshold = corner_threshold(MEANS, cov)
+        printed = Decimal(f"{corner:.3f}").quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        self._has(
+            f"Every figure in Chan’s examples’ text lands, his {printed} is a tie rounded up",
+            f"at two decimals in code gives {corner:.2f}, because",
+            f"the answer changes once the cap passes {threshold:.2f}.*",
+            f"Both leverages shrunk to the cap grow at {_six(scaled)} a year. "
+            f"The whole cap on strategy 2 grows at {corner:.3f} a year. Neither figure is a "
+            "percentage gain in a year.",
+            f"The exact growth rate with everything on strategy 2 is {corner:.3f}, halfway "
+            f"between {corner - 0.005:.2f} and {corner + 0.005:.2f}",
+        )
+
+    def test_the_inputs(self) -> None:
+        (m1, m2), (s1, s2) = MEANS, VOLS
+        loss, gain = kelly_allocation.EX81_PNLS
+        self._has(
+            f"annual mean excess returns of {100 * m1:.0f} and {100 * m2:.0f} percent",
+            f"annual volatilities of {100 * s1:.0f} and {100 * s2:.0f} percent",
+            f"Their returns are uncorrelated, the risk-free rate is "
+            f"{kelly_allocation.RISK_FREE:g} and the broker allows a leverage of "
+            f"{MAX_LEVERAGE:g}",
+            f"Example 8.1 holds a leverage of {EX81_LEVERAGE:g} on {_dollars(EX81_EQUITY)} of "
+            f"equity, a {_dollars(EX81_LEVERAGE * EX81_EQUITY)} position, through a "
+            f"{_dollars(loss)} loss and then a {_dollars(gain)} gain.",
+            f"as a decimal, {MEANS[0]:.2f} is {100 * MEANS[0]:.0f} percent a year.",
+        )
+        assert CORRELATION == 0.0 and loss < 0 < gain
+
+    def test_the_kelly_leverages_and_their_growth_rate(self, cov, kelly) -> None:
+        total = float(np.abs(kelly).sum())
+        sharpes = [m / s for m, s in zip(MEANS, VOLS, strict=True)]
+        ret, drag = growth_terms(kelly, MEANS, cov)
+        self._has(
+            f"Strategy 1 gets {_six(kelly[0])} and strategy 2 gets {_six(kelly[1])}, for a gross "
+            f"total of {_six(total)}. Chan prints {_book(kelly[0], 1)}, {_book(kelly[1], 1)} "
+            f"and {_book(total, 1)}.",
+            f"The Sharpe ratios are {_six(sharpes[0])} and {_six(sharpes[1])}, so the uncapped "
+            f"Kelly leverages grow at {_six(growth_rate(kelly, MEANS, cov))} a year. Their return "
+            f"is {_six(ret)} and their drag is {_six(drag)}, exactly half the return",
+        )
+        assert drag == pytest.approx(ret / 2, abs=1e-12)
+
+    def test_what_a_growth_rate_multiplies_capital_by(self, cov) -> None:
+        """A growth rate is a log rate, so capital grows by its exponential."""
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        self._has(
+            f"so over many years a growth rate of {corner:.3f} multiplies capital by about "
+            f"{math.exp(corner):.1f} a year, not by {Decimal(f'{corner:.3f}') + 1}.",
+        )
+
+    def test_the_positions_example_8_1_s_trades_leave(self, cov) -> None:
+        loss, gain = constant_leverage_chain()
+        self._has(
+            f"the examples’ text prints only Example 8.1’s {_dollars(loss.position_before)} "
+            f"starting position, its {_dollars(loss.equity_after)} of equity after the loss, the "
+            f"{_dollars(loss.target)} and {_dollars(gain.target)} positions its trades leave, and "
+            f"Example 8.2’s optimum under the cap, at F2 = "
+            f"{best_allocation_at_cap(MEANS, cov).leverages[1]:g}.",
+            f"A {_dollars(loss.pnl)} loss leaves {_dollars(loss.equity_after)} of equity and a "
+            f"{_dollars(loss.position_after_move)} position, so getting back to "
+            f"{EX81_LEVERAGE:g} means selling {_dollars(loss.trade)}, which leaves a "
+            f"{_dollars(loss.target)} position. A {_dollars(gain.pnl)} gain the next day leaves "
+            f"{_dollars(gain.equity_after)} of equity and a {_dollars(gain.position_after_move)} "
+            f"position, and getting back to {EX81_LEVERAGE:g} means buying "
+            f"{_dollars(gain.trade)}, which leaves a {_dollars(gain.target)} position.",
+        )
+        assert loss.trade < 0 < gain.trade
+
+    def test_lesson_2_s_proportional_split(self, cov, kelly) -> None:
+        capped = proportional_cap(kelly, MAX_LEVERAGE)
+        factor = MAX_LEVERAGE / float(np.abs(kelly).sum())
+        self._has(
+            f"Here that factor is {_six(factor)}, and the scaled leverages are "
+            f"{_six(capped[0])} and {_six(capped[1])}, the book’s {_book(capped[0], 2)} and "
+            f"{_book(capped[1], 2)}.",
+            f"It grows at {_six(growth_rate(capped, MEANS, cov))}.",
+            f"sets F1 = {MAX_LEVERAGE:g} − F2 and draws the growth rate as F2 runs from 0 to "
+            f"{MAX_LEVERAGE:g}.",
+        )
+
+    def test_lesson_2_s_slope_and_its_parts(self, cov) -> None:
+        """The slope along the line is a line in F2, so two points give it."""
+        m1, m2 = MEANS
+        c11, c22 = cov[0, 0], cov[1, 1]
+        at_zero = m2 - m1 + c11 * MAX_LEVERAGE
+        per_unit = c11 + c22
+        at_cap = at_zero - per_unit * MAX_LEVERAGE
+        corner = best_allocation_at_cap(MEANS, cov).leverages
+        self._has(
+            f"\\frac{{dg}}{{dF_2}} = {at_zero:.4f} - {per_unit:.4f}\\,F_2",
+            f"At F2 = 0, with everything on strategy 1, the slope is {at_zero:.4f}.",
+            f"because strategy 2’s mean is {m2 - m1:.2f} higher, and because moving leverage "
+            f"off strategy 1 sheds drag at {c11 * MAX_LEVERAGE:.4f}, strategy 1’s variance of "
+            f"{c11:.4f} times its leverage of {MAX_LEVERAGE:g}.\n",
+            f"\nEach unit of leverage moved lowers the slope by {per_unit:.4f}, the two variances, "
+            f"{c11:.4f} and {c22:.4f}, added together. They are the volatilities, {VOLS[0]:.2f} "
+            f"and {VOLS[1]:.2f}, squared. At F2 = {MAX_LEVERAGE:g} the slope is still "
+            f"{at_cap:.4f}, above zero,",
+            f"It peaks at F2 = {corner[1]:g} with F1 = {corner[0]:g}, everything on strategy 2.",
+        )
+        assert at_cap > 0
+        assert (c11, c22) == pytest.approx((VOLS[0] ** 2, VOLS[1] ** 2))
+
+    def test_the_chart_s_alt_text(self, cov, kelly) -> None:
+        capped = proportional_cap(kelly, MAX_LEVERAGE)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        strategy_1 = growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov)
+        self._has(
+            f"A solid curve rises from {_short(strategy_1)} at F2 = 0, with everything on "
+            f"strategy 1, to {corner:.3f} at F2 = {MAX_LEVERAGE:g}, with everything on "
+            "strategy 2.",
+            f"at the proportional split, F2 = {_six(capped[1])} and g = "
+            f"{_six(growth_rate(capped, MEANS, cov))}, and a filled green marker at the corner, "
+            f"F2 = {MAX_LEVERAGE:g} and g = {corner:.3f}.",
+            f"at the unbounded peak, F2 = {_six(peak.leverages[1])} and g = {_six(peak.growth)}, "
+            f"labelled as not allowed, and falls slightly toward F2 = {BEYOND_CAP:g}.",
+            "A filled brown marker sits on it at the proportional split",
+            "rises a little further to a hollow red marker at the unbounded peak",
+            f"Past F2 = {MAX_LEVERAGE:g} the curve continues dashed over a shaded region "
+            f"labelled as over the gross cap of {MAX_LEVERAGE:g}, where strategy 1 is held "
+            "short.",
+            "The dashed part past the cap, the shading and the three markers are added here",
+        )
+
+    def test_why_the_corner_wins(self, cov, kelly) -> None:
+        capped = proportional_cap(kelly, MAX_LEVERAGE)
+        corner = best_allocation_at_cap(MEANS, cov)
+        split_ret, split_drag = growth_terms(capped, MEANS, cov)
+        corner_ret, corner_drag = growth_terms(corner.leverages, MEANS, cov)
+        scaled = growth_rate(capped, MEANS, cov)
+        self._has(
+            f"The corner beats the proportional split by {_six(corner.growth - scaled)}, and "
+            f"grows {_six(corner.growth / scaled)} times as fast.",
+            f"**The proportional split** earns a return of {_six(split_ret)} and pays a drag of "
+            f"{_six(split_drag)}.",
+            f"**The corner** earns a return of {_short(corner_ret)} and pays a drag of "
+            f"{_short(corner_drag)}.",
+            f"So the proportional split saves {_six(corner_drag - split_drag)} of drag by giving "
+            f"up {_six(corner_ret - split_ret)} of return.",
+            "twice as high on strategy 2.",
+        )
+        assert MEANS[1] == 2 * MEANS[0]
+
+    def test_the_curve_s_other_end_and_the_share_of_kelly(self, cov, kelly) -> None:
+        at_kelly = growth_rate(kelly, MEANS, cov)
+        scaled = growth_rate(proportional_cap(kelly, MAX_LEVERAGE), MEANS, cov)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        strategy_1 = growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov)
+        self._has(
+            f"At the curve’s other end, everything on strategy 1 grows at {_short(strategy_1)}, "
+            f"less than half the corner’s rate. Against the {_six(at_kelly)} the uncapped Kelly "
+            f"leverages would earn, the proportional split keeps {_six(scaled / at_kelly)} of "
+            f"that rate and the corner {_six(corner / at_kelly)} of it. Both fall far short, "
+            f"because the cap allows {MAX_LEVERAGE:g} of the {_six(float(np.abs(kelly).sum()))} "
+            "Kelly asks for.",
+        )
+        assert strategy_1 < corner / 2
+
+    def test_lesson_3_s_tie_and_the_three_rounding_rules(self, cov) -> None:
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        exact = 2 * Fraction(60, 100) - 4 * Fraction(35, 100) ** 2 / 2
+        tie, cent = Decimal(f"{corner:.3f}"), Decimal("0.01")
+        places = 2
+        self._has(
+            f"The growth rate at the corner is exactly {exact.numerator}/{exact.denominator}, "
+            f"which is {tie}. Chan prints 0.96.",
+            f"**Round half up**, the rule taught in school, gives "
+            f"{tie.quantize(cent, rounding=ROUND_HALF_UP)}.",
+            f"which sends a tie to the even last digit, gives "
+            f"{tie.quantize(cent, rounding=ROUND_HALF_EVEN)}.",
+            f"**Round half down** gives {tie.quantize(cent, rounding=ROUND_HALF_DOWN)}.",
+            f'Python’s `f"{{g:.{places}f}}"` and `round(g, {places})` on a plain float both '
+            f"see a number below halfway and print {corner:.{places}f}. A report that formats "
+            f"the corner the obvious way puts {round(corner, places)} beside the book’s 0.96",
+        )
+        assert float(exact) == corner
+
+    def test_lesson_4_s_unbounded_peak(self, cov) -> None:
+        peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
+        corner = best_allocation_at_cap(MEANS, cov).growth
+        self._has(
+            f"finds it at F2 = {_six(peak.leverages[1])} and F1 = {_six(peak.leverages[0])}, "
+            f"growing at {_six(peak.growth)}. That is higher than the corner’s {corner:.3f}, "
+            "and it is the hollow marker on the dashed part of the chart.",
+            f"so the gross leverage, the short plus the long, is {_six(peak.gross)}, over the "
+            f"cap of {MAX_LEVERAGE:g}.",
+            f"because {_six(peak.growth)} rounds to the same {_book(peak.growth, 2)} the book "
+            "prints for the corner.",
+            f"3. A higher growth rate that also prints as {_book(peak.growth, 2)} but breaks the "
+            "cap, in Lesson 4.",
+            f"is to let F2 rise above {MAX_LEVERAGE:g} while F1 + F2 stays at {MAX_LEVERAGE:g}.",
+        )
+        assert peak.leverages[1] > MAX_LEVERAGE
+        assert sum(peak.leverages) == pytest.approx(MAX_LEVERAGE)
+        assert peak.growth > corner and peak.gross > MAX_LEVERAGE
+
+    def test_lesson_5_s_threshold_and_long_only_shares(self, cov, kelly) -> None:
+        threshold = corner_threshold(MEANS, cov)
+        total = float(np.abs(kelly).sum())
+        sharpes = [m / s for m, s in zip(MEANS, VOLS, strict=True)]
+
+        def share(cap: float) -> float:
+            return best_allocation_at_cap(MEANS, cov, cap).leverages[1] / cap
+
+        self._has(
+            f"## Lesson 5: everything on one strategy stays best only below a cap of "
+            f"{threshold:.2f}\n",
+            f"Its mean excess return is {100 * MEANS[1]:.0f} percent against {100 * MEANS[0]:.0f}.",
+            f"strategy 2’s Sharpe ratio is {_six(sharpes[1])} against {_six(sharpes[0])}.\n",
+            f"2. With the whole cap of {MAX_LEVERAGE:g} on it alone, strategy 2 grows at "
+            f"{best_allocation_at_cap(MEANS, cov).growth:.3f} against strategy 1’s "
+            f"{_short(growth_rate((MAX_LEVERAGE, 0.0), MEANS, cov))}.",
+            f"c12 is the covariance, which is {cov[0, 1]:g} here. That cap is {_six(threshold)}.",
+            f"At a cap equal to the total Kelly leverage of {_six(total)}, the best allocation "
+            f"is the Kelly pair itself, {_six(kelly[0])} and {_six(kelly[1])}.",
+            f"the best one gives strategy 2 all of a cap of {_six(threshold)}, "
+            f"{share(3.0):.3f} of a cap of 3, {share(4.0):.3f} of a cap of 4 and "
+            f"{share(total):.3f} of a cap equal to the total of {_six(total)}.",
+            f"is best only while the cap is below {_six(threshold / total)} of the total, "
+            "about a quarter.",
+            "a formula in the two means, the higher-mean strategy’s variance and the covariance",
+            "1. The strategy with the higher mean",
+            "a variance above the two strategies’ covariance.",
+            "2. The threshold marks only where everything on that strategy stops beating the "
+            "other long-only ways to spend the whole cap. Lesson 6 shows two ways",
+            "A short is one. Leaving part of the cap unspent is the other, once the cap passes "
+            "the gross leverage of the best long-only allocation with no cap.",
+            "In Lesson 6 that allocation holds the higher-mean strategy alone, at its own Kelly "
+            "leverage.",
+            "On Chan’s inputs that allocation is the Kelly pair, so spending the whole cap stays "
+            f"best up to the total of {_six(total)}.",
+        )
+        assert share(threshold) == 1.0
+        assert round(4 * threshold / total) == 1
+
+    def test_lesson_6_s_long_only_corner_and_correlated_case(self, cov) -> None:
+        case = TestTheLongOnlyLimit()
+        (m1, m2), cap = case.MEANS, case.CAP
+        vol = math.sqrt(case.COV[1, 1])
+        correlation = case.COV[0, 1] / (math.sqrt(case.COV[0, 0]) * vol)
+        alone = m2 / case.COV[1, 1]
+        whole = best_allocation_at_cap(case.MEANS, case.COV, cap)
+        hedge = case._hedge()
+        hedge_ret, hedge_drag = growth_terms(hedge, case.MEANS, case.COV)
+        _, f1, f2 = _gross_boundary_grid(MEANS, covariance(VOLS, 1.0), MAX_LEVERAGE, points=4_001)
+        assert f1 >= 0.0 and f2 >= 0.0
+        whole_ret, whole_drag = growth_terms(whole.leverages, case.MEANS, case.COV)
+        cut_ret, cut_drag = growth_terms((0.0, hedge[1]), case.MEANS, case.COV)
+        self._has(
+            "holds long positions only, F1 and F2 both at least 0",
+            "On Chan’s inputs that loses nothing.",
+            f"whose gross leverage is {MAX_LEVERAGE:g}, short positions included, finds the same "
+            f"corner at {best_allocation_at_cap(MEANS, cov).growth:.3f}.",
+            f"On Chan’s means and volatilities at a cap of {MAX_LEVERAGE:g}, no correlation lets "
+            "a short beat the best long-only allocation, not even a correlation of 1.",
+            f"Take two strategies with mean excess returns of {m1:.2f} and {m2:.2f}, a "
+            f"volatility of {vol:.2f} each, a correlation of {correlation:.2f}, and a cap of "
+            f"{cap:g}.",
+            f"at its own Kelly leverage, {m2:.2f} / {vol:.2f}², which is {_six(alone)}. That "
+            f"sits inside the cap and grows at exactly "
+            f"{_short(growth_rate((0.0, alone), case.MEANS, case.COV))}. Spending the whole "
+            f"cap of {cap:g} on strategy 2 grows at only {_short(whole.growth)}.",
+            f"holds {_six(-hedge[0])} of strategy 1 short against {_six(hedge[1])} of strategy "
+            f"2 long, a gross of {abs(hedge[0]) + abs(hedge[1]):g}, and grows at "
+            f"{_six(growth_rate(hedge, case.MEANS, case.COV))}.",
+            f"rather than the best long-only allocation, because the hedge also spends a gross "
+            f"of {cap:g}. The whole cap on strategy 2 earns a return of {_short(whole_ret)} and "
+            f"pays a drag of {_short(whole_drag)}. The hedge earns {_six(hedge_ret)} and pays "
+            f"{_six(hedge_drag)}. It gives up {_six(whole_ret - hedge_ret)} of return",
+            f"**The short itself** loses {_six(-hedge[0] * m1)}, strategy 1’s mean on the "
+            f"{_six(-hedge[0])} of leverage in the short.",
+            f"**The displaced long** loses {_six((cap - hedge[1]) * m2)}, strategy 2’s mean on "
+            f"the {_six(-hedge[0])} of the gross cap that the short now uses.",
+            f"The drag falls by {_six(whole_drag - hedge_drag)}, more than all the return "
+            "given up, so the hedge grows faster.",
+            "the displaced long first, so the gross never passes the cap.",
+            f"Cutting the long saves {_six(whole_drag - cut_drag)} of drag, barely more than the "
+            f"{_six(whole_ret - cut_ret)} of return it gives up.",
+            "Because the two strategies move together so closely, the short then cancels about "
+            "half of the remaining long’s variance",
+            f"saves the other {_six(cut_drag - hedge_drag)} of drag at a cost of only "
+            f"{_six(cut_ret - hedge_ret)}.",
+            "So the short earns most of the hedge’s lead.",
+            "Lesson 4’s short broke the gross cap. This one stays inside it.",
+            f"under a cap below {corner_threshold(MEANS, cov):.2f}.",
+        )
+        assert alone < cap
+
+    def test_what_this_replication_cannot_say(self, cov, kelly) -> None:
+        self._has(
+            f"so the {_six(growth_rate(kelly, MEANS, cov))} growth rate at the uncapped Kelly "
+            "leverages has no published figure to compare with."
+        )

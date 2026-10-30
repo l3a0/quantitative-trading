@@ -305,8 +305,8 @@ where they were first built. The other forty-five were built here.
     \$20K gain, exactly as printed. Under a cap of 2 on two strategies whose
     Kelly leverages are 4.4 and 4.9, scaling both down to 0.95 and 1.05 grows
     at 0.82, and putting the whole cap on the second grows at 0.955, which the
-    book prints as 0.96. Every printed figure lands. The 0.96 lands only by
-    rounding an exact tie up, so the run prints three decimals.
+    book prints as 0.96. Every figure in the examples' text lands. The 0.96
+    lands only by rounding an exact tie up, so the run prints three decimals.
 21. Price spread, log price spread and ratio, Example 3.1 of *Algorithmic
     Trading*, which trades GLD against USO by holding minus the 20-day
     z-score of a signal in units of the pair, with the hedge ratio refitted
@@ -7019,8 +7019,8 @@ earlier posts on the Kelly leverage on SPY and on the coin toss for the
 one-strategy formula and the variance drag rather than deriving them again,
 and draws six lessons from Entry 20 of the replication log.
 
-1. Every figure the book prints lands, and nothing about the data could have
-   moved them, since the inputs are numbers the book states.
+1. Every figure in the examples' text lands, and nothing about the data could
+   have moved them, since the inputs are numbers the book states.
 2. Scaling every Kelly leverage down to the cap is the recommendation the
    example refutes, and everything on strategy 2 wins because the drag the
    split saves is smaller than the return it gives up.
@@ -7035,11 +7035,12 @@ and draws six lessons from Entry 20 of the replication log.
 6. The best allocation under the cap is long-only on Chan's inputs and not in
    general.
 
-Five groups of what it says are not pinned here.
+Six groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   "The leverage should be kept constant" is at 3210, the discomfort of
+   "The leverage should be kept constant" and that keeping it constant "is
+   necessary to optimize the growth rate" are at 3210, the discomfort of
    selling into the loss at 3216, "a vicious cycle" and the August 2007
    meltdown at 3228, the upper bound, the broker's limit and the estimation
    errors at 3235, allocating buying power at 3259, the definition of gross
@@ -7049,34 +7050,100 @@ Five groups of what it says are not pinned here.
    rate" and "apply all of our buying power" at 3287. The book's figures are
    pinned, and its words are not.
 2. Facts about the book rather than the arithmetic: that Equation 8.3 is an
-   image the highlights did not capture, and that Chan cites Thorp (1997) for
-   Equation 8.3, the growth rate at the Kelly leverages.
+   image the highlights did not capture, that Chan cites Thorp (1997) for
+   Equation 8.3, the growth rate at the Kelly leverages, and that the book's
+   Figure 8.1, an image the highlights did not capture, is the curve from
+   F2 = 0 to the cap that the chart's solid line redraws.
 3. Readings no test asserts: the slope's first number read as how fast the
-   growth rate rises as leverage moves from strategy 1 to strategy 2,
-   positive because strategy 2 earns more and strategy 1 sheds drag, and its
-   second as the two variances added together, the drag growing with the
-   square of the leverage and so staying small under a tight cap, the
-   correlated short cancelling most of strategy 2's variance, and that the
-   example cannot say whether Chan means the highest mean or the highest
-   growth rate. The post's illustration of gross leverage, \$1.50 long and
-   \$0.50 short on \$1 of equity, is arithmetic on its own numbers.
-4. Ratios and roundings the post takes from pinned figures in words: strategy
-   2's mean twice strategy 1's, 0.4648 less than half the corner's rate,
-   0.262321 as about a quarter, 2.448980 as 2.45 in the subtitle, a heading
-   and Lesson 6, and 0.962956 rounding to 0.96. The figure's alt text reads
-   the dashed curve as rising "a little further" and falling "slightly".
-5. Its references, cited rather than computed.
+   growth rate rises as leverage moves from strategy 1 to strategy 2, the drag
+   growing with the square of the leverage and so staying small under a tight
+   cap, the short in strategy 1 at the unbounded peak read as there only to
+   let F2 rise above 2 while F1 + F2 stays at 2, and that the example cannot
+   say whether Chan means the highest mean or the highest growth rate. The
+   post's illustration of gross leverage, \$1.50 long and \$0.50 short on \$1
+   of equity, is arithmetic on its own numbers. Three general claims are
+   tested only in particular cases.
+   1. Leaving part of the cap unspent beats every long-only split of the
+      whole cap once the cap passes the gross leverage of the best long-only
+      allocation with no cap. That is strategy 2's own Kelly leverage in
+      Lesson 6 and the total Kelly leverage on Chan's inputs. A test holds it
+      at Lesson 6's cap of 4. Another holds that spending the whole cap stays
+      best on Chan's inputs at 60 caps up to that total.
+   2. Two uncorrelated strategies with positive means leave a short nothing
+      to gain. Tests hold it only with Chan's means and volatilities at a cap
+      of 2, and at the leverages of Lesson 6's hedge with the correlation set
+      to 0.
+   3. No correlation lets a short beat the best long-only allocation on
+      Chan's means and volatilities at a cap of 2. A test holds it at six
+      correlations from −1 to 1.
+4. How far the figure's alt text says the dashed curve rises, "a little
+   further", and falls, "slightly". A test reads both words, and none checks
+   either size against the curve.
+5. Its references, cited rather than computed. The post's counts of its own
+   parts, such as the three groups of results, the five things the
+   reproduction adds and the six lessons, are not pinned either. Nor are its
+   pointers to its own lessons and sections, such as "Lesson 3 to explain" in
+   Lesson 1 and "The next section" in the opening, except the "in Lesson 4"
+   that ends item 3 of Lesson 1's list, "Lesson 4's short" in Lesson 6,
+   "Lesson 6 shows" and "In Lesson 6 that allocation" in Lesson 5's second
+   condition, and the "part headed" pointer in Lesson 1 to the section on
+   selling into a loss. Five results it takes from earlier posts are cited
+   like its references.
+   1. Compound growth falling short of the average return by about half the
+      variance, from the post on the coin toss.
+   2. A long position held at a constant leverage above 1 selling after every
+      loss and buying after every gain, from the SPY post.
+   3. The drag at one strategy's Kelly leverage being exactly half its return,
+      from the SPY post.
+   4. How far the choice of years alone can move a Kelly leverage, from the
+      SPY post.
+   5. Chan's version of the trading rule of Khandani and Lo (2007), which the
+      post on his rerun of their reversal reproduces.
+6. Its formulas. Three of its four displayed formulas are not read, those for
+   the Kelly leverages, the growth rate at any leverages and the largest cap.
+   Neither are the formulas it writes inline, such as m / s², S = m / s,
+   r + S² / 2, F′M and F′CF / 2, or the gloss naming c22 as strategy 2's
+   variance. The tests in `TestCorrelatedStrategies`, `TestKellyLeverages`
+   and `TestTheKellyGrowthRate` hold the code to each of them, and no test
+   reads the post's copy. The fourth displayed formula, the slope along the
+   line, is read with its numbers, and so is one copy each of F1 = 2 − F2 and
+   F1 + F2 = 2.
 
 Every other number in the post traces to an assertion in
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) or to
 [tests/test_kelly_allocation_figures.py](tests/test_kelly_allocation_figures.py)
-for the figure's own numbers. Before the post, fourteen had no pin at the
-precision it quotes, and
+for the figure's own numbers, or to
+[tests/test_kelly_allocation_whiteboard.py](tests/test_kelly_allocation_whiteboard.py)
+for the words the two sketches print and their alt texts quote.
+`TestWhatThePostSays` in
+[tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) reads one
+copy of each of those numbers from the post itself, outside the sketches' alt
+texts, and checks it against the run at the precision the post prints. That
+covers both of Lesson 1's tables, the inputs, and the ratios and roundings the
+post states in words: strategy 2's mean twice strategy 1's, 0.4648 less than
+half the corner's rate, 0.262321 as about a quarter, 2.448980 as 2.45 in the
+subtitle, Lesson 5's heading and Lesson 6, 0.962956 rounding to 0.96, and a
+growth rate of 0.955 multiplying capital by about 2.6 a year rather than by
+1.955. So a
+typo in a copy the class reads fails a test, and so does one in a figure the
+title or a heading quotes. A typo in another copy of the same number passes,
+such as the 2.135068 in the paragraph that opens "Chan prints Equation 8.3 as
+an image", or the 2.448980 that opens Lesson 5's paragraph on "most" and
+"all". Before the post, fourteen had no pin at the precision it quotes, and
 [tests/test_kelly_allocation.py](tests/test_kelly_allocation.py) now pins them
 all. `TestBesideTheClaim` holds the first nine, splitting each growth rate
 into its return and its drag from the run's own leverages.
 `TestWhereTheCornerStopsWinning` holds the tenth, and `TestTheLongOnlyLimit`
-the last four.
+the last four. A later edit split the slope into its parts, strategy 2's
+extra mean of 0.30, the drag of 0.1352 shed off strategy 1, and the two
+variances of 0.0676 and 0.1225, and
+`test_the_slope_along_the_line_is_positive_up_to_the_cap` holds each of them.
+A second edit split the hedge's lead in Lesson 6 into two steps, and
+`test_the_drag_falls_in_two_steps_and_the_short_earns_most_of_the_lead`
+holds them. Cutting the long first saves 0.315769 of drag, barely more than
+the 0.300855 of return it gives up. The short then saves 0.211730 of drag for
+0.050142 of return, by cancelling about half of the remaining long's
+variance, so it earns most of the hedge's lead in either order.
 
 1. The Sharpe ratios 1.153846 and 1.714286, half the sum of whose squares is
    the growth rate at Kelly.
@@ -7091,8 +7158,8 @@ the last four.
 8. The shares of the uncapped Kelly growth each keeps, 0.382563 for the
    proportional split and 0.447292 for the corner.
 9. The threshold of 2.448980 as 0.262321 of the total Kelly leverage.
-10. Strategy 2's share of the best long-only split of the cap, the whole of
-    it at 2.448980, 0.882 at 3, 0.750 at 4 and 0.525 at 9.335829, and above
+10. Strategy 2's share of the cap in the best long-only allocation, the whole
+    of it at 2.448980, 0.882 at 3, 0.750 at 4 and 0.525 at 9.335829, and above
     half at every cap up to that total.
 11. In the correlated case, strategy 2 alone at its own Kelly leverage of
     3.333333, inside the cap of 4, growing at exactly 0.5, which no long-only
@@ -7108,7 +7175,7 @@ the last four.
 Its one figure is drawn by
 [src/chan/kelly_allocation_figures.py](src/chan/kelly_allocation_figures.py)
 from the same `growth_rate`, `proportional_cap`, `best_allocation_at_cap` and
-`segment_stationary_point` as `python -m chan.kelly_allocation`, for Lesson 2
+`unbounded_allocation_at_cap` as `python -m chan.kelly_allocation`, for Lesson 2
 and Lesson 4. It draws one panel, the growth rate along `F1 = 2 - F2`.
 
 1. The solid curve from F2 = 0 to the cap, the book's Figure 8.1.
@@ -7123,6 +7190,39 @@ uv run python -m chan.kelly_allocation_figures
 [tests/test_kelly_allocation_figures.py](tests/test_kelly_allocation_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/kelly_allocation_whiteboard.py](src/chan/kelly_allocation_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+Both build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds. Neither is schematic. Every bar, tick, bracket,
+line and dot sits to scale at a figure the run computes, and only the axes'
+reach, the line's end and the layout are drawing choices.
+
+1. `kelly_allocation_sketch_return_against_drag.gif`, in Lesson 2, stands the
+   proportional split and the corner side by side, each a green bar up to its
+   return, a red segment down from the top by its drag and a black tick at its
+   growth rate. A green bracket spans the 0.285215 of return the split gives
+   up, a red bracket the 0.147014 of drag it saves, and a closing line gives
+   the corner's lead of 0.138202.
+2. `kelly_allocation_sketch_gross_against_net.gif`, in Lesson 4, draws F1
+   across and F2 up in equal units. A green-edged tint shades the upper half
+   of the diamond where the gross leverage is at most 2, the triangle where F2
+   is at least 0. The line `F1 + F2 = 2` runs green along the triangle's edge
+   to the corner at (0, 2), whose growth rate is 0.955. It runs red past the
+   corner, through the unbounded peak, whose growth rate is 0.962956 and whose
+   gross leverage of 2.578643 is outside.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.kelly_allocation_whiteboard
+```
+
+[tests/test_kelly_allocation_whiteboard.py](tests/test_kelly_allocation_whiteboard.py)
+computes every figure both sketches print from the run again, holds that each
+mark sits at its figure on one scale, and holds that each GIF follows its
+paragraph in the post.
 
 [blog/crude-oil-reversal-momentum-lessons.md](blog/crude-oil-reversal-momentum-lessons.md)
 is a thirty-fourth post, about the crude oil rule at Kindle location 2701 of

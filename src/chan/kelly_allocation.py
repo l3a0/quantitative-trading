@@ -37,14 +37,14 @@ percent and volatilities of 26 and 35 percent have Kelly leverages
 3268 calls scaling both by ``2 / 9.3`` "the usual recommendation", which gives
 0.95 and 1.05, and Example 8.2 exists to show it is not the best allocation.
 The growth rate is ``g = r + F'M - F'CF / 2`` at ``r = 0``, and on the line
-``F1 = 2 - F2`` it rises over the whole range from 0 to 2, so it peaks with
+``F1 = 2 - F2`` it rises over the whole range from 0 to 2, so its optimum puts
 everything on strategy 2.
 
-Three things about that peak are easy to get wrong, and each is pinned.
+Three things about that optimum are easy to get wrong, and each is pinned.
 
-1. **0.955 is a tie.** The peak is exactly 191/200. Chan prints 0.96, the tie
-   rounded up, which half-up and half-to-even rounding both give, so the
-   printed digit cannot say which he used. In float, 0.955 sits just below the
+1. **0.955 is a tie.** The optimum's growth rate is exactly 191/200. Chan
+   prints 0.96, the tie rounded up, which half-up and half-to-even rounding
+   both give, so the printed digit cannot say which he used. In float, 0.955 sits just below the
    tie, so a report
    formatting it at two decimals prints 0.95 beside the book's 0.96 and reads
    as a miss. :func:`report` prints three decimals.
@@ -77,16 +77,23 @@ a bag of trade outcomes, as issue 14 ruled.
 
 ``tests/test_kelly_allocation.py`` is the single authority for every number
 quoted about these examples. The one exception is
-``blog/capped-kelly-allocation-lessons.md``:
+``blog/capped-kelly-allocation-lessons.md``.
 ``tests/test_kelly_allocation_figures.py`` holds the numbers its figure draws,
-and README lists what it says that nothing asserts.
-``docs/replication-log.md`` Entry 20 carries the verdicts.
+``tests/test_kelly_allocation_whiteboard.py`` holds the words its two sketches
+print and their alt texts quote, and README lists what it says that nothing
+asserts. ``docs/replication-log.md`` Entry 20 carries the verdicts.
 
 :mod:`chan.kelly_allocation_figures` draws the curve the run prints along
 ``F1 = 2 - F2``, the book's Figure 8.1, for
 ``blog/capped-kelly-allocation-lessons.md``. It continues the line past the
 cap, dashed, to the unbounded peak, and calls these functions rather than
 holding its own copy of the growth rate.
+:mod:`chan.kelly_allocation_whiteboard` draws the post's two whiteboard
+sketches from the same functions: Lesson 2's return against drag at the
+proportional split and the corner, and Lesson 4's line ``F1 + F2 = 2``
+against the gross cap. Its return and drag come from :func:`growth_terms`,
+the same two terms :func:`growth_rate` subtracts, and its unbounded peak from
+:func:`unbounded_allocation_at_cap`, which the report and the figure call too.
 
 Usage::
 
@@ -214,6 +221,21 @@ def kelly_leverages(means: Sequence[float], cov: NDArray[np.float64]) -> NDArray
     return np.linalg.solve(np.asarray(cov, dtype=float), np.asarray(means, dtype=float))
 
 
+def growth_terms(
+    leverages: Sequence[float], means: Sequence[float], cov: NDArray[np.float64]
+) -> tuple[float, float]:
+    """The return ``F'M`` and the drag ``F'CF / 2`` at any leverages.
+
+    These are the two terms :func:`growth_rate` subtracts, and the one place
+    the Gaussian formula is written. The blog post splits each growth rate it
+    compares into them, and its whiteboard sketch draws them.
+    """
+    f = np.asarray(leverages, dtype=float)
+    m = np.asarray(means, dtype=float)
+    c = np.asarray(cov, dtype=float)
+    return float(f @ m), float(f @ c @ f / 2.0)
+
+
 def growth_rate(
     leverages: Sequence[float],
     means: Sequence[float],
@@ -228,10 +250,8 @@ def growth_rate(
     and the arithmetic settles which: with ``m^2`` the proportional allocation
     grows at 0.676, which matches nothing the book prints.
     """
-    f = np.asarray(leverages, dtype=float)
-    m = np.asarray(means, dtype=float)
-    c = np.asarray(cov, dtype=float)
-    return float(risk_free + f @ m - f @ c @ f / 2.0)
+    ret, drag = growth_terms(leverages, means, cov)
+    return float(risk_free + ret - drag)
 
 
 def proportional_cap(leverages: Sequence[float], max_leverage: float) -> NDArray[np.float64]:
@@ -282,8 +302,8 @@ def segment_stationary_point(
     spread_variance = c11 + c22 - 2.0 * c12
     if spread_variance <= 0.0:
         raise ValueError(
-            "the two strategies' difference has no variance, so every split of the cap "
-            "grows at the same rate and no point on the line is the best"
+            "the two strategies' difference has no variance, so the growth rate along "
+            "the line is straight in F2 and has no single stationary point"
         )
     return (m2 - m1 + max_leverage * (c11 - c12)) / spread_variance
 
@@ -299,7 +319,9 @@ def best_allocation_at_cap(
     is the range Figure 8.1 plots. That is the constrained optimum when the cap
     binds, meaning the uncapped Kelly pair is long-only and its gross is at
     least ``Fmax``. A short hedge is outside this search, and the module
-    docstring says when that matters.
+    docstring says when that matters. It refuses when the two strategies'
+    difference has no variance, as :func:`segment_stationary_point` does, even
+    where unequal means make the line straight and one end of it best.
     """
     raw = segment_stationary_point(means, cov, max_leverage)
     f2 = min(max(raw, 0.0), max_leverage)
@@ -307,8 +329,24 @@ def best_allocation_at_cap(
     return Allocation(leverages, growth_rate(leverages, means, cov))
 
 
+def unbounded_allocation_at_cap(
+    means: Sequence[float],
+    cov: NDArray[np.float64],
+    max_leverage: float = MAX_LEVERAGE,
+) -> Allocation:
+    """The line's stationary point with F2 unbounded, and the growth rate there.
+
+    This is :func:`best_allocation_at_cap` without its clamp, the near miss
+    the module docstring's second point names. Its ``gross`` can break the
+    cap, which is what the report, the figure and the sketch each show.
+    """
+    raw = segment_stationary_point(means, cov, max_leverage)
+    leverages = (max_leverage - raw, raw)
+    return Allocation(leverages, growth_rate(leverages, means, cov))
+
+
 def corner_threshold(means: Sequence[float], cov: NDArray[np.float64]) -> float:
-    """The largest cap at which putting everything on strategy 2 is still best.
+    """The largest cap at which everything on strategy 2 beats every other long-only split of it.
 
     At the corner the slope along the line is ``(m2 - m1) - Fmax (c22 - c12)``,
     which stays positive while ``Fmax < (m2 - m1) / (c22 - c12)``. That is a
@@ -321,8 +359,8 @@ def corner_threshold(means: Sequence[float], cov: NDArray[np.float64]) -> float:
     m1, m2, _, c22, c12 = _two(means, cov)
     if m2 <= m1:
         raise ValueError(
-            f"strategy 2's mean of {m2} is not above strategy 1's {m1}, so no cap is small "
-            "enough for everything on strategy 2 to be best"
+            f"strategy 2's mean of {m2} is not above strategy 1's {m1}, so the formula names "
+            "no largest cap"
         )
     if c22 <= c12:
         raise ValueError(
@@ -394,15 +432,14 @@ def report() -> None:
     print(f"  rises the whole way and peaks at F2 = {best.leverages[1]:g}.")
     print()
 
-    raw = segment_stationary_point(MEANS, cov, MAX_LEVERAGE)
-    line = (MAX_LEVERAGE - raw, raw)
+    peak = unbounded_allocation_at_cap(MEANS, cov, MAX_LEVERAGE)
     print("Two things the book's figures do not show:")
     print(
-        f"  Unbounded, the line peaks at F2 = {raw:.6f} with g = "
-        f"{growth_rate(line, MEANS, cov):.6f}, by holding F1 = {line[0]:.6f}."
+        f"  Unbounded, the line peaks at F2 = {peak.leverages[1]:.6f} with g = "
+        f"{peak.growth:.6f}, by holding F1 = {peak.leverages[0]:.6f}."
     )
     print(
-        f"  Its gross leverage is {abs(line[0]) + abs(line[1]):.6f}, over the cap of "
+        f"  Its gross leverage is {peak.gross:.6f}, over the cap of "
         f"{MAX_LEVERAGE:g}, so it is not allowed."
     )
     print(
