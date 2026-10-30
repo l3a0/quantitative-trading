@@ -10,10 +10,10 @@ Chan answers it with Example 8.2, two strategies under a broker’s cap of 2. Th
 
 ### What the reproduction found
 
-This repository reproduced both examples in code. The results fall into three groups.
+This repository reproduced Chan’s Examples 8.1 and 8.2 in code. The results fall into three groups.
 
 1. **Every figure in the examples’ text lands.** The trades of Example 8.1 match to the dollar, and the leverages and growth rates of Example 8.2 match at the precision Chan prints them.
-2. **Shrinking every leverage loses to putting everything on one strategy.** Both leverages shrunk to the cap grow at 0.816798 a year. The whole cap on strategy 2 grows at 0.955 a year. Neither figure is a percentage gain in a year, and the next section says how to read a growth rate.
+2. **Shrinking every leverage loses to putting everything on one strategy.** Both leverages shrunk to the cap grow at 0.816798 a year. The whole cap on strategy 2 grows at 0.955 a year. Neither figure is a percentage gain in a year. The next section says how to read a growth rate.
 3. **The book’s 0.96 is a tie rounded up.** The exact growth rate with everything on strategy 2 is 0.955, halfway between 0.95 and 0.96, and the usual way to print a number at two decimals in code gives 0.95, because the computer stores 0.955 as a number just below it.
 
 **These results are neither exploratory nor registered.** A result is exploratory when a sample of data was spent looking for it, and registered when its hypothesis was written down before any number was seen. Both examples are arithmetic on inputs the book states, so no sample was spent. They say nothing about a real pair of strategies.
@@ -84,7 +84,7 @@ g \text{, all on } F_2 & 0.955 & 0.96
 
 Each figure lands, meaning it matches the book at the precision the book prints. The last needs Lesson 3 to explain how 0.955 prints as 0.96.
 
-Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum under the cap, at F2 = 2. Each of those lands too. The tables and this paragraph leave out any figure printed only inside an image, an equation’s or a chart’s, as Equation 8.3’s or Figure 8.1’s may be.
+Beside the inputs and these tables, the examples’ text prints only Example 8.1’s \$500,000 starting position, its \$90,000 of equity after the loss, the \$450,000 and \$550,000 positions its trades leave, and Example 8.2’s optimum under the cap, at F2 = 2. Each of those lands too. The tables and this paragraph leave out any figure printed only inside an image. Equation 8.3, which the book prints as an image, may hold one. So may Figure 8.1, the book’s chart of the growth rate under the cap, which Lesson 2 redraws.
 
 No choice of data could have moved these figures. Nothing between the stated inputs and the result depends on a data vendor, a download date or a window, so the inputs settled every verdict before any code ran. What the reproduction adds is five things the tables do not show.
 
@@ -100,7 +100,7 @@ A \$10,000 loss leaves \$90,000 of equity and a \$490,000 position, so getting b
 
 The SPY post’s [Lesson 3](https://github.com/l3a0/quantitative-trading/blob/main/blog/kelly-leverage-on-spy.md#lesson-3-a-constant-leverage-sells-into-a-loss) works the same mechanism on SPY. A long position held at a constant leverage above 1 sells after every loss and buys after every gain, and this repository computes Example 8.1’s trades with the same code as the SPY post’s.
 
-On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces Chan’s version of the trading rule from that paper.
+On p. 251 Chan adds why the selling matters beyond one account. When many funds hold similar positions, one fund’s forced sales cause losses for the others, whose own sales deepen them, “a vicious cycle”. Chan notes that analysts cited this as a cause of the August 2007 meltdown of quantitative funds (Khandani and Lo, 2007). That paper also published a reversal trading rule. The [post on Chan’s rerun of the Khandani-Lo reversal](https://github.com/l3a0/quantitative-trading/blob/main/blog/khandani-lo-reversal-lessons.md) reproduces Chan’s version of that rule.
 
 ## Lesson 2: scaling every leverage down is the recommendation the example refutes
 
@@ -193,7 +193,7 @@ On Chan’s means and volatilities at a cap of 2, no correlation lets a short be
 Set the hedge against the whole cap on strategy 2 rather than the best long-only allocation, because the hedge also spends a gross of 4. The whole cap on strategy 2 earns a return of 1.2 and pays a drag of 0.72. The hedge earns 0.849003 and pays 0.192501. It gives up 0.350997 of return in two parts.
 
 1. **The displaced long** loses 0.300855, strategy 2’s mean on the 1.002849 of the gross cap that the short now uses.
-2. **The short itself** loses strategy 1’s mean on 1.002849 of leverage, 0.050142.
+2. **The short itself** loses 0.050142, strategy 1’s mean on the 1.002849 of leverage in the short.
 
 The drag falls by 0.527499, more than all the return given up, so the hedge grows faster. Take the two changes one at a time, the displaced long first, so the gross never passes the cap. Cutting the long saves 0.315769 of drag, barely more than the 0.300855 of return it gives up. Because the two strategies move together so closely, the short then cancels about half of the remaining long’s variance, and saves the other 0.211730 of drag at a cost of only 0.050142. So the short earns most of the hedge’s lead. Lesson 4’s short broke the gross cap. This one stays inside it.
 

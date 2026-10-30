@@ -1198,7 +1198,8 @@ class TestWhatThePostSays:
             f"of {cap:g}. The whole cap on strategy 2 earns a return of {_short(whole_ret)} and "
             f"pays a drag of {_short(whole_drag)}. The hedge earns {_six(hedge_ret)} and pays "
             f"{_six(hedge_drag)}. It gives up {_six(whole_ret - hedge_ret)} of return",
-            f"loses strategy 1’s mean on {_six(-hedge[0])} of leverage, {_six(-hedge[0] * m1)}.",
+            f"**The short itself** loses {_six(-hedge[0] * m1)}, strategy 1’s mean on the "
+            f"{_six(-hedge[0])} of leverage in the short.",
             f"**The displaced long** loses {_six((cap - hedge[1]) * m2)}, strategy 2’s mean on "
             f"the {_six(-hedge[0])} of the gross cap that the short now uses.",
             f"The drag falls by {_six(whole_drag - hedge_drag)}, more than all the return "
