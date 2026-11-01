@@ -416,6 +416,13 @@ class TestThePost:
             alt = _alt(scene)
             assert "drawn slowly" in alt and "twelve seconds" in alt, scene.slug
 
+    def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
+        footer = POST.read_text(encoding="utf-8").rstrip().splitlines()[-1]
+        base = "https://github.com/l3a0/quantitative-trading/blob/main/"
+        code = f"[the whiteboard sketches]({base}src/chan/xle_uso_roll_return_whiteboard.py)"
+        tests = f"[what the sketches draw]({base}tests/test_xle_uso_roll_return_whiteboard.py)"
+        assert code in footer and tests in footer
+
     def test_the_module_says_neither_sketch_is_schematic(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
         assert "Neither sketch is schematic." in doc

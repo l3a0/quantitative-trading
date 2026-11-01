@@ -5,15 +5,18 @@ This file is the single authority for every run figure
 ``TestWhatThePostMeasures`` holds the figures the post measured beyond the
 script's printout, ``TestWhatThePostQuotes`` reads the post's copies of them,
 and README.md lists what the post states that no test asserts, such as its
-rounded readings. The post also quotes three kinds of number and one finding
+rounded readings. The post also quotes four kinds of number and one finding
 held elsewhere.
 
 1. Its figure's labels, which ``tests/test_xle_uso_roll_return_figures.py``
    holds.
 2. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
-3. SPY's close 14.98 below the price that traded and its 24 dividends, which
+3. SPY's close 14.98 below the price that traded, its 24 dividends and the
+   two dates its Yahoo Finance closes were downloaded, which
    ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` holds.
-4. The finding that a save dated a week later moves every close of the crude
+4. The 67 funds the fund file holds, which
+   ``TestTheCommittedPanelsAreChansArrays`` in ``tests/test_series.py`` holds.
+5. The finding that a save dated a week later moves every close of the crude
    oil reversal post's continuous future, which
    ``test_the_later_save_sits_0_27_higher_on_every_day`` in
    ``tests/test_cl_reversal_momentum.py`` holds.
@@ -517,7 +520,8 @@ class TestWhatThePostQuotes:
     a re-pin that leaves the post behind, fails here, while rewording the
     prose between two figures does not. Where a word states a fact the run
     decides, such as "fell", "under a seventh" or "about a third", the run is
-    asserted to bear it out and the sentence holding the word is read. The
+    asserted to bear it out and the sentence holding the word is read, apart
+    from the few named at the end of this docstring. The
     post's two tables are each read whole, as the grid of its cells with its
     row labels and column heads, so a cell changed, added, dropped or moved
     fails, while the same table turned on its side still passes. Lesson 5's
@@ -544,7 +548,7 @@ class TestWhatThePostQuotes:
        bands with the months the widest spans. Lesson 3's prose reads the
        108-day and 20-day stretches with their dates.
 
-    Four values come from pins in two other files rather than from this run.
+    Five values come from pins in two other files rather than from this run.
     CL's γ changing sign 29 times is read against
     ``test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango``
     in ``tests/test_roll_returns.py``, and SPY's 14.98, its 24 dividends and
@@ -560,9 +564,14 @@ class TestWhatThePostQuotes:
     holds, which ``tests/test_series.py`` counts, the dates of Chan's span
     where they repeat, and the alt text's rounded readings of the lines, such
     as "about 30 percent by late 2007", "near 141 percent" and "mostly between
-    1.00 and 1.03". The finding
-    that a save a week later moves every close of the crude oil reversal
-    post's continuous future is ``tests/test_cl_reversal_momentum.py``'s.
+    1.00 and 1.03". A few sentences whose words the run decides are left
+    unread too: Lesson 2's that the book's two are the script's APR and
+    Sharpe ratio rounded, Lesson 3's that both drawdowns come later, Lesson
+    5's that USO's daily log moves sum to the log of one plus its compounded
+    move and that the contango days were short USO and long XLE, and Habit
+    5's "on the backwardation days". The finding that a save a week later
+    moves every close of the crude oil reversal post's continuous future is
+    ``tests/test_cl_reversal_momentum.py``'s.
     The summary's first group, that this replication tests neither claim the
     pair rests on, holds no number and is not read. Nothing checks Chan's words
     against their source, the page numbers, the mirror's commit or the

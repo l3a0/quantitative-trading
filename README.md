@@ -7564,7 +7564,11 @@ Five groups of what it says are not pinned here.
    front window days before expiration, and its commented-out last lines
    that overlay the contango flag on its plot, both in `XLE_CL_rollReturn.m`
    at `e4bc46f` of ericnberwick/EpchanPreview.
-3. Readings no test asserts: that the ratio approximates the roll return
+3. Readings no test asserts: that the commodity's own moves cancel between
+   the two legs and leave a gain the size of the roll return, that the gold
+   fund holds the metal, that a first run printed all five figures before the
+   plan wrote down when a figure lands, which Entry 39 records, that the book
+   does not draw the ratio, that the ratio approximates the roll return
    under the book's model, that CL's γ is mostly negative, as the spot and
    roll returns post shows, that rescaling gives a holder's return
    and subtraction reads larger in the earliest years, that Yahoo
@@ -7587,9 +7591,11 @@ Every other number in the post traces to an assertion in
 [tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
 for the figure's own numbers. CL's γ changing sign 29 times, which the post
 cites from the spot and roll returns post, traces to
-[tests/test_roll_returns.py](tests/test_roll_returns.py), and SPY's 14.98 and
-its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
-[tests/test_series.py](tests/test_series.py). A save dated a week later moving
+[tests/test_roll_returns.py](tests/test_roll_returns.py). SPY's 14.98, its 24
+dividends and both download dates trace to
+`TestTheETFFileSubtractsEachDividend` in
+[tests/test_series.py](tests/test_series.py), and the fund file's 67 funds to
+`TestTheCommittedPanelsAreChansArrays` there. A save dated a week later moving
 every close in the crude oil post's window, which the post cites from the
 crude oil reversal and momentum post, traces to
 `test_the_later_save_sits_0_27_higher_on_every_day` in
@@ -7598,12 +7604,17 @@ crude oil reversal and momentum post, traces to
 `TestWhatThePostQuotes` in the first of those files reads the post's copies.
 It builds each run figure at the precision the post prints it and finds it
 in a fragment that occurs once, reads both tables whole, and reads the alt
-text's exact figures as a second copy. It reads the 29 sign changes and
-SPY's 14.98 and 24 dividends against the tests that pin them, and asserts
-the run bears out a third, under a fifth of the earning days, under a
-seventh, one fewer than 1,129, 127 and 84 percent, the contango of early
-2009 and eight of the nine backwardation spans falling between July 2007
-and October 2008. `TestTheSplit` in
+text's exact figures as a second copy. It reads the 29 sign changes, and
+SPY's 14.98, 24 dividends and both download dates, against the tests that
+pin them. Where a word states a fact the run decides, it asserts the run
+bears the word out. Among those words are a third, under a fifth of the
+earning days, under a seventh, one fewer than 1,129, 127 and 84 percent, the
+contango of early 2009, and eight of the nine backwardation spans falling
+between July 2007 and October 2008. Others are a ratio above 1 being
+contango and giving a negative roll return, the average annual return being
+252 times the mean daily return, and the fixed view falling through the
+longer backwardation stretches of 2007 and 2008 where the trade's line
+rises. `TestTheSplit` in
 [tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
 bounds the roll return at over nine tenths of USO's log move on the contango
 days and under a fifth on the backwardation days, which keeps close to and
@@ -7690,7 +7701,8 @@ uv run python -m chan.xle_uso_roll_return_whiteboard
 
 [tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
 holds what each draws, derives every date, count and value again from the
-run, and holds that each GIF follows its list in the post.
+run, and holds that each GIF follows its list in the post and that the post's
+footer links the sketch code and its tests.
 
 [blog/vx-es-roll-return-lessons.md](blog/vx-es-roll-return-lessons.md) is a
 thirty-seventh post, about VX futures against E-mini S&P 500 futures on VX's
