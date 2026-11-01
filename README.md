@@ -7637,7 +7637,7 @@ Nine figures had no pin before the post.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
    holds the same 89 contracts, gives the same ratio on all 1,375 days and
-   prices its spot on all 1,498 days the two calendars share.
+   prices its spot on all 1,498 days the fund file and the CL file share.
 2. In Chan's fund file, USO's close falls from 69.54 to 38.97, or 43.9603
    percent, and XLE's rises from 51.97 to 69.61, or 33.9427 percent.
 3. The script's front is the nearest priced contract on 734 days and the

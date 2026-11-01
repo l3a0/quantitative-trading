@@ -412,8 +412,8 @@ class TestWhatThePostMeasures:
         # set of CL contracts" says.
         assert list(later.contracts.columns) == list(contracts.columns)
         assert later.spot is not None and later.contracts.index[-1] == day("2012-08-13")
-        # Its spot is priced on every one of the 1,498 days the two calendars
-        # share, which the post's Lesson 1 says.
+        # Its spot is priced on every one of the 1,498 days the fund file and
+        # the CL file share, which the post's Lesson 1 says.
         assert later.spot.reindex(result.days).notna().all() and len(result.days) == 1498
         # Every price of the 89 contracts on every row of this file's span is
         # the same in the later save, NaN where this file has none, and the
@@ -711,7 +711,7 @@ class TestWhatThePostQuotes:
             f"From {WINDOW_START.date()} to {WINDOW_END.date()} the two funds went opposite ways.",
             "A trade mostly short USO and long XLE gains from both moves,",
             f"Chan’s later save of the same CL contracts, on {later_saved}, holds a spot price on "
-            f"every one of the {len(result.days):,} days the two calendars share,",
+            f"every one of the {len(result.days):,} days the fund file and the CL file share,",
             f"On {places.count(1)} of the {len(places):,} days with a ratio, the script’s front "
             f"is the nearest contract the file prices that day. On the other {places.count(2)} "
             "it is the second-nearest.",
