@@ -8822,9 +8822,9 @@ nothing, so the replication log has no entry for it. It draws six lessons.
    and tests and a page that trails GitHub by a minute or more.
 
 Seven groups of what it says are not pinned here, and none of its measured
-numbers traces to a test. The cost figures come from Claude Code transcripts,
-which are private and machine-local, so no test can read them, and the post
-states each one's window, date and method where it first appears. The
+numbers is derived by a test. The cost figures come from Claude Code
+transcripts, which are private and machine-local, so no test can read them, and
+the post states each one's window, date and method where it first appears. The
 arithmetic the post derives from figures on its own page, such as \$111.09 a
 day and the return table, could be checked by a test and is not.
 
@@ -8836,11 +8836,14 @@ day and the return table, could be checked by a test and is not.
    and at least \$85 they price to, the in-session counts under each grouping
    cutoff, and the 77 refused writes across 57 updates.
 2. The after estimate, from one label edit of 2 turns at about 280,000 tokens
-   of context and one board check of 22 turns, the \$0.11 it cost to start the
-   check's sub-agent and the 18 of 158 sub-agent updates, 11.4 percent, that
-   ran one. Also the return table computed from it, the re-run at the 9.5 sync
-   rounds a day measured, about \$29.2, and the re-run on the earlier
-   measurement's inputs, about 3.8 days.
+   of context and \$0.165, and one board check of 22 turns and \$0.92, the
+   \$0.11 it cost to start the check's sub-agent and the 18 of 158 sub-agent
+   updates, 11.4 percent, that ran one. Also the return table computed from it,
+   the re-run at the 9.5 sync rounds a day measured, about \$29.2, the \$0.264
+   an update and the 14.5 sync rounds a day the model implies, the \$8.40,
+   about \$4.45 a day, of skill loads, board reads and harness runs the model
+   leaves out, and the re-run on the earlier measurement's inputs, about 3.8
+   days.
 3. The cost of the move, \$101.80 in five parts, and the earlier measurement of
    about \$51 a day with its counts, quoted from [issue
    531](https://github.com/l3a0/quantitative-trading/issues/531).
@@ -8852,16 +8855,19 @@ day and the return table, could be checked by a test and is not.
    script and the tests, the workflow's 141 lines, six triggers and three
    events that start no run, the skill's six data sections and six checks and
    its record of the 2026-10-05 page-rule defect, the cron runs not yet seen by
-   22:54Z and the first at 23:06Z, the Pages cache lifetime and the page's
-   2-minute refetch. The facts dated after 2026-10-11 were read from GitHub
-   during the post's review on 2026-11-01: the two fixes of 2026-10-12, with
-   the race fix's limit of three reads, and the cron move that day, the two
-   race failures of 2026-10-17, the schedule's 41 of 370 slots over 185 hours
-   and the session-started runs of 2026-10-19, the retry of 2026-10-26, and the move to
-   the template's shared workflow on 2026-10-29 with its 112-line caller.
-6. Readings and rounding no test asserts: about one in four, about a day and a
-   third, and that each refused write could have overwritten another session's
-   change.
+   22:54Z and the first at 23:06Z, the Pages cache lifetime, the page's
+   2-minute refetch, and the owner's ruling that day on where "Part of" counts.
+   The facts dated after 2026-10-11 were read from GitHub during the post's
+   review on 2026-11-01: the two fixes of 2026-10-12, with the race fix's limit
+   of three reads, and the cron move that day, the two race failures of
+   2026-10-17, the schedule's 41 of 370 slots from 02:30Z on 2026-10-12 to
+   19:30Z on 2026-10-19, with up to 603 minutes between two scheduled runs, and
+   the session-started runs of 2026-10-19, the retry of 2026-10-26, and the
+   move to the template's shared workflow on 2026-10-29 with its 112-line
+   caller.
+6. Readings and rounding no test asserts: about one in four, 23.75 percent,
+   about 11 percent, about a day and a third, and that each refused write could
+   have overwritten another session's change.
 7. Its references, cited rather than computed, which include the list prices
    and that Actions usage is free for a public repository. GitHub's rule that
    only the newest waiting run survives is stated without a citation.
