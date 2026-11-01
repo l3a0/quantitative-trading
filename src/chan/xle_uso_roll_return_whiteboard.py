@@ -13,8 +13,8 @@ draws.
    trading-day axis from October 2006 to January 2007, a thin grey bar runs to
    CL-2007F's last price, a thick black bar marks CL-2007F's front window, and
    a second thick black bar marks CL-2007G's, starting on the row after,
-   with grey words naming it the February 2007 contract, since the post names
-   only CL-2007F by its month.
+   with grey words naming it the February 2007 contract, since the post's
+   prose names CL-2007F's month and never names CL-2007G.
    A brown brace over the rows where the two overlap says CL-2007F is still
    priced there, so the front is the second-nearest contract. A closing note
    gives how often the front is the nearest priced contract and how often the
