@@ -8811,9 +8811,9 @@ nothing, so the replication log has no entry for it. It draws six lessons.
 1. Writing the page by hand cost a turn for every change, 240 updates in
    1.887 days at about \$111 a day.
 2. The version check refused 77 writes across 57 of the 240 updates.
-3. 87 of 146 sub-agent reports ended with something still stale, a count from
-   the transcripts alone, and some events, such as a merge from GitHub's web
-   page, reached no session.
+3. 87 of 146 sub-agent transcripts held a report naming something still stale,
+   a count from the transcripts alone, and some events, such as a merge from
+   GitHub's web page, reached no session.
 4. The owner's ranking lived only in the artifact until a backfill moved it
    onto labels, links and issue lines.
 5. The move cost \$101.80, and on an estimate, it pays back in about a day
@@ -8821,33 +8821,85 @@ nothing, so the replication log has no entry for it. It draws six lessons.
 6. The move added five costs of its own, among them 2,903 new lines of script
    and tests and a page that trails GitHub by a minute or more.
 
-Seven groups of what it says are not pinned here, and none of its figures
-traces to a test. The cost figures come from Claude Code transcripts, which
-are private and machine-local, so no test can read them, and the post states
-each one's window, date and method where it first appears.
+Seven groups of what it says are not pinned here, and none of its measured
+numbers is derived by a test. The cost figures come from Claude Code
+transcripts, which are private and machine-local, so no test can read them, and
+the post states each one's window, date and method where it first appears. The
+arithmetic the post derives from figures on its own page, such as \$111.09 a
+day and the return table, could be checked by a test and is not.
 
 1. Figures before the move, from board-update turns over 2026-10-10 00:00Z to
    2026-10-11 21:17Z priced at Claude Opus 5.5 list prices: the 240 updates,
-   the \$185.22 and \$24.41 that make \$209.63, \$111.09 a day, the medians,
-   times and cost range by kind of update, the token counts, the in-session
-   counts under each grouping cutoff, and the 77 refused writes across 57
-   updates.
-2. The after estimate, from one label edit and one board check, and the
-   return table computed from it.
-3. The cost of the move, \$101.80 in five parts, and the earlier measurement
-   of about \$51 a day with its counts, quoted from
-   [issue 531](https://github.com/l3a0/quantitative-trading/issues/531).
-4. Counts from transcripts alone: the 87 stale reports of 146 and the two
-   incidents.
+   the \$185.22 and the \$24.41, in its three parts of 132, 24 and 28 turns,
+   that make \$209.63, the first update at 02:44Z, \$111.09 a day, the medians,
+   times and cost range by kind of update, the token counts and the about \$78,
+   \$88 and \$20 they price to, the in-session counts under each grouping
+   cutoff, and the 77 refused writes across 57 updates.
+2. The after estimate, from one label edit of 2 turns at about 280,000 tokens
+   of context and \$0.165, and one board check of 22 turns and \$0.92, the
+   \$0.11 it cost to start the check's sub-agent and the 18 of 158 sub-agent
+   updates, 11.4 percent, that ran one. Also the return table computed from it,
+   the re-run at the 9.5 sync rounds a day measured, about \$29.2, the \$0.264
+   an update and the 14.5 sync rounds a day the model implies, the \$8.40,
+   about \$4.45 a day, that skill loads, board reads and harness runs cost
+   before the move, and the re-run on the earlier measurement's inputs, about
+   3.8 days.
+3. The cost of the move, \$101.80 in five parts, and the earlier measurement of
+   about \$51 a day with its counts, quoted from [issue
+   531](https://github.com/l3a0/quantitative-trading/issues/531).
+4. Counts from transcripts alone: the 87 of 146 transcripts whose reports named
+   something still stale, with the 6 and the 53 classified otherwise, and the
+   phrase search that sorted them, and the two incidents.
 5. Facts read from GitHub while the post was written: the merge times, the
-   board runs and their timings, the backfill's planned and landed writes,
-   the `band:N` labels and `Board order:` lines, the line counts of the skill,
-   the script and the tests, and the cron runs not yet seen.
-6. Readings and rounding no test asserts: about one in four, about a day and
-   a third, and that each refused write could have overwritten another
-   session's change.
+   board runs and their timings, the backfill's planned and landed writes, the
+   `band:N` labels and `Board order:` lines, the line counts of the skill, the
+   script and the tests, the workflow's 141 lines, six triggers and three
+   events that start no run, the skill's six data sections and six checks and
+   its record of the 2026-10-05 page-rule defect, the cron runs not yet seen by
+   22:54Z and the first at 23:06Z, the Pages cache lifetime, the page's
+   2-minute refetch, and the owner's ruling that day on where "Part of" counts.
+   The facts dated after 2026-10-11 were read from GitHub during the post's
+   review on 2026-11-01: the two fixes of 2026-10-12, with the race fix's limit
+   of three reads, and the cron move that day, the two race failures of
+   2026-10-17, the schedule's 41 of 370 slots from 02:30Z on 2026-10-12 to
+   19:30Z on 2026-10-19, with up to 603 minutes between two scheduled runs, and
+   the session-started runs of 2026-10-19, the retry of 2026-10-26, and the
+   move to the template's shared workflow on 2026-10-29 with its 112-line
+   caller, and the shared copy's limit of three reads at the commit pinned on
+   2026-11-01.
+6. Readings and rounding no test asserts: about one in four, 23.75 percent,
+   about 11 percent, about a day and a third, and that each refused write could
+   have overwritten another writer's change.
 7. Its references, cited rather than computed, which include the list prices
-   and the Pages and Actions behaviour.
+   and that Actions usage is free for a public repository. GitHub's rule that
+   only the newest waiting run survives, and that an issue-body edit carries no
+   version check, are stated without a citation.
+
+The post also carries one looping whiteboard sketch, drawn by
+[src/chan/build_board_whiteboard.py](src/chan/build_board_whiteboard.py) on
+the USD.CAD post's sketch machinery, after the paragraph saying a session no
+longer writes the board. `build_board_sketch_update_flow.gif` draws the board
+before and after the move as two rows of boxes. The top row is the update a
+session or sub-agent made by hand, with a vermilion arrow labelled "refused"
+from the write back to the read for the version pin. The bottom row is a
+session setting a label, the GitHub event, the Action rebuilding and the page,
+with a berry arrow for the merges and CI runs that GitHub records itself. The
+label stands for what a session sets, since a line or a comment starts a run
+the same way. It builds more slowly than the USD.CAD post's sketches and holds
+its finished drawing for twelve seconds.
+
+It is schematic and carries no figures from any run. The "6 sections" and "6
+checks" in its boxes are the retired skill's counts as the post quotes them,
+and the test holds them as words rather than deriving them. Redraw it with:
+
+```bash
+uv run python -m chan.build_board_whiteboard
+```
+
+[tests/test_build_board_whiteboard.py](tests/test_build_board_whiteboard.py)
+holds its words, its colours, the order of each row's boxes, where the two
+coloured arrows start and end, and that the GIF follows its paragraph in the
+post.
 
 [blog/capped-low-beta-lessons.md](blog/capped-low-beta-lessons.md) is a
 forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
