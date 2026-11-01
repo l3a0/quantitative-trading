@@ -27,9 +27,12 @@ held elsewhere.
 ``docs/replication-log.md`` Entry 39 carries the verdicts and points here row
 by row.
 
-Every pin reads two vintages and one specification, so they are stated once
-here. Some pins also read a third vintage and a second specification, which
-``TestWhatThePostMeasures`` states.
+The pins on Chan's files read one or both of two vintages, and those that
+run the script's steps follow one specification, so both are stated once
+here. Some also read a third vintage and a second specification, which
+``TestWhatThePostMeasures`` states. ``TestTheScheduleNotReused`` sets the
+calendar spread's schedule beside the script's ratio, and ``TestTheRules``
+runs the specification on frames built so each answer is known.
 
 - **Vintages.** Two of Chan's book-two files, both chan-mat. Each one's
   identity is its row of ``LIFTED_SOURCES`` in
@@ -378,10 +381,13 @@ class TestWhatThePostMeasures:
     """Pins added with ``blog/xle-uso-roll-return-lessons.md``, measured after the run.
 
     Same vintages and specification as the module docstring states, over the
-    1,498 days both calendars hold unless a test names a shorter span. Three
-    read the CL file's whole span instead, its 2,867 rows from 2000-11-20 to
-    2012-05-02: the 40-row start test, the 30-row test, and the comparison of
-    the later save's prices with the CL file's. Two pins also read a third
+    1,498 days both calendars hold unless a test names a shorter span. Every
+    pin built on the run's ratio also reads the CL file's rows after the last
+    of those days, 2012-04-09, because the script finds each expiry as a
+    contract's last priced row. Three also assert over the CL file's whole
+    span, its 2,867 rows from 2000-11-20 to 2012-05-02: the 40-row start test,
+    the 30-row test, and the comparison of the later save's prices with the
+    CL file's. Two pins also read a third
     vintage, ``inputdatadaily_cl_20120813/``, from
     ``inputDataDaily_CL_20120813.mat``, chan-mat, basis ``raw``, saved
     2012-08-14, which runs to 2012-08-13 and holds a spot. One of them also
@@ -428,9 +434,10 @@ class TestWhatThePostMeasures:
         assert later.spot.reindex(result.days).notna().all() and len(result.days) == 1498
         # Every price of the 89 contracts on every row of this file's span is
         # the same in the later save, NaN where this file has none, and the
-        # later save adds no row inside the span. That is the post's "Chan's
-        # single contracts were not rewritten that way", which the ratio below
-        # checks only on the front windows.
+        # later save adds no row inside the span. That is the post's "holds
+        # every price of the CL file unchanged" and its "Chan's single
+        # contracts were not rewritten that way", which the ratio below checks
+        # only on the front windows.
         span = later.contracts.loc[contracts.index[0] : contracts.index[-1]]
         assert span.equals(contracts)
         ratio = front_ratio(later.contracts)
@@ -587,10 +594,10 @@ class TestWhatThePostQuotes:
     holds, which ``tests/test_series.py`` counts, the dates of Chan's span
     where they repeat, and the alt text's rounded readings of the lines, such
     as "about 30 percent by late 2007", "near 141 percent" and "mostly between
-    1.00 and 1.03". Sentences whose words the run decides that are left
-    unread include Lesson 2's that the script's APR and Sharpe ratio round to
-    the book's two, Lesson 3's that both drawdowns come later, and Habit 5's
-    "on the backwardation days". Lesson 5's sentence that USO's daily log
+    1.00 and 1.03". Words the run decides that are left unread include Lesson
+    2's sentence that the script's APR and Sharpe ratio round to the book's
+    two, Lesson 3's clause that both drawdowns come later, and Habit 5's "on
+    the backwardation days". Lesson 5's sentence that USO's daily log
     moves sum to the log of one plus its compounded move holds on any data,
     and its sentence that, under the book's model, the contango days were
     short the fund that loses the roll return and long the fund that does not
@@ -750,6 +757,8 @@ class TestWhatThePostQuotes:
         assert views["at_one_gamma_positive"] == at_one, "γ calls backwardation on both"
         assert views["agree"] > views["called"] / 2, "they mostly agree"
         words = {5: "five"}
+        # The span the spot and roll returns post counts γ's sign changes over.
+        fitted = gamma.dropna()
         sign_changes = _pinned(
             "test_roll_returns.py",
             "test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango",
@@ -766,6 +775,7 @@ class TestWhatThePostQuotes:
             f"Using n − 1 instead gives a Sharpe ratio of {n_minus_1:.6f}, which also rounds to "
             f"{SCRIPT_SHARPE}.",
             f"as γ fitted across the {words[roll_returns.NEAREST]} nearest contracts each day.",
+            f"shows that from {fitted.index[0].date()} to {fitted.index[-1].date()}, CL’s γ is",
             f"and changes sign {sign_changes} times. On the later save of {later_saved}, where "
             "both the ratio and γ can be read, they mostly agree.",
             f"**Same view on {views['agree']:,} days** of the {views['called']:,} on which the "

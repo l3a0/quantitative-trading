@@ -99,7 +99,7 @@ Two caveats come with the match.
 
 ### How often the ratio and Example 5.3’s γ call the same view
 
-The book’s rule is “whenever CL is in contango”, and the script decides that from one pair of contracts. Chan’s Example 5.3 measures the roll return another way, as γ fitted across the five nearest contracts each day. The [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-4-the-average-hides-a-roll-return-that-drifts-and-changes-sign) shows CL’s γ is mostly negative, which is contango, and changes sign 29 times. On the later save of 2012-08-14, where both the ratio and γ can be read, they mostly agree.
+The book’s rule is “whenever CL is in contango”, and the script decides that from one pair of contracts. Chan’s Example 5.3 measures the roll return another way, as γ fitted across the five nearest contracts each day. The [post on spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-4-the-average-hides-a-roll-return-that-drifts-and-changes-sign) shows that from 2004-11-22 to 2012-08-13, CL’s γ is mostly negative, which is contango, and changes sign 29 times. On the later save of 2012-08-14, where both the ratio and γ can be read, they mostly agree.
 
 1. **Same view on 1,354 days** of the 1,373 on which the ratio is not exactly 1.
 2. **Contango by the ratio and backwardation by γ** on 13.
@@ -190,7 +190,7 @@ Five questions are beyond it.
 One habit for each lesson.
 
 1. **Check that a stand-in tracks what it stands in for.** A trade built on one fund standing in for a price needs the stand-in tested against that price. Until it is, treat the trade as a bet on the two funds.
-2. **Read the script before trusting the text.** Here the text’s two figures fit the script’s run, and the script is what says how the trade tells contango from backwardation. When the book gives a rule in one sentence, the script is where its details live.
+2. **Read the script before trusting the text.** Here the text’s two figures fit the script’s run, and the script is what says how the trade tells contango from backwardation. When a book gives a rule in a sentence or two, the script is where its details live.
 3. **Count the days a rule holds each view, and the days it holds nothing.** A trade that is mostly one view is mostly a bet on that view. Days with no position still count in an annual figure.
 4. **Ask how a price file adjusts for dividends.** Subtraction and rescaling give different returns from the same closes. A figure computed on subtracted closes is not what a holder earned. One computed on rescaled closes is, with each dividend reinvested.
 5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here, on the backwardation days, USO’s own rise was far larger than the roll return the signal reads.
