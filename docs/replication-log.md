@@ -8823,9 +8823,8 @@ respectable 16 percent" from 2006-04-26 to 2012-04-09 "with a Sharpe ratio of
 about 1".
 
 **All five of the script's figures and both of the book's reproduce on
-Chan's own files.** The text and the script describe one run. The book's
-16 percent is the script's APR of 0.1591, and its "about 1" is the script's
-Sharpe ratio of 1.05.
+Chan's own files.** The book's 16 percent is the script's APR of 0.1591,
+rounded, and its "about 1" is the script's Sharpe ratio of 1.05, rounded.
 
 **A scratch run came before the criterion.** The order was not the one this
 repo asks for. A research pass on the issue ran a scratch transcription and
@@ -8917,10 +8916,10 @@ Three things.
 1. **The script's rule reproduces on Chan's own files.** Every figure its
    comment prints lands at the decimals printed, and the book's two land at
    the precision Chan printed them.
-2. **The book's text and the script describe one run.** The text gives no
-   rule for deciding contango beyond what locations 2326 and 2718 say
-   contango is, so the rule here is the script's, and its APR and Sharpe ratio are the text's
-   16 percent and "about 1".
+2. **The book's text fits the script's run.** The text gives no rule for
+   deciding contango beyond what locations 2326 and 2718 say contango is,
+   so the rule here is the script's, and its APR and Sharpe ratio round to
+   the text's 16 percent and "about 1".
 3. **The backwardation days earn a third of the return.** Split by the view
    held the day before, the trade earns on contango on 1,128 days and on
    backwardation on 244. Their daily returns sum to 0.638420 and 0.308117 of

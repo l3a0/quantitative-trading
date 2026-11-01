@@ -88,7 +88,7 @@ The script’s closing comment prints five figures. A figure lands when the comp
 \end{array}
 ```
 
-The average annual return is 252 times the mean daily return, without compounding. The maximum drawdown is the deepest fall from a previous high, and the longest drawdown is the most days in a row spent below a previous high. The book prints two of the five, 16 percent and “about 1”. They are the script’s APR and Sharpe ratio rounded, so the text and the script describe one run.
+The average annual return is 252 times the mean daily return, without compounding. The maximum drawdown is the deepest fall from a previous high, and the longest drawdown is the most days in a row spent below a previous high. The book prints two of the five, 16 percent and “about 1”. They are the script’s APR and Sharpe ratio rounded, and the book’s dates are the fund file’s first and last days, so the text fits the script’s run.
 
 Two caveats come with the match.
 
@@ -188,7 +188,7 @@ Five questions are beyond it.
 One habit for each lesson.
 
 1. **Check that a stand-in tracks what it stands in for.** A trade built on one fund standing in for a price needs the stand-in tested against that price. Until it is, treat the trade as a bet on the two funds.
-2. **Read the script before trusting the text.** Here the text and the script describe one run, and the script is what says how the trade tells contango from backwardation. When the book gives a rule in one sentence, the script is where its details live.
+2. **Read the script before trusting the text.** Here the text’s two figures fit the script’s run, and the script is what says how the trade tells contango from backwardation. When the book gives a rule in one sentence, the script is where its details live.
 3. **Count the days a rule holds each view, and the days it holds nothing.** A trade that is mostly one view is mostly a bet on that view. Days with no position still count in an annual figure.
 4. **Ask how a price file adjusts for dividends.** Subtraction and rescaling give different returns from the same closes. A figure computed on subtracted closes is not what a holder earned. One computed on rescaled closes is, with each dividend reinvested.
 5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here, on the backwardation days, USO’s own rise was far larger than the roll return the signal reads.
