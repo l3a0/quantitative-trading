@@ -17,16 +17,17 @@ draws.
    only CL-2007F by its month.
    A brown brace over the rows where the two overlap says CL-2007F is still
    priced there, so the front is the second-nearest contract. A closing note
-   gives how often the front is the nearest contract the file prices and how
-   often the second-nearest.
+   gives how often the front is the nearest priced contract and how often the
+   second-nearest.
 2. USO's log move against the roll return the ratio implies, in Lesson 5,
    after the two-item list whose first item opens "On the contango days, the
    implied roll return comes close to USO’s fall." Two groups of two bars
    meet a zero line: on the contango days a black bar down for USO's log
    move beside a brown bar nearly as long for the roll return, with the
-   word "close" beside it, and on the backwardation days a black bar up for USO's log move
-   beside a short brown bar for the roll return, with a black brace on the
-   gap. A closing note says how the roll return is summed.
+   words "close to" and "USO's fall" beside it, and on the backwardation days
+   a black bar up for USO's log move beside a short brown bar for the roll
+   return, with a black brace on the gap. A closing note says how the roll
+   return is summed.
 
 Neither sketch is schematic. Every date, count and value on them comes from
 :class:`Handover` and :class:`Split`, which read
@@ -333,8 +334,8 @@ def _handover(run: Handover) -> Scene:
             ha="right",
         ),
         Label(
-            f"of the {run.with_ratio:,} days with a ratio, the front is the nearest contract "
-            "the file prices",
+            f"of the {run.with_ratio:,} days with a ratio, the front is the nearest priced "
+            "contract",
             0.3,
             COUNT_Y[0],
             names="overlap",
@@ -342,7 +343,7 @@ def _handover(run: Handover) -> Scene:
             size=11,
         ),
         Label(
-            f"on {run.nearest:,} and the second-nearest on {run.second:,}",
+            f"on {run.nearest:,} days and the second-nearest on {run.second:,}",
             0.3,
             COUNT_Y[1],
             names="overlap",
@@ -399,6 +400,9 @@ BACKWARDATION_X = (5.35, 6.5)
 #: stands up, and the heights of the closing note's two lines.
 VALUE_OFF = (0.32, 0.36)
 NOTE_Y = (0.55, 0.2)
+#: How far above the contango roll bar's end the two lines beside it sit,
+#: "close to" over "USO's fall", kept short of the backwardation words.
+CLOSE_OFF = (0.46, 0.08)
 #: The brace on the backwardation gap, and where its point reaches.
 GAP_X, GAP_TIP = 7.2, 7.42
 
@@ -478,7 +482,22 @@ def _roll_vs_uso(split: Split) -> Scene:
             size=11,
             ha="center",
         ),
-        Label("close", 3.1, c_roll_end + 0.08, names="contango-roll", color=INK, size=12),
+        Label(
+            "close to",
+            3.1,
+            c_roll_end + CLOSE_OFF[0],
+            names="contango-roll",
+            color=INK,
+            size=12,
+        ),
+        Label(
+            "USO’s fall",
+            3.1,
+            c_roll_end + CLOSE_OFF[1],
+            names="contango-roll",
+            color=INK,
+            size=12,
+        ),
         Label(
             f"{split.backwardation_days:,} days earning on backwardation",
             5.0,
