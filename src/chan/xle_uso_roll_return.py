@@ -62,10 +62,11 @@ ratio, no z-score and no band, and the two legs are equal and fixed.
 :func:`chan.calendar_spread_reversion.calendar_schedule` with
 ``spread_month=1`` and ``holddays=0``, read through
 :func:`chan.vx_calendar_spread.held_pair_ratio`, gives the same ratio on every
-row both define. It differs in four ways.
+row both define. It differs in four ways that this strip reaches.
 
 1. It starts the first pair ``holddays + 10`` rows before expiry, not 40.
-2. It drops a later pair whose end would come fewer than ``holddays`` rows after its start.
+2. It drops a later pair whose end would come fewer than ``holddays`` rows
+   after its start.
 3. ``held_pair_ratio`` fills forward across unheld rows, where this script
    leaves NaN.
 4. It holds a pair only when its end comes after its start, where this script
@@ -74,11 +75,24 @@ row both define. It differs in four ways.
 The first and fourth differences leave CL-2007F's 31 front rows, 2006-10-20
 to 2006-12-05, unheld, and those sit inside the window. Its pair would start
 10 rows before its expiry, on 2006-12-05, which is also the row the pair ends,
-so the schedule holds none of them. Bending the schedule to this script would
-add another branch to code written for Example 5.4, so
-the loop lives in :func:`front_windows`. ``VX_ES_rollreturn.m`` runs the same
-loop on the VX strip, so :mod:`chan.vx_es_roll_return` takes it from here
-rather than carrying a second copy.
+so the schedule holds none of them.
+
+It differs in three more ways that no contract in this strip reaches.
+
+1. It reads a contract's last expiry mark, where :func:`front_windows` refuses
+   a contract with two.
+2. It moves a first start that falls before the strip's first row up to that
+   row, where :func:`front_windows` refuses it.
+3. It starts every later pair the row after the previous pair ends, where this
+   script starts it no earlier than 40 rows before expiry. The contracts here
+   expire fewer than 30 rows apart, so the row after the previous end always
+   comes later.
+
+Bending the schedule to this script would add another branch to code written
+for Example 5.4, so the loop lives in :func:`front_windows`.
+``VX_ES_rollreturn.m`` runs the same loop on the VX strip, so
+:mod:`chan.vx_es_roll_return` takes it from here rather than carrying a second
+copy.
 
 **Two quirks of the loop that reach no traded day on this strip.** The
 transcription names them rather than copying them silently.
