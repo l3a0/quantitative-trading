@@ -8813,14 +8813,14 @@ book's rounded forms of what rows 3 and 2 compute.
 No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Location 2385 says a fund of
 oil producers such as XLE "usually cointegrates with the spot price", and
-location 1939 that USO "invests in oil futures contracts", so USO earns the
-roll return on top of the spot and XLE does not. Location 2718 calls
-a negative roll return contango. Location 2326 says backwardation is the near
-contract priced above the far one, so contango is the far contract priced
-above the near. Location 2734 trades the gap: short USO and long XLE whenever CL is
-in contango, and the reverse in backwardation, for an APR of "a very
-respectable 16 percent" from 2006-04-26 to 2012-04-09 "with a Sharpe ratio of
-about 1".
+location 1939 that USO "invests in oil futures contracts", so by the book's
+argument USO earns the roll return on top of the spot and XLE does not.
+Location 2718 calls a negative roll return contango. Location 2326 says
+backwardation is the near contract priced above the far one, so contango is
+the far contract priced above the near. Location 2734 trades the gap: short
+USO and long XLE whenever CL is in contango, and the reverse in
+backwardation, for an APR of "a very respectable 16 percent" from 2006-04-26
+to 2012-04-09 "with a Sharpe ratio of about 1".
 
 **All five of the script's figures and both of the book's reproduce on
 Chan's own files.** The book's 16 percent is the script's APR of 0.1591,
