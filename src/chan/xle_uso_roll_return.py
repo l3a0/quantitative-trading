@@ -62,16 +62,20 @@ ratio, no z-score and no band, and the two legs are equal and fixed.
 :func:`chan.calendar_spread_reversion.calendar_schedule` with
 ``spread_month=1`` and ``holddays=0``, read through
 :func:`chan.vx_calendar_spread.held_pair_ratio`, gives the same ratio on every
-row both define. It differs in three ways.
+row both define. It differs in four ways.
 
 1. It starts the first pair ``holddays + 10`` rows before expiry, not 40.
 2. It drops a later pair whose end would come fewer than ``holddays`` rows after its start.
 3. ``held_pair_ratio`` fills forward across unheld rows, where this script
    leaves NaN.
+4. It holds a pair only when its end comes after its start, where this script
+   gives a window whose start equals its end that one row.
 
-The first difference leaves CL-2007F's 31 front rows, 2006-10-20 to
-2006-12-05, unheld, and those sit inside the window. Bending the schedule to
-this script would add a fourth branch to code written for Example 5.4, so
+The first and fourth differences leave CL-2007F's 31 front rows, 2006-10-20
+to 2006-12-05, unheld, and those sit inside the window. Its pair would start
+10 rows before its expiry, on 2006-12-05, which is also the row the pair ends,
+so the schedule holds none of them. Bending the schedule to this script would
+add another branch to code written for Example 5.4, so
 the loop lives in :func:`front_windows`. ``VX_ES_rollreturn.m`` runs the same
 loop on the VX strip, so :mod:`chan.vx_es_roll_return` takes it from here
 rather than carrying a second copy.

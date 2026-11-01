@@ -8829,11 +8829,11 @@ rounded, and its "about 1" is the script's Sharpe ratio of 1.05, rounded.
 **A scratch run came before the criterion.** The order was not the one this
 repo asks for. A research pass on the issue ran a scratch transcription and
 saw all five figures before the issue wrote down what a landing figure is.
-The criterion it then fixed is the rule every earlier entry uses: a figure
-lands when the computed value rounds to the printed string at the decimals
-the string carries, which is `chan.khandani_lo_book_two.matches`. Nothing in
-it was chosen to fit the run, and there is one specification with no rows
-beside it.
+The criterion it then fixed is a rule earlier entries had already used: a
+figure lands when the computed value rounds to the printed string at the
+decimals the string carries, which is `chan.khandani_lo_book_two.matches`.
+Nothing in it was chosen to fit the run, and there is one specification with
+no rows beside it.
 
 Every row reads two vintages and one specification, so they are stated once
 here.
