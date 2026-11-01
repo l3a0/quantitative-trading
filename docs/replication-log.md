@@ -8972,6 +8972,13 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/xle-uso-roll-return-lessons.md](../blog/xle-uso-roll-return-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.xle_uso_roll_return_figures` redraws.
+Its two whiteboard sketches draw none of the table's rows. The one in
+Lesson 1 reads CL-2007F's and CL-2007G's front windows from `front_windows`,
+and the 734 and 641 days on which the front is the nearest and the
+second-nearest contract the file prices. The one in Lesson 5 reads USO's log
+moves of −0.8388 and 0.5323 and the implied roll returns of −0.766081 and
+0.072380 from `by_view`. `uv run python -m chan.xle_uso_roll_return_whiteboard`
+redraws them.
 
 ## Entry 40: the opening gap strategy on STOXX Europe 50 futures, Chan's *Algorithmic Trading*
 

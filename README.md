@@ -7656,6 +7656,34 @@ uv run python -m chan.xle_uso_roll_return_figures
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/xle_uso_roll_return_whiteboard.py](src/chan/xle_uso_roll_return_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the list it draws. Both
+build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds. Neither is schematic.
+
+1. `xle_uso_roll_return_sketch_front_handover.gif`, in Lesson 1, draws
+   CL-2007F's front window from 2006-10-20 to 2006-12-05 and CL-2007G's from
+   the next trading day to 2007-01-05, on the CL strip's calendar. A brace
+   marks the 10 rows on which CL-2007F is still priced, so the front is the
+   second-nearest contract. It reads the dates from `front_windows` and gives
+   the 734 and 641 of the 1,375 days with a ratio on which the front is the
+   nearest and the second-nearest contract the file prices.
+2. `xle_uso_roll_return_sketch_roll_vs_uso.gif`, in Lesson 5, draws USO's log
+   move beside the roll return the ratio implies, to one scale: −0.8388
+   against −0.766081 on the 1,128 days earning on contango, and 0.5323 against
+   0.072380 on the 244 days earning on backwardation, all read from `by_view`.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.xle_uso_roll_return_whiteboard
+```
+
+[tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
+holds what each draws, derives every date, count and value again from the
+run, and holds that each GIF follows its list in the post.
+
 [blog/vx-es-roll-return-lessons.md](blog/vx-es-roll-return-lessons.md) is a
 thirty-seventh post, about VX futures against E-mini S&P 500 futures on VX's
 roll return at Kindle locations 2747 and 2754 of Chan's *Algorithmic
