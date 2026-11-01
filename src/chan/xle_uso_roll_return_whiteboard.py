@@ -3,8 +3,8 @@
 ``blog/xle-uso-roll-return-lessons.md`` makes two claims a sentence has to
 build in the reader's head: the script's front moves to the next contract while
 the old one is still priced, so "front month" means the contract the script
-reads, and the roll return the ratio implies accounts for most of USO's fall on
-the contango days and little of its rise on the backwardation days. This module
+reads, and the roll return the ratio implies comes close to USO's fall on the
+contango days and is a small part of its rise on the backwardation days. This module
 draws the two as scenes, and the post places each right after the list it
 draws.
 
@@ -17,14 +17,14 @@ draws.
    only CL-2007F by its month.
    A brown brace over the rows where the two overlap says CL-2007F is still
    priced there, so the front is the second-nearest contract. A closing note
-   gives how often the front is the nearest contract and how often the
-   second-nearest.
+   gives how often the front is the nearest contract the file prices and how
+   often the second-nearest.
 2. USO's log move against the roll return the ratio implies, in Lesson 5,
    after the two-item list whose first item opens "On the contango days, the
    implied roll return comes close to USO’s fall." Two groups of two bars
    meet a zero line: on the contango days a black bar down for USO's log
-   move beside a brown bar nearly as long for the roll return, marked
-   "close", and on the backwardation days a black bar up for USO's log move
+   move beside a brown bar nearly as long for the roll return, with the
+   word "close" beside it, and on the backwardation days a black bar up for USO's log move
    beside a short brown bar for the roll return, with a black brace on the
    gap. A closing note says how the roll return is summed.
 
@@ -62,15 +62,15 @@ import numpy as np
 import pandas as pd
 
 from chan import xle_uso_roll_return as trade
+from chan.matlab_helpers import fwdshift
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, MUTED
+from chan.regime_figure import ACCENT, INK, MUTED
 from chan.usdcad_tests_whiteboard import (
     Frame,
     Label,
     Scene,
     Stroke,
     _box,
-    _check,
     _line,
     _signed,
     _stroke,
@@ -154,14 +154,17 @@ class Handover:
         """Read them from the ETF closes and the strip's contracts.
 
         The counts come from the front windows: on each of the trade's days
-        with a ratio, how many contracts the file prices that day expire
-        before the front does. It refuses unless that is 0 or 1 on every day,
+        with a finite ratio, how many contracts the file prices that day
+        expire before the front does. It refuses unless that is 0 or 1 on every day,
         since the closing note names only those two.
         """
         windows = trade.front_windows(contracts)
         index = contracts.index
         old, new = windows[0], windows[1]
-        priced = np.isfinite(contracts.to_numpy(dtype=float))
+        prices = contracts.to_numpy(dtype=float)
+        priced = np.isfinite(prices)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            finite = np.isfinite(fwdshift(1, prices.T).T / prices)
 
         def iso(row: int) -> str:
             return str(index[row].date())
@@ -170,7 +173,7 @@ class Handover:
         earlier = []
         for window in windows:
             for row in window.rows:
-                if index[row] in days:
+                if index[row] in days and finite[row, window.column]:
                     earlier.append(int(priced[row, : window.column].sum()))
         if set(earlier) - {0, 1}:
             raise ValueError("the front is past the second-nearest contract on some day")
@@ -200,7 +203,9 @@ class Handover:
 
 #: The axis's height and ends, the two contracts' rows above it, and the
 #: brace's ends and point between them.
-AXIS_Y, AXIS_X0, AXIS_X1 = 1.15, 0.4, 9.6
+AXIS_Y, AXIS_X0, AXIS_X1 = 1.28, 0.4, 9.6
+#: The heights of the closing note's two lines, under the axis's month names.
+COUNT_Y = (0.56, 0.24)
 OLD_Y, NEW_Y = 3.35, 1.95
 BRACE_ENDS, BRACE_TIP = 2.95, 2.72
 #: The thick front bars' and the thin priced bar's widths, in points.
@@ -328,13 +333,21 @@ def _handover(run: Handover) -> Scene:
             ha="right",
         ),
         Label(
-            f"of the {run.with_ratio:,} days with a ratio: nearest on {run.nearest:,}, "
-            f"second-nearest on {run.second:,}",
+            f"of the {run.with_ratio:,} days with a ratio, the front is the nearest contract "
+            "the file prices",
             0.3,
-            0.3,
+            COUNT_Y[0],
             names="overlap",
             color=INK,
-            size=12,
+            size=11,
+        ),
+        Label(
+            f"on {run.nearest:,} and the second-nearest on {run.second:,}",
+            0.3,
+            COUNT_Y[1],
+            names="overlap",
+            color=INK,
+            size=11,
         ),
     ]
     return Scene("The front moves on before the last price", "front_handover", tuple(steps))
@@ -465,8 +478,7 @@ def _roll_vs_uso(split: Split) -> Scene:
             size=11,
             ha="center",
         ),
-        _stroke("close", _check(3.3, c_roll_end + 0.05), color=GOOD, frames=4),
-        Label("close", 3.82, c_roll_end + 0.08, names="close", color=GOOD, size=12),
+        Label("close", 3.1, c_roll_end + 0.08, names="contango-roll", color=INK, size=12),
         Label(
             f"{split.backwardation_days:,} days earning on backwardation",
             5.0,

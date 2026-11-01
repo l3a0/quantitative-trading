@@ -102,7 +102,8 @@ HANDOVER_LABELS = [
     "the February 2007 contract",
     "CL-2007F still priced: 10 rows",
     "so the front is the second-nearest",
-    "of the 1,375 days with a ratio: nearest on 734, second-nearest on 641",
+    "of the 1,375 days with a ratio, the front is the nearest contract the file prices",
+    "on 734 and the second-nearest on 641",
 ]
 
 SPLIT_LABELS = [
@@ -540,7 +541,8 @@ class TestTheHandoverSketch:
             "the April 2001 contract",
             "CL-2001H still priced: 2 rows",
             "so the front is the second-nearest",
-            "of the 2,345 days with a ratio: nearest on 1,234, second-nearest on 1,111",
+            "of the 2,345 days with a ratio, the front is the nearest contract the file prices",
+            "on 1,234 and the second-nearest on 1,111",
         ]
 
     def test_its_colours(self, every) -> None:
@@ -561,6 +563,7 @@ class TestTheHandoverSketch:
             MUTED,
             ACCENT,
             ACCENT,
+            INK,
             INK,
         ]
 
@@ -638,6 +641,7 @@ class TestTheHandoverSketch:
         alt = _alt(every[0])
         for phrase in (
             "a thin grey bar runs in from the left",
+            "A grey axis of the CL strip’s trading days",
             "A thick black bar over its left part",
             "a second thick black bar starts on the next trading day",
             "On the upper row",
@@ -677,9 +681,10 @@ class TestTheSplit:
         assert f"{split.backwardation_roll:.6f}" == "0.072380", SPEC
 
     def test_the_words_close_and_beyond_hold_on_the_run(self, split) -> None:
-        """The green "close" and the brace on the gap are verdicts, so the run
-        must bear them out: the roll return is over nine tenths of USO's move
-        on the contango days and under a fifth of it on the backwardation days."""
+        """The word "close" and the brace on the gap describe the run, and these
+        bounds are guards that keep the words true if a figure is re-pinned:
+        the roll return is over nine tenths of USO's move on the contango days
+        and under a fifth of it on the backwardation days."""
         assert split.contango_roll / split.contango_uso > 0.9, SPEC
         assert split.backwardation_roll / split.backwardation_uso < 0.2, SPEC
 
@@ -717,7 +722,6 @@ class TestTheSplitSketch:
             "zero": MUTED,
             "contango-uso": INK,
             "contango-roll": ACCENT,
-            "close": GOOD,
             "backwardation-uso": INK,
             "backwardation-roll": ACCENT,
             "level": MUTED,
@@ -730,7 +734,7 @@ class TestTheSplitSketch:
             INK,
             ACCENT,
             ACCENT,
-            GOOD,
+            INK,
             INK,
             INK,
             INK,
@@ -745,13 +749,17 @@ class TestTheSplitSketch:
     def test_each_bar_is_named_and_valued_beside_itself(self, every) -> None:
         scene = every[1]
         for gid in ("contango-uso", "contango-roll", "backwardation-uso", "backwardation-roll"):
-            names = [s for s in scene.steps if isinstance(s, Label) and s.names == gid]
+            names = [
+                s
+                for s in scene.steps
+                if isinstance(s, Label) and s.names == gid and s.text != "close"
+            ]
             bar = _stroke(scene, gid)
             assert len(names) == 2, gid
             middle = (bar.x.min() + bar.x.max()) / 2
             for label in names:
                 assert label.ha == "center" and label.x == pytest.approx(middle), gid
-        assert _labels_of(scene, "close") == ["close"]
+        assert _labels_of(scene, "contango-roll") == ["roll return", "−0.766081", "close"]
         assert _labels_of(scene, "gap") == SPLIT_LABELS[11:]
 
     def test_every_bar_ends_at_an_affine_function_of_its_value(self, every, split) -> None:
@@ -807,7 +815,9 @@ class TestTheSplitSketch:
         steps = list(scene.steps)
         for gid in ("contango-uso", "contango-roll", "backwardation-uso", "backwardation-roll"):
             bar = _stroke(scene, gid)
-            name, value = [s for s in steps if isinstance(s, Label) and s.names == gid]
+            name, value = [
+                s for s in steps if isinstance(s, Label) and s.names == gid and s.text != "close"
+            ]
             if gid.startswith("contango"):
                 assert value.y < bar.y.min() and name.y > ZERO_Y, gid
             else:
@@ -827,12 +837,16 @@ class TestTheSplitSketch:
         assert level.x.max() == pytest.approx(brace.x.min())
         assert level.dashed
 
-    def test_the_check_marks_the_contango_group(self, every) -> None:
+    def test_close_sits_beside_the_contango_roll_bar_in_plain_ink(self, every) -> None:
+        """The word describes one exploratory sample, so it carries no green
+        check, the mark that grades a value as checked out."""
         scene = every[1]
-        check = _stroke(scene, "close")
+        close = _label(scene, "close")
         roll = _stroke(scene, "contango-roll")
-        assert roll.x.max() < check.x.min() < _stroke(scene, "backwardation-uso").x.min()
-        assert check.y.max() < ZERO_Y
+        assert close.names == "contango-roll" and close.color == INK
+        assert roll.x.max() < close.x < _stroke(scene, "backwardation-uso").x.min()
+        assert roll.y.min() < close.y < ZERO_Y
+        assert not [s for s in scene.strokes if s.color == GOOD]
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(every[1])
@@ -843,7 +857,7 @@ class TestTheSplitSketch:
             "a short brown bar",
             "a black brace on the gap between the two bars’ tops",
             "Both values in each group are log quantities",
-            "A green check mark beside the brown bar",
+            "Black words beside the brown bar read “close”",
             "A dashed grey line runs from the top of the black bar",
             "every bar is drawn to one scale",
             "The finished drawing holds for twelve seconds.",
