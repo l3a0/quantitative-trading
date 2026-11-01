@@ -11,8 +11,9 @@ location below is in ``research/book-notes/algorithmic-trading.md``.
    futures contracts", so XLE need not track it the way it tracks the spot.
 2. **Location 2385.** A producer ETF such as XLE "usually cointegrates with
    the spot price", and the roll return can break its tie to the futures.
-3. **Location 2718** defines contango as a negative roll return, with the far
-   contract priced above the near one.
+3. **Location 2718** calls a negative roll return contango. Location 2326
+   says backwardation is the near contract priced above the far one, so
+   contango is the far contract priced above the near.
 4. **Location 2734** gives the trade. "Short USO and long XLE whenever CL is
    in contango. Long USO and short XLE whenever CL is in backwardation. The
    APR is a very respectable 16 percent from April 26, 2006, to April 9, 2012,
@@ -25,9 +26,9 @@ under ``public/img/book2/`` in the mirror
 ``inputDataDaily_CL_20120502``, and its closing comment prints five figures:
 an average annual return of 0.1592, a Sharpe ratio of 1.05, an APR of 0.1591,
 a maximum drawdown of −0.192321 and a longest drawdown of 487 days. The text
-gives no rule for deciding contango beyond location 2718's definition, so the
-rule here comes from the script alone. It fits no hedge ratio, no z-score and
-no band, and the two legs are equal and fixed.
+gives no rule for deciding contango beyond what locations 2326 and 2718 say
+contango is, so the rule here comes from the script alone. It fits no hedge
+ratio, no z-score and no band, and the two legs are equal and fixed.
 
 **The transcription.** Seven steps, each mapped to the function that runs it.
 

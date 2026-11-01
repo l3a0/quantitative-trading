@@ -8814,9 +8814,10 @@ No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Location 2385 says a fund of
 oil producers such as XLE "usually cointegrates with the spot price", and
 location 1939 that USO "invests in oil futures contracts", so USO earns the
-roll return on top of the spot and XLE does not. Location 2718 defines
-contango as a negative roll return, with the far contract priced above the
-near one. Location 2734 trades the gap: short USO and long XLE whenever CL is
+roll return on top of the spot and XLE does not. Location 2718 calls
+a negative roll return contango. Location 2326 says backwardation is the near
+contract priced above the far one, so contango is the far contract priced
+above the near. Location 2734 trades the gap: short USO and long XLE whenever CL is
 in contango, and the reverse in backwardation, for an APR of "a very
 respectable 16 percent" from 2006-04-26 to 2012-04-09 "with a Sharpe ratio of
 about 1".
@@ -8917,8 +8918,8 @@ Three things.
    comment prints lands at the decimals printed, and the book's two land at
    the precision Chan printed them.
 2. **The book's text and the script describe one run.** The text gives no
-   rule for deciding contango beyond location 2718's definition, so the rule
-   here is the script's, and its APR and Sharpe ratio are the text's
+   rule for deciding contango beyond what locations 2326 and 2718 say
+   contango is, so the rule here is the script's, and its APR and Sharpe ratio are the text's
    16 percent and "about 1".
 3. **The backwardation days earn a third of the return.** Split by the view
    held the day before, the trade earns on contango on 1,128 days and on

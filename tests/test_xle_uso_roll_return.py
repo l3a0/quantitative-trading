@@ -925,8 +925,8 @@ class TestWhatThePostQuotes:
             )
         # Each leg's share of each group's sum. On the backwardation days the
         # post says "mostly by being long USO" and "a little by being short
-        # XLE". On the contango days it says XLE's rise "earned the trade more
-        # than its short USO leg did" and "in large part".
+        # XLE". On the contango days it says the long XLE leg "earned the trade
+        # more than the short USO leg did" and "in large part".
         prices = closes.loc[result.days, list(LEGS)].to_numpy(dtype=float)
         moves = prices / backshift(1, prices) - 1
         earning = (backshift(1, held) == BACKWARDATION).all(axis=1)
