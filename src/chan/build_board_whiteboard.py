@@ -33,8 +33,10 @@ carries its own words, so colour is never the only cue. The sketch carries
 more than a reader takes in at that post's pace, so it is in :data:`PACED`,
 and :func:`sketch_timeline` holds each label longer and the finished drawing
 for twelve seconds, as :mod:`chan.equity_seasonals_whiteboard` does for its
-slow sketches. Only the scene, the pacing and the file name are this
-module's. The GIF is named :data:`GIF_PREFIX` plus the scene's slug.
+slow sketches. Only the scene, the choice to pace it and the file name are
+this module's. :func:`sketch_timeline` and the GIF writer are copied from
+:mod:`chan.equity_seasonals_whiteboard`, with :data:`chan.palette.INKS` passed
+to :func:`render`. The GIF is named :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw it with::

@@ -312,11 +312,20 @@ class TestTheGifs:
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path) -> None:
         again = make_build_board_whiteboards(out_dir=tmp_path)
+        assert [path.parent for path in again] == [tmp_path] * len(GIFS)
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
 
 
 class TestTheCommittedGifs:
+    def test_each_draws_in_the_posts_palette(self) -> None:
+        """Checked on every platform, so a committed GIF left in the shared
+        colours fails even where the byte-for-byte comparison below skips."""
+        expected = whiteboard.palette(palette.INKS).getpalette()
+        for name in GIFS:
+            with Image.open(FIGURES_DIR / name) as image:
+                assert image.getpalette()[: len(expected)] == expected, name
+
     def test_the_figures_folder_holds_exactly_this_modules_gifs_under_its_prefix(self) -> None:
         found = {path.name for path in FIGURES_DIR.glob(f"{sketches.GIF_PREFIX}*.gif")}
         assert found == set(GIFS)
