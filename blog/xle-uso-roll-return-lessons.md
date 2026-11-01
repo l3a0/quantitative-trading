@@ -21,7 +21,7 @@ Chan published the script, `XLE_CL_rollReturn.m`, and this repository transcribe
 
 The results fall into five groups.
 
-1. **The pair stands in for crude’s spot and its futures only by assumption.** The book argues it, and this replication does not test it.
+1. **The pair stands in for crude’s spot and its futures only by the book’s argument.** Chan makes both claims, and this replication tests neither.
 2. **Every printed figure lands.** Each of the five figures in the script’s closing comment, and each of the book’s two, rounds to the printed value on Chan’s own files.
 3. **The trade mostly bets on contango, and holds nothing at first.** It is short USO and long XLE on 1,129 days, the reverse on 244, and holds nothing for its first 123 days.
 4. **The XLE closes are not what a holder earned.** Chan’s fund file adjusts for dividends by subtraction, and nothing committed measures how much that moves XLE’s returns.
@@ -64,7 +64,7 @@ The rules that decide each result are in [Entry 39 of the replication log](https
 
 The trade rests on two claims from the book, and this replication tests neither.
 
-1. **XLE stands in for crude’s spot price.** Chan says a producers’ fund usually cointegrates with the spot (p. 178). The file the script loads holds no spot price. Chan’s later save of those contracts holds one over all of Chan’s dates, but nothing here tests XLE against it.
+1. **XLE stands in for crude’s spot price.** Chan says a producers’ fund usually cointegrates with the spot (p. 178). The file the script loads holds no spot price. Chan’s later save of those contracts holds one on every one of the 1,498 days the two calendars share, but nothing here tests XLE against it.
 2. **USO holds the front contract.** The script’s ratio reads its own front, which is not always the contract nearest expiry. On 734 of the 1,375 days with a ratio, the script’s front is the nearest contract the file prices that day. On the other 641 it is the second-nearest. The script moves to the next contract 10 rows before the current one’s last price, and for those 10 rows the old contract is still priced. So “front month” in the signal means the contract the script reads, which need not be the one USO held that day.
 
 From 2006-04-26 to 2012-04-09 the two funds went opposite ways. USO’s close fell from 69.54 to 38.97, or 43.9603 percent. XLE’s rose from 51.97 to 69.61, or 33.9427 percent. A trade mostly short USO and long XLE gains from both moves, whether or not either move came from the roll return. Lesson 5 splits those days by the view the trade held, contango or backwardation, and sets USO’s move on each group’s days beside the roll return the ratio implies.

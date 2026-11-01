@@ -7536,7 +7536,7 @@ post, the crude oil calendar spread post, the spot and roll returns post, the
 crude oil reversal and momentum post and the gold miners post rather than
 repeating them, and draws five lessons from Entry 39 of the replication log.
 
-1. The pair stands in for crude's spot against its futures only by the book's
+1. The pair stands in for crude's spot and its futures only by the book's
    argument, and the script's front is the nearest contract on 734 of the
    1,375 days with a ratio and the second-nearest on 641.
 2. All five figures the script's comment prints and the book's two land, and
