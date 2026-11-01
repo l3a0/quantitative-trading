@@ -71,9 +71,9 @@ POST = REPO_ROOT / "blog" / "build-board-on-github-lessons.md"
 #: Every GIF in the order :func:`make_build_board_whiteboards` writes them.
 GIFS = ["build_board_sketch_update_flow.gif"]
 
-#: Words in the paragraph the GIF follows. The paragraph opens on a bold
-#: "After." today, and a heading may take that word over, so the test keys on
-#: the sentence rather than on the paragraph's first characters.
+#: Words in the paragraph the GIF follows. The test keys on this sentence
+#: rather than on the paragraph's first characters, since its opening once
+#: changed when a heading took over its bold "After."
 FOLLOWS = "A session no longer writes the board."
 
 LABELS = [

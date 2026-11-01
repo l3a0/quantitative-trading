@@ -55,7 +55,7 @@ A script, `scripts/build_board.py`, read GitHub and wrote the six sections as on
 2. Anyone comments.
 3. A pull request into `main` changes, closed and edited ones included.
 4. A run of CI, the repository’s test workflow, finishes.
-5. The clock reached 7 or 37 minutes past the hour.
+5. The clock reaches 7 or 37 minutes past the hour.
 6. Someone starts it by hand.
 
 Three events start no run of their own. Until 2026-10-19 all three reached the board on the next run of any kind.
@@ -66,7 +66,7 @@ Three events start no run of their own. Until 2026-10-19 all three reached the b
 
 Since 2026-10-19 a session that sets a “blocked by” link or a sub-issue starts a run itself. CodeQL’s results still wait for the next run.
 
-On 2026-10-29 this repository deleted the script, the page and their tests. Its workflow now calls a shared copy in the owner’s repository template, pinned to one commit, on the same six triggers. Unless a sentence gives a later date, every figure in this post was measured on or before 2026-10-11.
+On 2026-10-29 this repository deleted the script, the page and their tests. Its workflow now calls a shared copy in the owner’s repository template, pinned to one commit, on the same six triggers, with the clock moved to 8 and 38 minutes past the hour on 2026-10-12. Unless a sentence gives a later date, every figure in this post was measured on or before 2026-10-11.
 
 ### Where the judgement went
 
