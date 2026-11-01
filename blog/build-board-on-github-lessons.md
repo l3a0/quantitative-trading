@@ -8,7 +8,11 @@ Every other post in this series reproduces a number from one of Ernest Chan’s 
 
 On 2026-10-11 the board moved. Before, it was a private page hosted on claude.ai, called an artifact, and its data sat in a database attached to that page. Every session that changed something the board showed wrote the change in by hand. After, it is a page on GitHub Pages, GitHub’s hosting for a repository’s static pages. A GitHub Action, a job GitHub runs on its own machines when something happens in the repository, rebuilds it from GitHub whenever an issue, a comment, a pull request or a CI run changes.
 
-The question is what keeping a shared status page true costs when every change is written by hand, and what changed once the page was built from the system that already held the facts. A session works in turns. A **turn** is one model response and the tools it calls, and the tokens it reads and writes set its price. The dollar figures below value those tokens at list price, and none of them is a bill, because the owner’s subscription charges nothing per token. The dollar serves as a unit that adds up across turns of different sizes. A session can also hand a task to a **sub-agent**, a second Claude instance started for that task that reports back when it finishes. The answer comes in six lessons.
+The question is what keeping a shared status page true costs when every change is written by hand, and what changed once the page was built from the system that already held the facts.
+
+A session works in turns. A **turn** is one model response and the tools it calls, and the tokens it reads and writes set its price. The dollar figures below value those tokens at list price, and none of them is a bill, because the owner’s subscription charges nothing per token. The dollar serves as a unit that adds up across turns of different sizes. A session can also hand a task to a **sub-agent**, a second Claude instance started for that task that reports back when it finishes.
+
+The answer comes in six lessons.
 
 1. **A page written by hand costs a turn for every change, whatever the change.** 240 updates in 1.9 days used about \$111 a day.
 2. **Concurrent writers paid for the version check.** 57 of the 240 updates had a write refused because another session had written first.
@@ -17,7 +21,7 @@ The question is what keeping a shared status page true costs when every change i
 5. **On an estimate, the move pays back in about a day and a third.** It used \$101.80 of model work and saves an estimated \$77.6 a day.
 6. **The move added costs of its own.** Lesson 6 names five, among them 2,903 new lines of script and tests and a page that trails GitHub by a minute or more.
 
-**Every figure here is an unpinned measurement.** The cost figures come from Claude Code’s transcripts, the logs it keeps of each session. Those are private and stay on one machine, so this public repository cannot commit them, and no test asserts any figure in this post. The post states each figure’s window, date and method once, where the figure first appears, and each derived figure shows its arithmetic, so a reader can redo it from the inputs on the page. The “after” figures rest on one example each and carry an estimate label wherever they appear.
+**No test checks any figure in this post.** The cost figures come from Claude Code’s transcripts, the logs it keeps of each session. Those are private and stay on one machine, so this public repository cannot commit them. The post states each figure’s window, date and method once, where the figure first appears, and each derived figure shows its arithmetic, so a reader can redo it from the inputs on the page. The “after” figures rest on one example each and carry an estimate label wherever they appear.
 
 ## Why a status page has to stay true
 
@@ -25,7 +29,9 @@ A page that says what is in flight is useful only while it is true. A card shown
 
 ## The board before and after the move
 
-**Before.** The procedure lived in a skill, a written set of instructions a session loads and follows. Just before the change that retired it, the skill ran 1,119 lines and named six data sections.
+### How sessions kept the board by hand
+
+The procedure lived in a skill, a written set of instructions a session loads and follows. Just before the change that retired it, the skill ran 1,119 lines and named six data sections.
 
 1. The board’s state.
 2. The open pull requests.
@@ -34,9 +40,11 @@ A page that says what is in flight is useful only while it is true. A card shown
 5. What to take next.
 6. The tracker, meaning the repository’s GitHub issues.
 
-A session that changed anything read all six, measured from GitHub what had moved, edited the sections, and ran a harness, a script that rendered the page. The session then read the output against six checks, one of which confirmed that the totals reconciled. Then it wrote the sections back. Each write carried a version pin, a check that refuses the write when another session wrote first. On a refusal the session re-read all six sections, re-ran the harness and wrote again. Most updates went to a sub-agent.
+A session that changed anything read all six, measured from GitHub what had moved, edited the sections, and ran a harness, a script that rendered the page. The session then read the output against six checks, one of which confirmed that the cards on the page added up to the repository’s open issues. Then it wrote the sections back. Each write carried a version pin, a check that refuses the write when another session wrote first. On a refusal the session re-read all six sections, re-ran the harness and wrote again. Most updates went to a sub-agent.
 
-**The move.** Two changes made it.
+### What the move built
+
+Two changes made the move.
 
 1. The first built the Pages board and its Action, and merged on 2026-10-11 at 19:09:28Z.
 2. The second moved the judgement onto GitHub and retired the artifact, and merged at 21:17:12Z.
@@ -60,32 +68,40 @@ Since 2026-10-19 a session that sets a “blocked by” link or a sub-issue star
 
 On 2026-10-29 this repository deleted the script, the page and their tests. Its workflow now calls a shared copy in the owner’s repository template, pinned to one commit, on the same six triggers. Unless a sentence gives a later date, every figure in this post was measured on or before 2026-10-11.
 
+### Where the judgement went
+
 The judgement became labels, links and lines a session sets on GitHub.
 
 1. `working:build` and `working:decompose` say a session is building or planning a card.
-2. A `band:N` label and a `Board order:` line in the issue body rank it.
+2. A `band:N` label puts a card in priority group N, with band 1 first, and a `Board order:` line in the issue body ranks it within that group.
 3. A `decision` label marks a card waiting on the owner.
 4. A native “blocked by” link and a `Board after:` line say what it waits on.
 5. A `Board verdict:` line in an owner comment says whether its plan is finished.
 
-**After.** A session no longer writes the board. It sets a label or a line when it makes a judgement call. Events GitHub already records, such as a pull request merging or CI finishing, reach the board on its next run with nothing set by anyone. The list of three events above names the exceptions. Just after the change, the skill ran 802 lines.
+### What a session does after the move
+
+A session no longer writes the board. It sets a label or a line when it makes a judgement call. Events GitHub already records, such as a pull request merging or CI finishing, reach the board on its next run with nothing set by anyone. The list of three events above names the exceptions. Just after the second change, the skill ran 802 lines.
 
 ## Lesson 1: a page written by hand costs a turn for every change, whatever the change
 
-**How the measurement works.** The measurement priced every board-update turn from the transcripts at Claude Opus 5.5 list prices. A cost-measuring procedure kept outside this repository grouped the turns into updates and priced each turn’s tokens. The window runs from 2026-10-10 00:00Z to the second change’s merge at 2026-10-11 21:17Z, which is 1.887 days, and its first update came at 02:44Z. Anthropic’s pricing page, read on 2026-10-11, lists Opus 5.5 at \$4 per million input tokens, \$5 per million written to a five-minute cache, \$8 per million written to a one-hour cache, \$0.20 per million read from cache and \$20 per million output tokens.
+### How the measurement works
 
-The window held 240 board updates, and the measurement priced every one.
+The measurement priced every board-update turn from the transcripts at Claude Opus 5.5 list prices. A cost-measuring procedure kept outside this repository grouped the turns into updates and priced each turn’s tokens. The window runs from 2026-10-10 00:00Z to the second change’s merge at 2026-10-11 21:17Z, which is 1.887 days, and its first update came at 02:44Z. Anthropic’s pricing page, read on 2026-10-11, lists Opus 5.5 at \$4 per million input tokens, \$5 per million written to a five-minute cache, \$8 per million written to a one-hour cache, \$0.20 per million read from cache and \$20 per million output tokens.
+
+The window held 240 board updates, and the measurement priced every one. The table’s columns split them into updates made by a board sub-agent and updates made in the session itself.
 
 ```math
-\begin{array}{l|r|r|r}
-\text{Kind of update} & \text{Updates} & \text{Median cost, dollars} & \text{Median turns} \\ \hline
-\text{by a board sub-agent} & 158 & 0.92 & 14 \\
-\text{in the session itself} & 82 & 0.33 & 4 \\
-\text{all} & 240 & 0.81 &
+\small\begin{array}{l|r|r|r}
+ & \text{Sub-agent} & \text{Session} & \text{All} \\ \hline
+\text{Updates} & 158 & 82 & 240 \\
+\text{Median cost, dollars} & 0.92 & 0.33 & 0.81 \\
+\text{Median turns} & 14 & 4 &
 \end{array}
 ```
 
-A sub-agent update took a median of 2.0 minutes, and its cost ran from \$0.73 at the 10th percentile to \$1.29 at the 90th. The narrow range fits a fixed price every update paid before it changed anything. It loaded the skill and read all six sections, whatever it had come to change. The measurement did not split the cost to confirm it. A sub-agent also starts with none of its caller’s context, which helps explain why it took 14 turns where an update made in the session itself took 4.
+A sub-agent update took a median of 2.0 minutes, and its cost ran from \$0.73 at the 10th percentile to \$1.29 at the 90th. The narrow range fits a fixed cost that every update paid before changing anything. Each one loaded the skill and read all six sections, whatever it had come to change. The measurement did not split the cost to confirm it. A sub-agent also starts with none of its caller’s context, which helps explain why it took 14 turns where an update made in the session itself took 4.
+
+### From turns to dollars a day
 
 The update turns came to \$185.22. Three kinds of turns around them came to \$24.41. Rerun on the owner’s transcripts, the measurement’s scripts reproduce the first of the three. The other two are as the measurement reported them, and no script re-derives them.
 
@@ -118,22 +134,33 @@ A board sub-agent ends its work with a report to the session that started it, an
 
 Two incidents show what a stale card looked like, and both rest on the transcripts alone too.
 
-1. On 2026-10-10 a card most likely sat under “Waiting on your review”, the column for work waiting on the owner, after its pull request had merged. The source hedged this, and so does this post.
+1. On 2026-10-10 a card most likely sat under “Waiting on your review”, the column for work waiting on the owner, after its pull request had merged. The board’s column headings speak in a session’s voice, so “your” means the owner’s and “my” means a session’s. The transcript that records the incident hedges the claim, and so does this post.
 2. On 2026-10-11 the board showed a branch as failing while its checks were green.
 
-Part of the cause is that some events reach no session at all. A pull request merged from GitHub’s web page and CI finishing its checks are two. Nothing told a session that either had happened, so nothing wrote it until some later session looked. Both now start a run of the Action, through the pull request trigger for the merge and the CI trigger for the checks. CodeQL’s results still wait for the next run.
+Part of the cause is that some events reach no session at all. Two examples are a pull request merged from GitHub’s web page and CI finishing its checks. Nothing told a session that either had happened, so nothing wrote it until some later session looked. Both now start a run of the Action, through the pull request trigger for the merge and the CI trigger for the checks. CodeQL’s results still wait for the next run.
 
 ## Lesson 4: judgement kept inside the page could not be read by anything else
 
 Before the move, the owner’s ranking of the work existed in one place, the artifact’s database. Only a session following the skill could read a card’s priority band, its order within the band and whether its plan was finished. A script reading GitHub could not have built the board, because GitHub did not hold that information.
 
-So the second change had to move it first. It planned a backfill, a one-off pass writing the existing judgement onto GitHub, of 60 writes. The owner limited `working:build` to the 4 cards whose pull requests were still open, of 8 planned. GitHub’s record shows 53 writes landed: 18 band labels, 17 order lines, 8 decision labels, 4 working labels, 4 “blocked by” links and 2 verdict comments, against 19, 18, 8, 8, 5 and 2 in the plan. This post did not trace where the missing band label, order line and link went.
+So the second change had to move it first. It planned a backfill, a one-off pass writing the existing judgement onto GitHub, of 60 writes. The owner limited `working:build` to the 4 cards whose pull requests were still open, of 8 planned. GitHub’s record shows 53 of the 60 writes landed.
+
+1. 18 of 19 band labels landed.
+2. 17 of 18 order lines landed.
+3. All 8 decision labels landed.
+4. 4 of 8 working labels landed, the 4 the owner kept.
+5. 4 of 5 “blocked by” links landed.
+6. Both verdict comments landed.
+
+This post did not trace where the missing band label, order line and link went.
 
 The backfill moved the ranks and left the reasons behind. Each ranked card’s reason and each plan’s note existed only as free text in the artifact, and they still do, which is why Lesson 6 counts the artifact as kept.
 
 ## Lesson 5: on an estimate, the move pays back in about a day and a third
 
-**The cost of the move.** Building and landing the move used \$101.80 of model work, measured the same way as Lesson 1 over the planning, building and review sessions of 2026-10-11, in five parts.
+### The one-off cost of the move
+
+Building and landing the move used \$101.80 of model work, measured the same way as Lesson 1 over the planning, building and review sessions of 2026-10-11, in five parts.
 
 1. Planning, including the earlier cost measurement, \$6.23.
 2. Building the Pages board, \$24.64.
@@ -143,28 +170,38 @@ The backfill moved the ranks and left the reasons behind. Each ranked card’s r
 
 The measurement rounded each part on its own, so the five sum to \$101.81 rather than \$101.80.
 
-**The daily cost after the move, an estimate.** It rests on two samples, each taken once.
+### The estimated daily cost after the move
+
+The estimate rests on two samples, each taken once.
 
 1. One label edit made with `gh issue edit` in the calling session took 2 turns and cost \$0.165, at about 280,000 tokens of context.
-2. One board check in a sync round, a session’s periodic pass over what has merged and what to take next. The check builds `board.json` locally, and it took 22 turns and cost \$0.92. Starting the sub-agent that runs it cost a median of \$0.11 over Lesson 1’s window.
+2. One board check, made in a sync round, took 22 turns and cost \$0.92. A sync round is a session’s periodic pass over what has merged and what to take next, and its board check builds `board.json` locally. Starting the sub-agent that runs it cost a median of \$0.11 over Lesson 1’s window.
 
 The estimate charges every update a label edit. It adds a board check, with the cost of starting it, at the share of sub-agent updates that ran one, which was 18 of 158, or 11.4 percent. At 127.2 updates a day, the rate Lesson 1 derives:
 
 ```math
-\text{after} = 127.2\,[(1-0.114)(0.165) + 0.114\,(0.92+0.11)] \approx 33.53
+\begin{aligned}
+\text{after} &= 127.2\,[(1-0.114)(0.165) \\
+&\qquad + 0.114\,(0.92+0.11)] \\
+&\approx 33.53
+\end{aligned}
 ```
 
 That is an estimated \$0.264 per update and about \$33.5 a day.
 
-**Three known gaps make the computed saving smaller than the true one, one omission makes it larger, and one unknown cuts either way.** The three gaps that understate the saving come first.
+### Which way the estimate leans
+
+Three known gaps make the computed saving smaller than the true one, one omission makes it larger, and one unknown cuts either way. The three gaps that understate the saving come first.
 
 1. The estimate applies the 11.4 percent to every update, which models 14.5 sync rounds a day against the 9.5 measured. At the measured rate, (127.2 − 9.5)(0.165) + 9.5(1.03) gives about \$29.2 a day.
 2. It also charges a label edit to updates that now need none, such as a merge.
 3. The before figure leaves out the turns that read each sub-agent’s report, which the measurement did not price.
 
-Against them, the model leaves out the fixed upkeep, which overstates the saving. Each after unit cost is also one sample, so the after figure could sit high or low by an unknown amount.
+Against them, the model leaves out the fixed upkeep, meaning the script, its tests and the two defects in Lesson 6, which overstates the saving. Each after unit cost is also one sample, so the after figure could sit high or low by an unknown amount.
 
-**The return.** Four formulas give it. The cost in each is the \$101.80 the move used.
+### Saving, payback, net and multiple
+
+Four formulas give the move’s return. The cost in each is the \$101.80 the move used.
 
 1. The saving is before minus after.
 2. The payback is the cost divided by the saving.
@@ -175,7 +212,8 @@ For the observed rate, from a before figure of \$111.09 a day and an estimated a
 
 ```math
 \begin{aligned}
-\text{saving} &= 111.09 - 33.53 = 77.56 \text{ dollars a day} \\
+\text{saving} &= 111.09 - 33.53 \\
+&= 77.56 \text{ dollars a day} \\
 \text{payback} &= 101.80 / 77.56 \approx 1.3 \text{ days} \\
 \text{net at 30 days} &= 77.56 \times 30 - 101.80 \\
 &= 2{,}225 \text{ dollars} \\
@@ -183,18 +221,26 @@ For the observed rate, from a before figure of \$111.09 a day and an estimated a
 \end{aligned}
 ```
 
-The table repeats that arithmetic at half the observed rate and at double it. In this model every term scales with the update rate, so the saving halves or doubles. That is a simplification. Board checks follow sync rounds rather than updates, and the model leaves out the fixed upkeep, meaning the script, its tests and the two defects in Lesson 6. Every column after the first two is an estimate. The daily columns keep cents so that rows subtract, and the estimate is not precise to the cent. The net column rounds to the dollar.
+The table repeats that arithmetic at half the observed rate and at double it, one rate to a column. In this model every term scales with the update rate, so the saving halves or doubles. That is a simplification. Board checks follow sync rounds rather than updates, and the model leaves out the fixed upkeep. Every row below the line under the before figure is an estimate. The daily rows keep cents so that the before, after and saving rows subtract, and the estimate is not precise to the cent. The net row rounds to the dollar.
 
 ```math
-\begin{array}{l|r|r|r|r|r|r}
-\text{Updates a day} & \text{Before, dollars a day} & \text{After, estimate} & \text{Saving, estimate} & \text{Payback, days} & \text{Net at 30 days, dollars} & \text{Multiple} \\ \hline
-\text{63.6, half} & 55.55 & 16.77 & 38.78 & 2.6 & 1{,}062 & 10 \\
-\text{127.2, observed} & 111.09 & 33.53 & 77.56 & 1.3 & 2{,}225 & 22 \\
-\text{254.4, double} & 222.18 & 67.06 & 155.12 & 0.7 & 4{,}552 & 45
+\small\begin{array}{l|r|r|r}
+ & \text{Half} & \text{Observed} & \text{Double} \\ \hline
+\text{Updates a day} & 63.6 & 127.2 & 254.4 \\
+\text{Before, dollars a day} & 55.55 & 111.09 & 222.18 \\ \hline
+\text{After, estimate} & 16.77 & 33.53 & 67.06 \\
+\text{Saving, estimate} & 38.78 & 77.56 & 155.12 \\
+\text{Payback, days} & 2.6 & 1.3 & 0.7 \\
+\text{Net, 30 days} & 1{,}062 & 2{,}225 & 4{,}552 \\
+\text{Multiple} & 10 & 22 & 45
 \end{array}
 ```
 
-**The earlier measurement.** An issue measured the hand-written board once before, over 2026-10-02 to 2026-10-11. It found that keeping the board current costs “about \$51 a day at Claude Opus 5.5 list prices”. It counted 642 updates, about 92 a day over the 7 days that had sessions, for \$355.79 in total, which is about \$0.55 an update, and 129 refused writes across 108 updates. That \$51 is a cost before the move, so it compares with the before column. It sits near the half-rate row’s \$55.55, but the match holds only for the before cost. The half-rate row assumes 63.6 updates a day at about \$0.87 each, against the earlier 92 at about \$0.55. On the earlier measurement’s own inputs, the after estimate is lower and so is the saving.
+### The earlier measurement
+
+An issue measured the hand-written board once before, over 2026-10-02 to 2026-10-11. It counted 642 updates for \$355.79, about \$0.55 an update. They fell on the 7 days that had sessions, about 92 a day. It also counted 129 refused writes across 108 updates. Its finding was that keeping the board current costs “about \$51 a day at Claude Opus 5.5 list prices”.
+
+That \$51 is a cost before the move, so it compares with the before row. It sits near the half-rate column’s \$55.55, but the two match only in that cost. The half-rate column assumes 63.6 updates a day at about \$0.87 each. The earlier measurement found 92 a day at about \$0.55 each. On the earlier measurement’s own inputs, the after estimate is lower and so is the saving.
 
 ```math
 \begin{aligned}
@@ -204,13 +250,13 @@ The table repeats that arithmetic at half the observed rate and at double it. In
 \end{aligned}
 ```
 
-That payback of about 3.8 days, on the estimate, is slower than any row of the table.
+That payback of about 3.8 days, on the estimate, is slower than any column of the table.
 
 ## Lesson 6: the move added costs of its own
 
 The board no longer costs a turn for every change, and five costs took the place of that one.
 
-1. **Labels to keep up.** A session still records every judgement call, now as a label or a line rather than an artifact write. Hand-over still needs a step, taking `working:build` off. Before the move that step was a pinned write to the artifact, and now it is one label edit. Until it happens, the card stays under “Waiting on my review”, the column for work a session still owes, as it did before the move. On 2026-10-05 a page rule that dropped the entry too early had the opposite effect. It put a working card under “Waiting on your review”, and the skill records that defect and its fix.
+1. **Labels to keep up.** A session still records every judgement call, now as a label or a line rather than an artifact write. Hand-over still needs a step, taking `working:build` off. Before the move that step was a pinned write to the artifact, and now it is one label edit. Until it happens, the card stays under “Waiting on my review”, as it did before the move. On 2026-10-05 a page rule that stopped marking a card as worked on once its pull request opened had the opposite effect. It put a working card under “Waiting on your review”, and the skill records that defect and its fix.
 2. **Two defects, found on the day of the move and fixed the next day.**
    - The build failed when someone filed or closed an issue while the script was reading. Its count check could not tell a list cut short from one that changed underneath it. That race caused the one failed run in Lesson 2. On 2026-10-12 the script began reading the whole list again when its count disagreed, for up to three reads in all.
    - The script read “Part of”, a line in a pull request’s description naming the issue it advances, only at the start of a line, so it missed one written mid-paragraph. On 2026-10-11 the owner ruled that the phrase counts anywhere in a description outside code. From 2026-10-12 the script read it there, written with a capital P.
@@ -226,11 +272,11 @@ Eight limits apply.
 
 1. **What anything cost in money.** Every dollar is usage valued at list price. A subscription charges nothing per token.
 2. **Whether 1.9 days is typical.** The before figure comes from 1.887 days that included the move itself, and the earlier measurement found a lower rate and a lower cost per update.
-3. **Exactly how many updates the sessions made themselves.** An update inside a session has no clear edges, so a rule joined board turns into one update when only a few other turns separated them. The cutoff is a choice. A cutoff of 4 turns, the one used, gives 82 updates for \$31.43. A cutoff of 2 gives 84 for \$22.96, and a cutoff of 8 gives 74 for \$39.36.
+3. **Exactly how many updates the sessions made themselves.** An update inside a session has no clear edges, so a rule joined board turns into one update when only a few other turns separated them. How many turns count as a few is a choice. A cutoff of 4 turns, the one used, gives 82 updates for \$31.43. A cutoff of 2 gives 84 for \$22.96, and a cutoff of 8 gives 74 for \$39.36.
 4. **What the move alone cost.** The building session’s \$22.05 includes some unrelated coordination.
 5. **What the board costs now.** The after figure rests on one label edit and one board check, with little history behind either.
 6. **How far the biases go.** The before figure leaves out the turns that read sub-agent reports. The after figure overstates sync rounds and charges a label edit to updates that need none. All three make the computed saving smaller than the true one. The fixed upkeep the model leaves out works the other way, and each after unit cost is a single sample that could sit high or low.
-7. **Whether the stale reports and the two incidents are accurate.** Those counts come from the transcripts alone, and the source that recorded the first incident hedged it.
+7. **Whether the stale reports and the two incidents are accurate.** Those counts come from the transcripts alone, and the transcript that recorded the first incident hedged it.
 8. **What a stale label costs a reader.** Nothing measured it, before the move or after.
 
 ## References
