@@ -372,6 +372,11 @@ class TestThePost:
         lesson_1 = text.index("## Lesson 1:")
         assert section < at < lesson_1
 
+    def test_the_boxes_quote_the_counts_the_post_gives(self) -> None:
+        text = POST.read_text(encoding="utf-8")
+        assert "named six data sections" in text and "against six checks" in text
+        assert "read 6 sections\n+ GitHub" in LABELS and "render,\n6 checks" in LABELS
+
     def test_the_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
         for name in GIFS:
@@ -531,5 +536,7 @@ class TestTheUpdateFlowSketch:
         assert "Two rows of black boxes, joined left to right by black arrows" in alt
         assert "A vermilion arrow labelled “refused” leaves the bottom of “write + pin”" in alt
         assert "rises into “read 6 sections + GitHub”" in alt
-        assert "a berry arrow labelled “PR merges / CI finishes” rises from empty board" in alt
+        assert "a berry arrow labelled “PR merges / CI finishes” rises from the blank whiteboard below" in alt
+        assert "under a grey heading “before (by hand)”" in alt
+        assert "under a grey heading “after (from GitHub)”" in alt
         assert "into the bottom of “GitHub event”, with no box behind it" in alt
