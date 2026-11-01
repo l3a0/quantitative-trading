@@ -536,7 +536,10 @@ class TestTheUpdateFlowSketch:
         assert "Two rows of black boxes, joined left to right by black arrows" in alt
         assert "A vermilion arrow labelled “refused” leaves the bottom of “write + pin”" in alt
         assert "rises into “read 6 sections + GitHub”" in alt
-        assert "a berry arrow labelled “PR merges / CI finishes” rises from the blank whiteboard below" in alt
+        assert (
+            "a berry arrow labelled “PR merges / CI finishes” rises from the blank whiteboard below"
+            in alt
+        )
         assert "under a grey heading “before (by hand)”" in alt
         assert "under a grey heading “after (from GitHub)”" in alt
         assert "into the bottom of “GitHub event”, with no box behind it" in alt
