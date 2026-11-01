@@ -961,14 +961,14 @@ class TestWhatThePostQuotes:
             f"that set that day’s view, and divides by {DAYS_PER_YEAR}.",
             f"USO fell by {-uso_contango:.4f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
-            f"XLE rising {100 * contango.xle:.4f} percent over the same days earned the trade "
-            "more than its short USO leg did, so these days too were in large part a bet on "
-            "XLE’s own move.",
+            "Added up day by day, as the trade’s row under “Summed” is, the long XLE leg earned "
+            "the trade more than the short USO leg did, so these days too were in large part a "
+            "bet on XLE’s own move.",
             f"USO rose by {uso_backwardation:.4f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
             "rise.",
-            "The trade earned these days mostly by being long USO while USO rose, and a little "
-            "by being short XLE while XLE fell.",
+            "Added up the same way, the trade earned these days mostly by being long USO while "
+            "USO rose, and a little by being short XLE while XLE fell.",
         ]
         assert not_found_once(text, fragments) == []
         table = [
