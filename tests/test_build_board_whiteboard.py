@@ -372,10 +372,11 @@ class TestThePost:
         lesson_1 = text.index("## Lesson 1:")
         assert section < at < lesson_1
 
-    def test_the_boxes_quote_the_counts_the_post_gives(self) -> None:
+    def test_the_boxes_quote_the_counts_the_post_gives(self, flow) -> None:
         text = POST.read_text(encoding="utf-8")
         assert "named six data sections" in text and "against six checks" in text
-        assert "read 6 sections\n+ GitHub" in LABELS and "render,\n6 checks" in LABELS
+        assert "read 6 sections\n+ GitHub" in flow.labels
+        assert "render,\n6 checks" in flow.labels
 
     def test_the_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")
