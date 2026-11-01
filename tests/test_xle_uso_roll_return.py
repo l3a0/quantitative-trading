@@ -19,7 +19,7 @@ held elsewhere.
    ``tests/test_series.py`` holds.
 5. The 67 funds the fund file holds, which
    ``TestTheCommittedPanelsAreChansArrays`` in ``tests/test_series.py`` holds.
-6. The finding that a save dated a week later moves every close of the crude
+6. The finding that two saves a week apart differ on every close of the crude
    oil reversal post's continuous future, which
    ``test_the_later_save_sits_0_27_higher_on_every_day`` in
    ``tests/test_cl_reversal_momentum.py`` holds.
@@ -603,8 +603,8 @@ class TestWhatThePostQuotes:
     short the fund that loses the roll return and long the fund that does not
     follows from that model and the rule, since a ratio above 1 makes every
     contango day's implied roll return negative. Neither is read, and
-    ``README.md`` lists the second among the readings. The finding that a
-    save a week later moves every close of the crude oil reversal post's
+    ``README.md`` lists the second among the readings. The finding that two
+    saves a week apart differ on every close of the crude oil reversal post's
     continuous future is ``tests/test_cl_reversal_momentum.py``'s.
     The summary's first group, that this replication tests neither claim the
     pair rests on, holds no number and is not read. Nothing checks Chan's words
@@ -967,8 +967,8 @@ class TestWhatThePostQuotes:
         uso_leg, xle_leg = (CONTANGO * moves[earning]).sum(axis=0) / len(LEGS)
         assert uso_leg + xle_leg == pytest.approx(contango.summed, abs=TIGHT)
         assert 0 < uso_leg < contango.summed / 2 < xle_leg
-        # "though USO’s fall in the table, compounded or in logs, is larger
-        # than XLE’s rise"
+        # "though USO’s fall is larger than XLE’s rise whether compounded, as in
+        # the table, or in logs"
         assert 0 < contango.xle < -contango.uso
         assert -uso_contango > math.log(1 + contango.xle)
         trade_end = cumulative_return(result.daily)[-1]
@@ -996,8 +996,8 @@ class TestWhatThePostQuotes:
             f"USO fell by {-uso_contango:.6f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
             "Added up day by day, as the trade’s row under “Summed” is, the long XLE leg earned "
-            "the trade more than the short USO leg did, though USO’s fall in the table, "
-            "compounded or in logs, is larger than XLE’s rise.",
+            "the trade more than the short USO leg did, though USO’s fall is larger than XLE’s "
+            "rise whether compounded, as in the table, or in logs.",
             "So these days too were in large part a bet on XLE’s own move.",
             f"USO rose by {uso_backwardation:.6f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "

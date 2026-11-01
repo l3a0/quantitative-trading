@@ -7601,8 +7601,8 @@ cites from the spot and roll returns post, traces to
 zero gap on the last day, its 24 dividends and both download dates trace to
 `TestTheETFFileSubtractsEachDividend` in
 [tests/test_series.py](tests/test_series.py), and the fund file's 67 funds to
-`TestTheCommittedPanelsAreChansArrays` there. A save dated a week later moving
-every close in the crude oil post's window, which the post cites from the
+`TestTheCommittedPanelsAreChansArrays` there. The finding that two saves a week
+apart differ on every close in the crude oil post's window, which the post cites from the
 crude oil reversal and momentum post, traces to
 `test_the_later_save_sits_0_27_higher_on_every_day` in
 [tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py).
