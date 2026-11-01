@@ -7583,7 +7583,7 @@ Five groups of what it says are not pinned here.
    short the fund that loses the roll return, and that a split at the end of 2008 was measured
    and left out.
 4. Comparisons the post states in words whose sentences no test reads:
-   small beside, dwarfs and far larger. `test_lesson_5` bounds the run behind
+   dwarfs and far larger. `test_lesson_5` bounds the run behind
    them, holding the implied roll return under a seventh of USO's log move on
    the backwardation days. The figure's alt text reads its curves
    approximately too, as in about 30 percent by late 2007 and near 141
