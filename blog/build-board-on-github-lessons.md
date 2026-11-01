@@ -1,6 +1,6 @@
 # A status page written by hand cost a session turn for every change, and an estimate puts the payback of building it from GitHub at about a day and a third
 
-*Every session that changed this repository’s status page wrote the change by hand, 240 times in 1.9 days, and the page was still often stale. A GitHub Action now rebuilds it, and on an estimate, the move pays back in about a day and a third.*
+*Every session that changed this repository’s status page wrote the change by hand, 240 times in 1.9 days, and most reports said the page was still behind. A GitHub Action now rebuilds it, and on an estimate, the move pays back in about a day and a third.*
 
 ## An engineering decision rather than a replication
 
@@ -21,11 +21,11 @@ The answer comes in six lessons.
 5. **On an estimate, the move pays back in about a day and a third.** It used \$101.80 of model work and saves an estimated \$77.6 a day.
 6. **The move added costs of its own.** Lesson 6 names five, among them 2,903 new lines of script and tests and a page that trails GitHub by a minute or more.
 
-**No test checks any figure in this post.** The cost figures come from Claude Code’s transcripts, the logs it keeps of each session. Those are private and stay on one machine, so this public repository cannot commit them. The post states each figure’s window, date and method once, where the figure first appears, and each derived figure shows its arithmetic, so a reader can redo it from the inputs on the page. The “after” figures rest on one example each and carry an estimate label wherever they appear.
+**No test checks any figure in this post.** The cost figures, and the counts of updates, refused writes and reports, come from Claude Code’s transcripts, the logs it keeps of each session. Those are private and stay on one machine, so this public repository cannot commit them. The run counts, run timings, line counts and the backfill’s landed writes come from GitHub, and a reader can re-derive them there. The post states each figure’s window, date and method once, where the figure first appears, and each derived figure shows its arithmetic, so a reader can redo it from the inputs on the page. The “after” figures rest on one example each and carry an estimate label wherever they appear.
 
 ## Why a status page has to stay true
 
-A page that says what is in flight is useful only while it is true. A card shown as waiting on review after its pull request merged sends the owner to review finished work. A card shown as free while a session holds it invites a second session to start the same work. So a stale board has a cost, though nothing measured it, and the old way of keeping it current charged for every change in session turns. Lesson 3 counts how often it was stale anyway.
+A page that says what is in flight is useful only while it is true. A card shown as waiting on review after its pull request merged sends the owner to review finished work. A card shown as free while a session holds it invites a second session to start the same work. So a stale board has a cost, though nothing measured it, and the old way of keeping it current charged for every change in session turns. Lesson 3 counts how often a sub-agent’s report said the board was still behind.
 
 ## The board before and after the move
 
@@ -103,7 +103,7 @@ A sub-agent update took a median of 2.0 minutes, and its cost ran from \$0.73 at
 
 ### From turns to dollars a day
 
-The update turns came to \$185.22. Three kinds of turns around them came to \$24.41. Rerun on the owner’s transcripts, the measurement’s scripts reproduce the first of the three. The other two are as the measurement reported them, and no script re-derives them.
+The update turns came to \$185.22. Three kinds of turns around them came to \$24.41. The owner can reproduce the first of the three by rerunning the measurement’s scripts on the transcripts. The other two are as the measurement reported them, and no script re-derives them.
 
 1. 132 turns in the calling session that started a board sub-agent, \$16.01.
 2. 24 turns that only read the board, \$5.73.
@@ -124,13 +124,13 @@ Most of the update turns’ tokens were reads. The update turns read 389 million
 
 The version pin did its job. It refused 77 writes, across 57 of the 240 updates, which is 23.75 percent, or about one update in four. Without the pin, each of those writes could have overwritten another session’s change without either session noticing.
 
-Each refusal cost a full second pass: re-read all six sections, re-run the harness and write again. The measurement did not price the retries apart from the rest of their updates, so their share of the \$209.63 is unknown.
+Each refusal cost another full pass: re-read all six sections, re-run the harness and write again. With 77 refusals across 57 updates, some updates paid for more than one. The measurement did not price the retries apart from the rest of their updates, so their share of the \$209.63 is unknown.
 
-The Action has the same collision and settles it differently. Its runs deploy one at a time, and when changes arrive faster than runs finish, GitHub keeps only the newest run waiting and cancels the rest. On 2026-10-11, from 19:09Z to 21:35:59Z, the workflow created 274 runs. 128 succeeded, GitHub cancelled 145 while they were still queued, and 1 failed. A cancelled run had started no job, so it used no runner time, and the run after it read everything the cancelled one would have.
+The Action has the same collision and settles it differently. Its runs go one at a time, and when changes arrive faster than runs finish, GitHub keeps only the newest run waiting and cancels the rest. On 2026-10-11, from 19:09Z to 21:35:59Z, the workflow created 274 runs. 128 succeeded, GitHub cancelled 145 while they were still queued, and 1 failed. A cancelled run had started no job, so it used no runner time. The next run to start read GitHub as it then stood, so it covered everything the cancelled one would have read. A run rebuilds the whole board from GitHub rather than from the event that started it.
 
 ## Lesson 3: a hand-written page knows only what some session saw
 
-A board sub-agent ends its work with a report to the session that started it, and most reports said the board was still behind. Over the same window as Lesson 1, the transcripts hold 146 such reports against 158 sub-agent updates. 87 of the 146 ended with something still stale, and only 6 said nothing was. That count comes from the transcripts alone, so nothing on GitHub can confirm it.
+A board sub-agent ends its work with a report to the session that started it, and most reports said the board was still behind. Over the same window as Lesson 1, the transcripts hold 146 such reports against 158 sub-agent updates. 87 of the 146 ended with something still stale, and only 6 said nothing was. The count classified the other 53 neither way. That count comes from the transcripts alone, so nothing on GitHub can confirm it.
 
 Two incidents show what a stale card looked like, and both rest on the transcripts alone too.
 
@@ -199,6 +199,8 @@ Three known gaps make the computed saving smaller than the true one, one omissio
 
 Against them, the model leaves out the fixed upkeep, meaning the script, its tests and the two defects in Lesson 6, which overstates the saving. Each after unit cost is also one sample, so the after figure could sit high or low by an unknown amount.
 
+That upkeep has since come due, and none of it is priced here. Fixes for both defects in Lesson 6 merged on 2026-10-12, and the schedule moved that day. From 2026-10-19 a session that sets a “blocked by” link or a sub-issue also starts a run itself, a step the estimate does not charge. On 2026-10-26 the script learned to retry GitHub’s server errors, and on 2026-10-29 the board moved to a workflow shared with other repositories.
+
 ### Saving, payback, net and multiple
 
 Four formulas give the move’s return. The cost in each is the \$101.80 the move used.
@@ -238,7 +240,7 @@ The table repeats that arithmetic at half the observed rate and at double it, on
 
 ### The earlier measurement
 
-An issue measured the hand-written board once before, over 2026-10-02 to 2026-10-11. It counted 642 updates for \$355.79, about \$0.55 an update. They fell on the 7 days that had sessions, about 92 a day. It also counted 129 refused writes across 108 updates. Its finding was that keeping the board current costs “about \$51 a day at Claude Opus 5.5 list prices”.
+An issue measured the hand-written board once before, over 2026-10-02 to 2026-10-11. It counted 642 updates for \$355.79, about \$0.55 an update. They fell on the 7 days that had sessions, about 92 a day. It also counted 129 refused writes across 108 updates. Its finding was that keeping the board current costs “about \$51 a day at Claude Opus 5.5 list prices”. Its window shares about 1.6 days with this post’s, up to 14:30Z on 2026-10-11, and it counted differently. It counted only updates that wrote something and left out the `git fetch` and `gh` turns before each one.
 
 That \$51 is a cost before the move, so it compares with the before row. It sits near the half-rate column’s \$55.55, but the two match only in that cost. The half-rate column assumes 63.6 updates a day at about \$0.87 each. The earlier measurement found 92 a day at about \$0.55 each. On the earlier measurement’s own inputs, the after estimate is lower and so is the saving.
 
@@ -256,13 +258,13 @@ That payback of about 3.8 days, on the estimate, is slower than any column of th
 
 The board no longer costs a turn for every change, and five costs took the place of that one.
 
-1. **Labels to keep up.** A session still records every judgement call, now as a label or a line rather than an artifact write. Hand-over still needs a step, taking `working:build` off. Before the move that step was a pinned write to the artifact, and now it is one label edit. Until it happens, the card stays under “Waiting on my review”, as it did before the move. On 2026-10-05 a page rule that stopped marking a card as worked on once its pull request opened had the opposite effect. It put a working card under “Waiting on your review”, and the skill records that defect and its fix.
+1. **Labels to keep up.** A session still records every judgement call, now as a label or a line rather than an artifact write. Hand-over still needs a step, taking `working:build` off. Before the move that step was a pinned write to the artifact, and now it is one label edit. Labels are added and removed one at a time, but a `Board order:` or `Board after:` line is written by replacing the whole issue body. GitHub offers no version check on that write, so two sessions editing one body can lose an edit. Nothing has measured how often. Until it happens, the card stays under “Waiting on my review”, as it did before the move. On 2026-10-05 a page rule that stopped marking a card as worked on once its pull request opened had the opposite effect. It put a working card under “Waiting on your review”, and the skill records that defect and its fix.
 2. **Two defects, found on the day of the move and fixed the next day.**
-   - The build failed when someone filed or closed an issue while the script was reading. Its count check could not tell a list cut short from one that changed underneath it. That race caused the one failed run in Lesson 2. On 2026-10-12 the script began reading the whole list again when its count disagreed, for up to three reads in all.
+   - The build failed when someone filed or closed an issue while the script was reading. Its count check could not tell a list cut short from one that changed underneath it. That race caused the one failed run in Lesson 2. On 2026-10-12 the script began reading the whole list again when its count disagreed, for up to three reads in all. Three reads were not always enough, and the race failed two more runs on 2026-10-17.
    - The script read “Part of”, a line in a pull request’s description naming the issue it advances, only at the start of a line, so it missed one written mid-paragraph. On 2026-10-11 the owner ruled that the phrase counts anywhere in a description outside code. From 2026-10-12 the script read it there, written with a capital P.
-3. **Code.** The move added 2,903 new lines of script and tests. On the day of the move, `scripts/build_board.py` was 806 lines and its tests were 1,271. The one-off backfill script and its tests added 394 and 432, so 826 of the new lines served a single pass. The workflow was 141 lines. The page’s own tests, 1,293 lines, were already here and changed with the move. Since 2026-10-29 the script, the page and their tests are not in this repository, and the workflow here is a 112-line file that calls the template’s copy.
-4. **Latency and caching.** In the runs up to 22:54Z on 2026-10-11, a run’s two jobs took a median of 36 seconds between them, 19 to build and 17 to deploy. A successful run took a median of 61 seconds from creation to finish, 123 at the 90th percentile and 157 at most. GitHub Pages can then serve a plain fetch from cache for up to 10 minutes. The page itself refetches its data every 2 minutes and bypasses that cache.
-5. **A backstop that seldom fired, and a page kept for its notes.** The scheduled runs at 7 and 37 minutes past the hour were the only backstop for the events that start no run. As of 22:54Z on 2026-10-11, 3 hours 44 minutes after the first change merged, none had fired, and the first came at 23:06Z. The next day the schedule moved to 8 and 38 minutes past the hour. Over the 185 hours that followed, it fired in about 11 percent of its slots, with up to 603 minutes between two scheduled runs. So since 2026-10-19 a session that sets a “blocked by” link or a sub-issue starts a run itself, and the schedule stays as a sweep for the rest, such as CodeQL’s results. The repository keeps the retired artifact rather than deleting it, because each ranked card’s reason and each plan’s note live nowhere else.
+3. **Code.** The move added 2,903 new lines of script and tests. At the second change’s merge, `scripts/build_board.py` was 806 lines and its tests were 1,271. The one-off backfill script and its tests added 394 and 432, so 826 of the new lines served a single pass. The workflow was 141 lines. The page’s own tests, 1,293 lines, were already here and changed with the move. Since 2026-10-29 the script, the page and their tests are not in this repository, and the workflow here is a 112-line file that calls the template’s copy.
+4. **Latency and caching.** Over the 128 successful runs of 2026-10-11 between 19:09Z and 21:36Z, a run’s two jobs took a median of 36 seconds between them, 19 to build and 17 to deploy. A successful run took a median of 61 seconds from creation to finish, 123 at the 90th percentile and 157 at most. GitHub Pages can then serve a plain fetch from cache for up to 10 minutes. The page itself refetches its data every 2 minutes and bypasses that cache.
+5. **A backstop that seldom fired, and a page kept for its notes.** The scheduled runs at 7 and 37 minutes past the hour were the only backstop for the events that start no run. As of 22:54Z on 2026-10-11, 3 hours 44 minutes after the first change merged, none had fired, and the first came at 23:06Z. The next day the schedule moved to 8 and 38 minutes past the hour. Over the 185 hours that followed, it fired in about 11 percent of its slots, with up to 603 minutes between two scheduled runs. So since 2026-10-19 a session that sets a “blocked by” link or a sub-issue starts a run itself, and the schedule stays as a sweep for the rest, such as CodeQL’s results. The owner keeps the retired artifact on claude.ai rather than deleting it, because each ranked card’s reason and each plan’s note live nowhere else.
 
 GitHub charges nothing for the runs. Its billing page states that Actions usage is free for a public repository on GitHub’s standard hosted runners.
 
@@ -271,10 +273,10 @@ GitHub charges nothing for the runs. Its billing page states that Actions usage 
 Eight limits apply.
 
 1. **What anything cost in money.** Every dollar is usage valued at list price. A subscription charges nothing per token.
-2. **Whether 1.9 days is typical.** The before figure comes from 1.887 days that included the move itself, and the earlier measurement found a lower rate and a lower cost per update.
+2. **Whether 1.9 days is typical.** The before figure comes from 1.887 days that included the move itself, and the earlier measurement, which shares about 1.6 of those days and counted differently, found a lower rate and a lower cost per update.
 3. **Exactly how many updates the sessions made themselves.** An update inside a session has no clear edges, so a rule joined board turns into one update when only a few other turns separated them. How many turns count as a few is a choice. A cutoff of 4 turns, the one used, gives 82 updates for \$31.43. A cutoff of 2 gives 84 for \$22.96, and a cutoff of 8 gives 74 for \$39.36.
 4. **What the move alone cost.** The building session’s \$22.05 includes some unrelated coordination.
-5. **What the board costs now.** The after figure rests on one label edit and one board check, with little history behind either.
+5. **What the board cost just after the move.** The after figure rests on one label edit and one board check, with little history behind either, and nothing here prices the board since.
 6. **How far the biases go.** The before figure leaves out the turns that read sub-agent reports. The after figure overstates sync rounds and charges a label edit to updates that need none. All three make the computed saving smaller than the true one. The fixed upkeep the model leaves out works the other way, and each after unit cost is a single sample that could sit high or low.
 7. **Whether the stale reports and the two incidents are accurate.** Those counts come from the transcripts alone, and the transcript that recorded the first incident hedged it.
 8. **What a stale label costs a reader.** Nothing measured it, before the move or after.

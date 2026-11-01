@@ -8845,8 +8845,9 @@ each one's window, date and method where it first appears.
    the script and the tests, the cron runs not yet seen by 22:54Z and the
    first at 23:06Z, and the Pages cache lifetime. The facts dated after
    2026-10-11 were read from GitHub during the post's review on 2026-11-01:
-   the two fixes and the cron move of 2026-10-12, the schedule measured over
-   185 hours and the session-started runs of 2026-10-19, and the move to the
+   the two fixes and the cron move of 2026-10-12, the two race failures of
+   2026-10-17, the schedule measured over 185 hours and the session-started
+   runs of 2026-10-19, the retry of 2026-10-26, and the move to the
    template's shared workflow on 2026-10-29 with its 112-line caller.
 6. Readings and rounding no test asserts: about one in four, about a day and
    a third, and that each refused write could have overwritten another
