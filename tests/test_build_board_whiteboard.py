@@ -380,7 +380,11 @@ class TestThePost:
     def test_its_caption_follows_it_and_says_it_is_schematic(self) -> None:
         caption = _caption()
         assert caption.startswith("*The sketch is schematic.") and caption.endswith("*")
-        assert "leaves out the scheduled runs and the events that start no run" in caption
+        assert "a line or a comment starts a run of the Action the same way" in caption
+        assert (
+            "leaves out the scheduled runs, the runs started by hand and the events that start "
+            "no run"
+        ) in caption
 
     def test_the_alt_text_quotes_every_label_in_drawing_order(self, every) -> None:
         """Each label is quoted after the one drawn before it, with a line
@@ -513,8 +517,9 @@ class TestTheUpdateFlowSketch:
         assert arrow.y[0] == pytest.approx(EVENT_FROM_Y)
         assert arrow.x[0] == pytest.approx((e0 + e1) / 2)
         assert arrow.y.max() < bottom and arrow.y.argmax() > 0
-        boxes = [s for s in flow.strokes if s.gid.startswith(("before-", "after-"))]
-        assert all(box.y.min() >= bottom for box in boxes)
+        others = [s for s in flow.strokes if s.gid != "github-records"]
+        assert all(stroke.y.min() >= bottom for stroke in others if stroke.gid != "refused")
+        assert _stroke(flow, "refused").y.min() > ROWS["after"][2]
         assert _label(flow, "PR merges / CI finishes").y < bottom
 
     def test_its_alt_text_says_what_the_picture_shows(self, flow) -> None:

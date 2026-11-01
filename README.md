@@ -8857,7 +8857,9 @@ before and after the move as two rows of boxes. The top row is the update a
 session or sub-agent made by hand, with a vermilion arrow labelled "refused"
 from the write back to the read for the version pin. The bottom row is a
 session setting a label, the GitHub event, the Action rebuilding and the page,
-with a berry arrow for the merges and CI runs that GitHub records itself. It
+with a berry arrow for the merges and CI runs that GitHub records itself. The
+label stands for what a session sets, since a line or a comment starts a run
+the same way. It
 builds more slowly than the USD.CAD post's sketches and holds its finished
 drawing for twelve seconds.
 

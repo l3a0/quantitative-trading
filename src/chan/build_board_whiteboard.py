@@ -3,8 +3,7 @@
 ``blog/build-board-on-github-lessons.md`` describes two ways of keeping the
 build board current, and the second is easier to see beside the first than to
 read after it. This module draws the two as one scene, and the post places it
-right after the paragraph opening "**After.** A session no longer writes the
-board."
+right after the paragraph that says "A session no longer writes the board."
 
 1. Before and after the move, as two rows of boxes read top to bottom. The top
    row, "before (by hand)", is the update a session or a sub-agent made: read
@@ -19,10 +18,11 @@ board."
 
 The sketch is schematic and carries no figures from any run. Its boxes stand
 in the order the post gives the steps, and their sizes and spacing say
-nothing about how long a step takes or what it costs. It draws only what
-starts a run: the label a session sets and the events GitHub records. A
-"blocked by" link starts no run, so the bottom row says "set label" alone,
-and the scheduled runs are left out.
+nothing about how long a step takes or what it costs. The bottom row shows a
+label as the example of what a session sets, though a line in an issue body
+or a comment starts a run the same way. A "blocked by" link starts no run, so
+the box never says "link". The scheduled runs, the runs started by hand and
+the events that start no run are left out.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so this GIF shares that post's look and frame rate. Its colours
