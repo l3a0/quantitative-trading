@@ -4,7 +4,7 @@
 build in the reader's head: the script's front moves to the next contract while
 the old one is still priced, so "front month" means the contract the script
 reads, and the roll return the ratio implies comes close to USO's fall on the
-contango days and is a small part of its rise on the backwardation days. This module
+contango days and is small beside its rise on the backwardation days. This module
 draws the two as scenes, and the post places each right after the list it
 draws. The second describes one exploratory sample, split after the run was
 seen, as the post's Lesson 5 says.

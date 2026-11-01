@@ -28,7 +28,8 @@ held elsewhere.
 by row.
 
 Every pin reads two vintages and one specification, so they are stated once
-here.
+here. Some pins also read a third vintage and a second specification, which
+``TestWhatThePostMeasures`` states.
 
 - **Vintages.** Two of Chan's book-two files, both chan-mat. Each one's
   identity is its row of ``LIFTED_SOURCES`` in
@@ -76,6 +77,7 @@ import pytest
 
 from chan import paths, roll_returns
 from chan import xle_uso_roll_return as module
+from chan.archive import read_archive_manifest
 from chan.calendar_spread_reversion import calendar_schedule
 from chan.khandani_lo_book_two import gap, matches
 from chan.matlab_helpers import backshift, drawdown_path, smartmean
@@ -376,8 +378,14 @@ class TestWhatThePostMeasures:
     """Pins added with ``blog/xle-uso-roll-return-lessons.md``, measured after the run.
 
     Same vintages and specification as the module docstring states, over the
-    1,498 days both calendars hold unless a test names a shorter span. Each
-    describes this sample and tests nothing.
+    1,498 days both calendars hold unless a test names a shorter span. Two
+    pins also read a third vintage, ``inputdatadaily_cl_20120813/``, from
+    ``inputDataDaily_CL_20120813.mat``, chan-mat, basis ``raw``, saved
+    2012-08-14, which runs to 2012-08-13 and holds a spot. One of them also
+    reads a second specification, Example 5.3's γ from
+    ``chan.roll_returns.roll_returns``, fitted on each row's five nearest
+    priced contracts when they are adjacent. Each describes this sample and
+    tests nothing.
     """
 
     def test_the_40_row_start_decides_only_cl_2007f_s_window(self, contracts) -> None:
@@ -565,7 +573,8 @@ class TestWhatThePostQuotes:
     in ``tests/test_series.py``. Each is read from that test's source. That
     the only XLE series in the repository is Chan's, as Lesson 4 and the
     section on what this replication cannot say both state, is read against
-    ``data/vintages.jsonl``, which records one XLE vintage.
+    ``data/vintages.jsonl``, which records one XLE vintage, and
+    ``data/archive_vintages.jsonl``, which records none.
 
     Summary item 5's and Lesson 5's headings are read for "a third". The
     copies left unread include the title's and the subtitle's "a third", the
@@ -579,7 +588,8 @@ class TestWhatThePostQuotes:
     unread include Lesson 2's that the book's two are the script's APR and
     Sharpe ratio rounded, Lesson 3's that both drawdowns come later, Lesson
     5's that USO's daily log moves sum to the log of one plus its compounded
-    move and that the contango days were short USO and long XLE, and Habit
+    move and that, under the book's model, the contango days were short the
+    fund that loses the roll return and long the fund that does not, and Habit
     5's "on the backwardation days". The finding that a save a week later
     moves every close of the crude oil reversal post's continuous future is
     ``tests/test_cl_reversal_momentum.py``'s.
@@ -872,9 +882,11 @@ class TestWhatThePostQuotes:
         dividends = _pinned("test_series.py", test, r"len\(dividends\) == (\d+)")
         words = {"0.0": "zero"}
         # "The only XLE series in the repository is Chan's": the manifest
-        # records one XLE vintage, lifted from the fund file the run reads.
+        # records one XLE vintage, lifted from the fund file the run reads,
+        # and the archive manifest records none.
         (only,) = [e for e in read_manifest() if e.symbol == XLE]
         assert (only.vendor, only.source_workbook) == ("chan-mat", ETF_FILE)
+        assert [e for e in read_archive_manifest() if e.symbol == XLE] == []
         fragments = [
             "The only XLE series in the repository is Chan’s, so nothing measures the gap "
             "between his XLE and the price that traded.",
@@ -1353,6 +1365,7 @@ class TestTheReport:
             "a ratio of exactly 1 on 2"
         ) in printed
         assert "first front ratio 2006-10-20" in printed
+        assert "The ETF file subtracts dividends in dollars." in printed
         assert "Exploratory." in printed
 
     def test_a_miss_is_reported_as_one(self) -> None:

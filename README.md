@@ -1293,7 +1293,7 @@ previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded. It holds what the
 write-up measured too: the 40-row start binding only for CL-2007F, the same
 89 contracts and the same ratio on the save of 2012-08-14 and its spot on all
-1,498 shared days, the script's front as the nearest contract on
+1,498 shared days, the script's front as the nearest priced contract on
 734 days and the second on 641, the ratio against Example 5.3's γ, the
 figures from 2006-10-20, and each view's days, returns and implied roll
 return beside the fixed view's. On synthetic frames it holds the split by
@@ -7540,8 +7540,8 @@ repeating them, and draws five lessons from Entry 39 of the replication log.
 Every result in it is exploratory.
 
 1. The pair stands in for crude's spot and its futures only by the book's
-   argument, and the script's front is the nearest contract on 734 of the
-   1,375 days with a ratio and the second-nearest on 641.
+   argument, and the script's front is the nearest contract the file prices
+   on 734 of the 1,375 days with a ratio and the second-nearest on 641.
 2. All five figures the script's comment prints and the book's two land, and
    the one-pair ratio and Example 5.3's γ call the same view on 1,354 of the
    1,373 days the ratio is not exactly 1.
@@ -7579,10 +7579,11 @@ Five groups of what it says are not pinned here.
    day it goes out, that XLE pays dividends, that XLE's rise in the file may
    be larger than the traded price's, that the backwardation days were a bet
    on the funds' moves, that USO's move is the spot's plus the roll return
-   under the book's model, and that a split at the end of 2008 was measured
+   under the book's model, that under that model the contango days were
+   short the fund that loses the roll return, and that a split at the end of 2008 was measured
    and left out.
 4. Comparisons the post states in words whose sentences no test reads: a
-   small part, dwarf and far larger. `test_lesson_5` bounds the run behind
+   small beside, dwarf and far larger. `test_lesson_5` bounds the run behind
    them, holding the implied roll return under a seventh of USO's log move on
    the backwardation days. The figure's alt text reads its curves
    approximately too, as in about 30 percent by late 2007 and near 141
@@ -7612,7 +7613,7 @@ in a fragment that occurs once, reads both tables whole, and reads the alt
 text's exact figures as a second copy. It reads the 29 sign changes, and
 SPY's 14.98, zero last gap, 24 dividends and both download dates, against
 the tests that pin them, and that the only XLE series in the repository is
-Chan's against `data/vintages.jsonl`. Where a word states a fact the run decides, it
+Chan's against `data/vintages.jsonl` and `data/archive_vintages.jsonl`. Where a word states a fact the run decides, it
 asserts the run bears the word out. Among those words are a third, under a
 fifth of the earning days, under a seventh, one fewer than 1,129, 127 and 84
 percent, the contango of early 2009, and eight of the nine backwardation
