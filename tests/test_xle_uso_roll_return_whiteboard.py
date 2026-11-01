@@ -102,8 +102,8 @@ HANDOVER_LABELS = [
     "the February 2007 contract",
     "CL-2007F still priced: 10 rows",
     "so the front is the second-nearest",
-    "of the 1,375 days with a ratio, the front is the nearest contract the file prices",
-    "on 734 and the second-nearest on 641",
+    "of the 1,375 days with a ratio, the front is the nearest priced contract",
+    "on 734 days and the second-nearest on 641",
 ]
 
 SPLIT_LABELS = [
@@ -112,7 +112,8 @@ SPLIT_LABELS = [
     "−0.8388",
     "roll return",
     "−0.766081",
-    "close",
+    "close to",
+    "USO’s fall",
     "244 days earning on backwardation",
     "USO",
     "0.5323",
@@ -123,6 +124,9 @@ SPLIT_LABELS = [
     "roll return: 12 · ln(front / back) / 252, each group’s days summed,",
     "on the ratio that set the view",
 ]
+
+#: The two lines beside the contango roll bar, which read as one phrase.
+CLOSE_TO = ("close to", "USO’s fall")
 
 #: The same limits the USD.CAD sketches hold, in pixels.
 CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
@@ -541,8 +545,8 @@ class TestTheHandoverSketch:
             "the April 2001 contract",
             "CL-2001H still priced: 2 rows",
             "so the front is the second-nearest",
-            "of the 2,345 days with a ratio, the front is the nearest contract the file prices",
-            "on 1,234 and the second-nearest on 1,111",
+            "of the 2,345 days with a ratio, the front is the nearest priced contract",
+            "on 1,234 days and the second-nearest on 1,111",
         ]
 
     def test_its_colours(self, every) -> None:
@@ -641,7 +645,8 @@ class TestTheHandoverSketch:
         alt = _alt(every[0])
         for phrase in (
             "a thin grey bar runs in from the left",
-            "A grey axis of the CL strip’s trading days",
+            "A grey axis of the CL file’s trading days",
+            "ends at “last price 12-19”. It marks the days the file prices CL-2007F.",
             "A thick black bar over its left part",
             "a second thick black bar starts on the next trading day",
             "On the upper row",
@@ -681,7 +686,7 @@ class TestTheSplit:
         assert f"{split.backwardation_roll:.6f}" == "0.072380", SPEC
 
     def test_the_words_close_and_beyond_hold_on_the_run(self, split) -> None:
-        """The word "close" and the brace on the gap describe the run, and these
+        """The words "close to" and the brace on the gap describe the run, and these
         bounds are guards that keep the words true if a figure is re-pinned:
         the roll return is over nine tenths of USO's move on the contango days
         and under a fifth of it on the backwardation days."""
@@ -707,7 +712,7 @@ class TestTheSplitSketch:
 
     def test_its_words_follow_the_run(self, handover) -> None:
         labels = scenes(handover, OTHER_SPLIT)[1].labels
-        assert [labels[k] for k in (0, 2, 4, 6, 8, 10)] == [
+        assert [labels[k] for k in (0, 2, 4, 7, 9, 11)] == [
             "2,000 days earning on contango",
             "−0.4000",
             "−0.123457",
@@ -738,6 +743,7 @@ class TestTheSplitSketch:
             INK,
             INK,
             INK,
+            INK,
             ACCENT,
             ACCENT,
             INK,
@@ -752,15 +758,15 @@ class TestTheSplitSketch:
             names = [
                 s
                 for s in scene.steps
-                if isinstance(s, Label) and s.names == gid and s.text != "close"
+                if isinstance(s, Label) and s.names == gid and s.text not in CLOSE_TO
             ]
             bar = _stroke(scene, gid)
             assert len(names) == 2, gid
             middle = (bar.x.min() + bar.x.max()) / 2
             for label in names:
                 assert label.ha == "center" and label.x == pytest.approx(middle), gid
-        assert _labels_of(scene, "contango-roll") == ["roll return", "−0.766081", "close"]
-        assert _labels_of(scene, "gap") == SPLIT_LABELS[11:]
+        assert _labels_of(scene, "contango-roll") == ["roll return", "−0.766081", *CLOSE_TO]
+        assert _labels_of(scene, "gap") == SPLIT_LABELS[12:]
 
     def test_every_bar_ends_at_an_affine_function_of_its_value(self, every, split) -> None:
         """One scale for every bar, from the zero line, so the two in a group
@@ -796,7 +802,7 @@ class TestTheSplitSketch:
         assert all(b.y.max() == pytest.approx(ZERO_Y) for b in bars.values())
         assert all(b.y.min() == pytest.approx(ZERO_Y) for b in up.values())
         contango = _label(scene, SPLIT_LABELS[0])
-        backwardation = _label(scene, SPLIT_LABELS[6])
+        backwardation = _label(scene, SPLIT_LABELS[7])
         assert contango.y > ZERO_Y > backwardation.y
         left_edge = min(b.x.min() for b in bars.values())
         right_edge = max(b.x.max() for b in bars.values())
@@ -805,7 +811,7 @@ class TestTheSplitSketch:
     def test_the_gap_words_sit_right_of_the_braces_point(self, every) -> None:
         scene = every[1]
         brace = _stroke(scene, "gap")
-        for text in SPLIT_LABELS[11:13]:
+        for text in SPLIT_LABELS[12:14]:
             label = _label(scene, text)
             assert label.ha == "left" and label.x > brace.x.max(), text
             assert brace.y.min() < label.y < brace.y.max(), text
@@ -816,7 +822,9 @@ class TestTheSplitSketch:
         for gid in ("contango-uso", "contango-roll", "backwardation-uso", "backwardation-roll"):
             bar = _stroke(scene, gid)
             name, value = [
-                s for s in steps if isinstance(s, Label) and s.names == gid and s.text != "close"
+                s
+                for s in steps
+                if isinstance(s, Label) and s.names == gid and s.text not in CLOSE_TO
             ]
             if gid.startswith("contango"):
                 assert value.y < bar.y.min() and name.y > ZERO_Y, gid
@@ -837,15 +845,21 @@ class TestTheSplitSketch:
         assert level.x.max() == pytest.approx(brace.x.min())
         assert level.dashed
 
-    def test_close_sits_beside_the_contango_roll_bar_in_plain_ink(self, every) -> None:
-        """The word describes one exploratory sample, so it carries no green
-        check, the mark that grades a value as checked out."""
+    def test_close_to_sits_beside_the_contango_roll_bar_in_plain_ink(self, every) -> None:
+        """The words describe one exploratory sample, so they carry no green
+        check, the mark that grades a value as checked out. They read as two
+        lines, "close to" over "USO’s fall", at one place left of the
+        backwardation words, so "close" never stands alone to read as a price."""
         scene = every[1]
-        close = _label(scene, "close")
+        top, bottom = (_label(scene, text) for text in CLOSE_TO)
         roll = _stroke(scene, "contango-roll")
-        assert close.names == "contango-roll" and close.color == INK
-        assert roll.x.max() < close.x < _stroke(scene, "backwardation-uso").x.min()
-        assert roll.y.min() < close.y < ZERO_Y
+        backwardation = _label(scene, SPLIT_LABELS[7])
+        for close in (top, bottom):
+            assert close.names == "contango-roll" and close.color == INK, close.text
+            assert roll.x.max() < close.x < _stroke(scene, "backwardation-uso").x.min()
+            assert close.x < backwardation.x and close.ha == "left", close.text
+            assert roll.y.min() < close.y < ZERO_Y, close.text
+        assert top.x == bottom.x and top.y > bottom.y
         assert not [s for s in scene.strokes if s.color == GOOD]
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
@@ -855,10 +869,12 @@ class TestTheSplitSketch:
             "a brown bar nearly as long",
             "A black bar stands up from the line",
             "a short brown bar",
-            "a black brace on the gap between the two bars’ tops",
+            "A dashed grey line runs from the top of the black bar, above the brown bar, to a "
+            "black brace.",
+            "The brace stands to the right of the brown bar and spans from its top up to the "
+            "dashed line",
             "Both values in each group are log quantities",
-            "Black words beside the brown bar read “close”",
-            "A dashed grey line runs from the top of the black bar",
+            "Black words beside the brown bar read “close to” and “USO’s fall”.",
             "every bar is drawn to one scale",
             "The finished drawing holds for twelve seconds.",
         ):
