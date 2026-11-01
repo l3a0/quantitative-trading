@@ -968,7 +968,9 @@ class TestWhatThePostQuotes:
         assert uso_leg + xle_leg == pytest.approx(contango.summed, abs=TIGHT)
         assert 0 < uso_leg < contango.summed / 2 < xle_leg
         # "though USO’s fall is larger than XLE’s rise whether compounded, as in
-        # the table, or in logs"
+        # the table, or in logs". The compounded bound implies the log one,
+        # since ln(1 + x) <= x for every x > -1, so the second line can only
+        # fail if the first does. It stays to name the log half the post states.
         assert 0 < contango.xle < -contango.uso
         assert -uso_contango > math.log(1 + contango.xle)
         trade_end = cumulative_return(result.daily)[-1]
