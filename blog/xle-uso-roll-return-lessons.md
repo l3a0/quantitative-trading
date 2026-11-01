@@ -58,7 +58,7 @@ The two calendars share 1,498 days. The fund file holds 2006-07-03 and 2006-11-2
 
 ### Chan’s later save of the CL contracts
 
-A later save of the same set of CL contracts, `inputDataDaily_CL_20120813.mat`, saved 2012-08-14, is the file Chan’s Example 5.3 reads to fit γ. This section compares the ratio on the later save with the ratio on the CL file, and Lesson 2 compares γ with the ratio on the later save.
+A later save of the same set of CL contracts, `inputDataDaily_CL_20120813.mat`, saved 2012-08-14, is the file Chan’s Example 5.3 reads to fit γ. This section compares the later save’s prices and ratio with the CL file’s, and Lesson 2 compares γ with the ratio on the later save.
 
 The later save of 2012-08-14 holds every price of the CL file unchanged, and it gives the same ratio on all 1,375 days. The [post on the crude oil reversal and momentum rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/crude-oil-reversal-momentum-lessons.md#lesson-1-both-figures-land-and-a-save-a-week-later-prints-the-same-to-the-books-precision) found that a save dated a week later moves every close over that post’s dates, because a continuous future, one price series stitched from contract after contract, is rewritten at every roll. Each contract in the CL file holds only that contract’s own prices, so Chan’s single contracts were not rewritten that way.
 
