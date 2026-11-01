@@ -881,8 +881,8 @@ class TestTheSplitSketch:
             "a short brown bar",
             "A dashed grey line runs from the top of the black bar, above the brown bar, to a "
             "black brace.",
-            "The brace stands to the right of the brown bar and spans from its top up to the "
-            "dashed line",
+            "The brace stands to the right of the brown bar and spans from the brown bar’s top "
+            "up to the dashed line",
             "Both values in each group are log quantities",
             "Black words beside the brown bar read “close to” and “USO’s fall”.",
             "every bar is drawn to one scale",

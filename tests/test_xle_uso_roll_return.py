@@ -618,7 +618,8 @@ class TestWhatThePostQuotes:
             f"**`{ETF_FILE}`**, saved {etf_saved}. USO and XLE hold {len(closes):,} closes each "
             f"from {closes.index[0].date()} to {closes.index[-1].date()}, with none missing.",
             f"**`{STRIP_FILE}`**, saved {strip_saved}. It holds {contracts.shape[1]} CL contracts, "
-            f"one for each month from {contracts.columns[0]} to {contracts.columns[-1]}, over "
+            f"one for each month from {contracts.columns[0]} to {contracts.columns[-1]}, the May "
+            "2014 contract, over "
             f"{len(contracts):,} days from {contracts.index[0].date()}. It holds no spot price.",
             f"A later save of the same set of CL contracts, `{roll_returns.SOURCE_FILES['CL']}`, "
             f"saved {later_saved}, is the file Chan’s Example 5.3 reads to fit γ",
@@ -730,7 +731,7 @@ class TestWhatThePostQuotes:
             f"from {result.days[0].date()} to {result.days[unset - 1].date()}.",
             f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
             f"on {result.days[start].date()}.",
-            f"With the two days at 1, that leaves {result.flat} days holding nothing.",
+            f"With the two days at 1, the trade holds nothing on {result.flat} days in all.",
             f"Chan’s figures count those {unset} days as earning 0,",
             f"Measured from {result.days[start].date()} instead, the APR is "
             f"{from_start.apr:.6f} and the Sharpe ratio {from_start.sharpe:.6f}.",
@@ -794,7 +795,8 @@ class TestWhatThePostQuotes:
             f"against SPY’s raw closes from Yahoo Finance, downloaded {downloaded}, found SPY’s "
             f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
             f"The gap shrinks by each of the {dividends} dividends SPY paid",
-            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends.",
+            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends, each "
+            "one from the step in the rescaling factor on the day it went out.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -839,7 +841,7 @@ class TestWhatThePostQuotes:
             f"2. **The {backwardation.days} days earning on backwardation.**",
             f"The trade’s daily returns sum to {total:.6f} over all of Chan’s dates. The "
             f"backwardation days hold {backwardation.summed:.6f} of that, about a third, on "
-            "under a fifth of the days that earn anything.",
+            "under a fifth of the days earning on either view.",
             f"That earns an APR of {fixed.apr:.6f} and a Sharpe ratio of {fixed.sharpe:.6f}, "
             f"against the trade’s {f.apr:.6f} and {f.sharpe:.6f}. The fixed view ends at "
             f"{signed(100 * fixed_end)} percent where the trade ends at "
