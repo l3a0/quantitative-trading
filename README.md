@@ -7550,8 +7550,8 @@ Every result in it is exploratory.
    a holder earned, and nothing committed measures by how much.
 5. The 244 days earning on backwardation hold 0.308117 of the summed daily
    return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
-   implies a roll return of 0.072380, and holding contango's position
-   throughout gives an APR of 0.044949.
+   implies a roll return of 0.072380, and holding contango's position on
+   every day the trade holds anything gives an APR of 0.044949.
 
 Five groups of what it says are not pinned here.
 

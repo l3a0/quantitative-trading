@@ -76,8 +76,8 @@ the loop lives in :func:`front_windows`. ``VX_ES_rollreturn.m`` runs the same
 loop on the VX strip, so :mod:`chan.vx_es_roll_return` takes it from here
 rather than carrying a second copy.
 
-**Two quirks of the loop that do not fire on this strip.** The transcription
-names them rather than copying them silently.
+**Two quirks of the loop that reach no traded day on this strip.** The
+transcription names them rather than copying them silently.
 
 1. **A contract with no expiry, or with two.** In MATLAB, a contract with no
    priced row makes ``endIdx`` empty, and the next contract's
@@ -93,8 +93,8 @@ names them rather than copying them silently.
    there. The front from 2012-04-09 is CL-2012M, the first of them. Its
    window starts on the row after CL-2012K's ends, so its own 40-row start
    does not bind, and its window stops at 2012-04-18. The last 10 rows get no
-   ratio, all after the trade's last day of 2012-04-09. The quirk does fire
-   on the VX strip, where :mod:`chan.vx_es_roll_return` names it.
+   ratio, all after the trade's last day of 2012-04-09. On the VX strip it
+   does reach traded days, and :mod:`chan.vx_es_roll_return` names it there.
 
 **The data.** Two committed vintages, both chan-mat.
 
@@ -125,8 +125,9 @@ so nothing is refused.
 script's printout, for ``blog/xle-uso-roll-return-lessons.md``.
 :func:`by_view` splits the days the trade earns by the view it held the day
 before, and :func:`fixed_view` holds contango's position on every day the
-trade holds anything. :mod:`chan.xle_uso_roll_return_figures` draws both
-beside Figure 6.3.
+trade holds anything. :mod:`chan.xle_uso_roll_return_figures` draws the
+fixed view beside Figure 6.3, and :mod:`chan.xle_uso_roll_return_whiteboard`
+draws USO's log move and the implied roll return that :func:`by_view` finds.
 
 ``tests/test_xle_uso_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2006 to 2012 sample on a
