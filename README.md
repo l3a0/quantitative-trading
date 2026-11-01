@@ -1291,7 +1291,8 @@ On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded. It holds what the
 write-up measured too: the 40-row start binding only for CL-2007F, the same
-ratio on the save of 2012-08-14, the script's front as the nearest contract on
+89 contracts and the same ratio on the save of 2012-08-14 and its spot on all
+1,498 shared days, the script's front as the nearest contract on
 734 days and the second on 641, the ratio against Example 5.3's γ, the
 figures from 2006-10-20, and each view's days, returns and implied roll
 return beside the fixed view's. On synthetic frames it holds the split by
@@ -7574,9 +7575,12 @@ Five groups of what it says are not pinned here.
    the backwardation days were a bet on the funds' moves, that USO's move is
    the spot's plus the roll return under the book's model, and that a split
    at the end of 2008 was measured and left out.
-4. The figure's alt text's readings of its curves, which are approximate,
-   as in about 30 percent by late 2007 and near 141 percent, and the words
-   naming its line styles.
+4. Comparisons the post states in words whose sentences no test reads: a
+   small part, dwarf and far larger. `test_lesson_5` bounds the run behind
+   them, holding the implied roll return under a seventh of USO's log move on
+   the backwardation days. The figure's alt text reads its curves
+   approximately too, as in about 30 percent by late 2007 and near 141
+   percent, and the words naming its line styles go unread.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7613,8 +7617,8 @@ those its docstring names.
 Nine figures had no pin before the post.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
-   gives the same ratio on all 1,375 days and prices its spot on all 1,498
-   days the two calendars share.
+   holds the same 89 contracts, gives the same ratio on all 1,375 days and
+   prices its spot on all 1,498 days the two calendars share.
 2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
    from 51.97 to 69.61, or 33.9427 percent.
 3. The script's front is the nearest priced contract on 734 days and the

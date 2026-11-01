@@ -386,9 +386,14 @@ class TestWhatThePostMeasures:
             end = expiry - FRONT_END
         assert bound == []
 
-    def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(self, later, result) -> None:
+    def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(
+        self, contracts, later, result
+    ) -> None:
         # A different save: it holds a spot and runs to 2012-08-13.
         assert {m.obtained for m in later.members} == {"2012-08-14"}
+        # The same 89 contracts in the same order, which the post's "the same
+        # set of CL contracts" says.
+        assert list(later.contracts.columns) == list(contracts.columns)
         assert later.spot is not None and later.contracts.index[-1] == day("2012-08-13")
         # Its spot is priced on every one of the 1,498 days the two calendars
         # share, which the post's Lesson 1 says.
@@ -521,22 +526,23 @@ class TestWhatThePostQuotes:
        bands with the months the widest spans. Lesson 3's prose reads the
        108-day and 20-day stretches with their dates.
 
-    Two figures come from pins in other files rather than from this run.
+    Four values come from pins in two other files rather than from this run.
     CL's γ changing sign 29 times is read against
     ``test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango``
     in ``tests/test_roll_returns.py``, and SPY's 14.98, its 24 dividends and
-    the download date against
+    both download dates against
     ``test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day``
     in ``tests/test_series.py``. Each is read from that test's source.
 
-    The copies left unread include the title's and the subtitle's "a third",
-    the summary's five groups, the five figures and the book's two named in
-    the summary, the summary's second copy of the 0.308117 and 0.946538 that
-    Lesson 5 reads, the 67 funds the fund file holds, which
-    ``tests/test_series.py`` counts, the dates of Chan's span where they
-    repeat, and the alt
-    text's rounded readings of the lines, such as "about 30 percent by late
-    2007", "near 141 percent" and "mostly between 1.00 and 1.03". The finding
+    Summary item 5's and Lesson 5's headings are read for "a third". The
+    copies left unread include the title's and the subtitle's "a third", the
+    bold headings of the summary's other four groups, the five figures and
+    the book's two named in the summary, the summary's second copy of the
+    0.308117 and 0.946538 that Lesson 5 reads, the 67 funds the fund file
+    holds, which ``tests/test_series.py`` counts, the dates of Chan's span
+    where they repeat, and the alt text's rounded readings of the lines, such
+    as "about 30 percent by late 2007", "near 141 percent" and "mostly between
+    1.00 and 1.03". The finding
     that a save a week later moves every close of the crude oil reversal
     post's continuous future is ``tests/test_cl_reversal_momentum.py``'s.
     The summary's first group, that this replication tests neither claim the
@@ -599,6 +605,9 @@ class TestWhatThePostQuotes:
             "so a ratio above 1 gives a negative roll return.",
             f"So the roll return, annualised, is about {MONTHS_PER_YEAR} times the log of the "
             "front over the back.",
+            f"\\gamma_t \\approx {MONTHS_PER_YEAR} \\ln "
+            "\\frac{F_{\\text{front}}(t)}{F_{\\text{back}}(t)}",
+            f"so the day’s return is the sum of the two legs divided by {len(LEGS)}.",
             f"Each contract is the front from {FRONT_START} rows to {FRONT_END} rows before its "
             "last priced row,",
             f"The {FRONT_START} decides only the front window of {contracts.columns[0]}, the "
@@ -611,8 +620,8 @@ class TestWhatThePostQuotes:
             f"**`{STRIP_FILE}`**, saved {strip_saved}. It holds {contracts.shape[1]} CL contracts, "
             f"one for each month from {contracts.columns[0]} to {contracts.columns[-1]}, over "
             f"{len(contracts):,} days from {contracts.index[0].date()}. It holds no spot price.",
-            f"`{roll_returns.SOURCE_FILES['CL']}`, saved {later_saved}, is the file Chan’s "
-            "Example 5.3 reads to fit γ",
+            f"A later save of the same set of CL contracts, `{roll_returns.SOURCE_FILES['CL']}`, "
+            f"saved {later_saved}, is the file Chan’s Example 5.3 reads to fit γ",
             f"The two calendars share {len(result.days):,} days. The fund file holds "
             f"{missing[0].date()} and {missing[1].date()}, which the CL file lacks. The first "
             f"front window opens on {first.date()}, so the ratio is defined on "
@@ -655,7 +664,12 @@ class TestWhatThePostQuotes:
             "test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango",
             r"len\(runs\) - 1 == (\d+)",
         )
+        assert f.average_annual_return == pytest.approx(
+            DAYS_PER_YEAR * result.daily.mean(), abs=TIGHT
+        ), "252 times the mean daily return"
         fragments = [
+            f"The average annual return is {DAYS_PER_YEAR} times the mean daily return, without "
+            "compounding.",
             f"The book prints two of the five, {BOOK_APR_PERCENT} percent and “about "
             f"{BOOK_SHARPE}”.",
             f"Using n − 1 instead gives a Sharpe ratio of {n_minus_1:.6f}, which also rounds to "
@@ -817,8 +831,8 @@ class TestWhatThePostQuotes:
             "2. **On the backwardation days, USO’s rise far exceeds the implied roll return.**",
             "Hold contango’s position, short USO and long XLE, on every day the trade holds "
             "anything,",
-            "It falls through the backwardation stretches of 2007 and 2008, where the trade’s "
-            "line rises.",
+            "It falls through the longer backwardation stretches of 2007 and 2008, where the "
+            "trade’s line rises.",
             f"1. **The {contango.days:,} days earning on contango.** This is one fewer than the "
             f"{held_contango:,} days it held contango’s position, because the last day, "
             f"{result.days[-1].date()}, is one of them and nothing follows it.",

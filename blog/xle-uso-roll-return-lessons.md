@@ -156,7 +156,7 @@ The trade earns each day on the view it held the day before. Splitting its days 
 
 The trade’s daily returns sum to 0.946538 over all of Chan’s dates. The backwardation days hold 0.308117 of that, about a third, on under a fifth of the days that earn anything. Compounded returns multiply rather than add, so the share is read from the sums.
 
-A fixed view shows how much the backwardation days matter. Hold contango’s position, short USO and long XLE, on every day the trade holds anything, and ignore the ratio’s sign. That earns an APR of 0.044949 and a Sharpe ratio of 0.364524, against the trade’s 0.159102 and 1.046596. The fixed view ends at 29.87 percent where the trade ends at 140.53 percent. The dashed line in the figure is that fixed view. It falls through the backwardation stretches of 2007 and 2008, where the trade’s line rises.
+A fixed view shows how much the backwardation days matter. Hold contango’s position, short USO and long XLE, on every day the trade holds anything, and ignore the ratio’s sign. That earns an APR of 0.044949 and a Sharpe ratio of 0.364524, against the trade’s 0.159102 and 1.046596. The fixed view ends at 29.87 percent where the trade ends at 140.53 percent. The dashed line in the figure is that fixed view. It falls through the longer backwardation stretches of 2007 and 2008, where the trade’s line rises.
 
 ### USO’s move beside the implied roll return
 
