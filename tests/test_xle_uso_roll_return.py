@@ -378,8 +378,11 @@ class TestWhatThePostMeasures:
     """Pins added with ``blog/xle-uso-roll-return-lessons.md``, measured after the run.
 
     Same vintages and specification as the module docstring states, over the
-    1,498 days both calendars hold unless a test names a shorter span. Two
-    pins also read a third vintage, ``inputdatadaily_cl_20120813/``, from
+    1,498 days both calendars hold unless a test names a shorter span. Three
+    read the CL file's whole span instead, its 2,867 rows from 2000-11-20 to
+    2012-05-02: the 40-row start test, the 30-row test, and the comparison of
+    the later save's prices with the CL file's. Two pins also read a third
+    vintage, ``inputdatadaily_cl_20120813/``, from
     ``inputDataDaily_CL_20120813.mat``, chan-mat, basis ``raw``, saved
     2012-08-14, which runs to 2012-08-13 and holds a spot. One of them also
     reads a second specification, Example 5.3's γ from
@@ -585,14 +588,17 @@ class TestWhatThePostQuotes:
     where they repeat, and the alt text's rounded readings of the lines, such
     as "about 30 percent by late 2007", "near 141 percent" and "mostly between
     1.00 and 1.03". Sentences whose words the run decides that are left
-    unread include Lesson 2's that the book's two are the script's APR and
-    Sharpe ratio rounded, Lesson 3's that both drawdowns come later, Lesson
-    5's that USO's daily log moves sum to the log of one plus its compounded
-    move and that, under the book's model, the contango days were short the
-    fund that loses the roll return and long the fund that does not, and Habit
-    5's "on the backwardation days". The finding that a save a week later
-    moves every close of the crude oil reversal post's continuous future is
-    ``tests/test_cl_reversal_momentum.py``'s.
+    unread include Lesson 2's that the script's APR and Sharpe ratio round to
+    the book's two, Lesson 3's that both drawdowns come later, and Habit 5's
+    "on the backwardation days". Lesson 5's sentence that USO's daily log
+    moves sum to the log of one plus its compounded move holds on any data,
+    and its sentence that, under the book's model, the contango days were
+    short the fund that loses the roll return and long the fund that does not
+    follows from that model and the rule, since a ratio above 1 makes every
+    contango day's implied roll return negative. Neither is read, and
+    ``README.md`` lists the second among the readings. The finding that a
+    save a week later moves every close of the crude oil reversal post's
+    continuous future is ``tests/test_cl_reversal_momentum.py``'s.
     The summary's first group, that this replication tests neither claim the
     pair rests on, holds no number and is not read. Nothing checks Chan's words
     against their source, the page numbers, the mirror's commit or the
@@ -700,8 +706,8 @@ class TestWhatThePostQuotes:
             f"{missing[0].date()} and {missing[1].date()}, which the CL file lacks. The first "
             f"front window opens on {first.date()}, so the ratio is defined on "
             f"{int(defined.sum()):,} of the shared days.",
-            f"The later save of {later_saved} gives the same ratio on all "
-            f"{int(defined.sum()):,} days.",
+            f"The later save of {later_saved} holds every price of the CL file unchanged, and "
+            f"it gives the same ratio on all {int(defined.sum()):,} days.",
             "Chan’s single contracts were not rewritten that way.",
         ]
         assert not_found_once(text, fragments) == []

@@ -8808,7 +8808,8 @@ numbers below are that blob's. Every location in this entry is in
 Seven rows, all derivable from
 [tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py).
 Each matches one printed figure to one computation. Rows 6 and 7 are the
-book's rounded forms of what rows 3 and 2 compute.
+book's two figures, matched to what rows 3 and 2 compute, which round to
+them.
 
 No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Location 2385 says a fund of
@@ -8823,8 +8824,8 @@ backwardation, for an APR of "a very respectable 16 percent" from 2006-04-26
 to 2012-04-09 "with a Sharpe ratio of about 1".
 
 **All five of the script's figures and both of the book's reproduce on
-Chan's own files.** The book's 16 percent is the script's APR of 0.1591,
-rounded, and its "about 1" is the script's Sharpe ratio of 1.05, rounded.
+Chan's own files.** The script's APR of 0.1591 rounds to the book's 16
+percent, and its Sharpe ratio of 1.05 rounds to the book's "about 1".
 
 **A scratch run came before the criterion.** The order was not the one this
 repo asks for. A research pass on the issue ran a scratch transcription and
