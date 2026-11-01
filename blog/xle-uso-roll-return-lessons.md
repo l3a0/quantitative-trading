@@ -1,6 +1,6 @@
 # Chan’s XLE against USO trade reproduces on his own files, and a third of its return comes from the days it bet on backwardation
 
-*Chan holds a fund of oil producers against a fund of oil futures, in whichever direction crude oil’s roll return favours, and reports 16 percent a year. On his own files every figure he prints reproduces. The trade sits in contango on most days, yet the few days it holds the other way earn a third of its return, and on those days the funds’ own moves dwarf the roll return the signal reads.*
+*Chan holds a fund of oil producers against a fund of oil futures, in whichever direction crude oil’s roll return favours, and reports 16 percent a year. On his own files every figure he prints reproduces. The trade bets on contango on most days, yet the few days it bets on backwardation earn a third of its return, and on those days USO’s own rise dwarfs the roll return the signal reads.*
 
 ## Why trade a fund of producers against a fund of futures
 
@@ -51,7 +51,7 @@ That reading assumes the two contracts are a month apart, which on CL they are. 
 
 The script loads two of Chan’s files, both recorded in the repository’s [data README](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md).
 
-1. **`inputData_ETF.mat`**, saved 2012-04-10. USO and XLE hold 1,500 closes each from 2006-04-26 to 2012-04-09, with none missing. The [post on gold, the gold miners and oil](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file to test whether a gold fund, a fund of gold miners and USO move together. Its test of the gold fund against the fund of gold miners pairs a producers’ fund with a fund of the commodity, as this trade does.
+1. **`inputData_ETF.mat`**, saved 2012-04-10. USO and XLE hold 1,500 closes each from 2006-04-26 to 2012-04-09, with none missing. The [post on gold, the gold miners and oil](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file to test whether a gold fund, a fund of gold miners and USO move together. Its test of the gold fund against the fund of gold miners pairs a producers’ fund with a commodity fund, as this trade does, though the gold fund holds the metal and USO holds futures.
 2. **`inputDataDaily_CL_20120502.mat`**, saved 2012-05-03. It holds 89 CL contracts, one for each month from CL-2007F to CL-2014K, the May 2014 contract, over 2,867 days from 2000-11-20. It holds no spot price.
 
 A later save of the same set of CL contracts, `inputDataDaily_CL_20120813.mat`, saved 2012-08-14, is the file Chan’s Example 5.3 reads to fit γ. This section compares its ratio with this file’s, and Lesson 2 compares its γ with the ratio.
@@ -92,7 +92,7 @@ The average annual return is 252 times the mean daily return, without compoundin
 
 Two caveats come with the match.
 
-1. **The order of the run.** The first run printed all five figures before the repository wrote down its rule for when a figure lands. That rule is the one every replication here uses, and nothing in it was chosen to fit. The replication ran one reading of the script, so it had no set of readings to pick a match from.
+1. **The order of the run.** A first run printed all five figures before the plan for this replication wrote down when a figure lands. The plan then took the rule every earlier replication here uses, so nothing in it was chosen to fit. The replication ran one reading of the script, so it had no set of readings to pick a match from.
 2. **The Sharpe ratio’s divisor.** The run computes the standard deviation with n, the number of days, as its divisor. Using n − 1 instead gives a Sharpe ratio of 1.046247, which also rounds to 1.05. The printout cannot tell the two apart.
 
 ### How often the ratio and Example 5.3’s γ call the same view
@@ -166,7 +166,7 @@ Under the book’s model, USO’s move is the spot’s move plus the roll return
 
 The two groups tell different stories.
 
-1. **On the contango days, the implied roll return comes close to USO’s fall.** USO fell by 0.8388 in log terms, and the ratio implies a roll return of −0.766081 over the same days. On these days the trade held the book’s position, short the fund that loses the roll return and long the fund that does not. XLE rising 54.9091 percent over the same days added to the trade’s gain.
+1. **On the contango days, the implied roll return comes close to USO’s fall.** USO fell by 0.8388 in log terms, and the ratio implies a roll return of −0.766081 over the same days. On these days the trade was short the fund that loses the roll return and long the fund that does not. XLE rising 54.9091 percent over the same days added to the trade’s gain.
 2. **On the backwardation days, USO’s rise far exceeds the implied roll return.** USO rose by 0.5323 in log terms, while the ratio implies a roll return of 0.072380 over the same days, under a seventh of USO’s rise. The trade earned these days by being long USO while USO rose and short XLE while XLE fell. That is a bet on the two funds’ moves, of which the implied roll return is a small part.
 
 ![A whiteboard sketch titled “USO’s log move against the implied roll return”, drawn slowly. A grey zero line runs across the board. Above it on the left, black words read “1,128 days earning on contango”. A black bar hangs down from the line, named “USO” above the line and marked “−0.8388” at its end, and beside it a brown bar nearly as long, named “roll return” and marked “−0.766081”. Black words beside the brown bar read “close to” and “USO’s fall”. Below the line on the right, black words read “244 days earning on backwardation”. A black bar stands up from the line, named “USO” below the line and marked “0.5323” at its top, and beside it a short brown bar named “roll return” and marked “0.072380”. A dashed grey line runs from the top of the black bar, above the brown bar, to a black brace. The brace stands to the right of the brown bar and spans from the brown bar’s top up to the dashed line, with black words beside it, “USO’s move beyond” and “the roll return”. Grey words at the bottom read “roll return: 12 · ln(front / back) / 252, each group’s days summed,” and “on the ratio that set the view”. Both values in each group are log quantities, and every bar is drawn to one scale. The finished drawing holds for twelve seconds.](../docs/figures/xle_uso_roll_return_sketch_roll_vs_uso.gif)
@@ -191,7 +191,7 @@ One habit for each lesson.
 2. **Read the script before trusting the text.** Here the text and the script describe one run, and the script is what says how the trade tells contango from backwardation. When the book gives a rule in one sentence, the script is where its details live.
 3. **Count the days a rule holds each view, and the days it holds nothing.** A trade that is mostly one view is mostly a bet on that view. Days with no position still count in an annual figure.
 4. **Ask how a price file adjusts for dividends.** Subtraction and rescaling give different returns from the same closes. A figure computed on one is not what a holder of the other earned.
-5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here, on the backwardation days, the funds’ own moves were far larger than the roll return the signal reads.
+5. **Split the return by the views the rule takes.** If the rarer view earns a large share, find what earned it. Here, on the backwardation days, USO’s own rise was far larger than the roll return the signal reads.
 
 ## References
 

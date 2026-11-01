@@ -386,6 +386,17 @@ class TestWhatThePostMeasures:
             end = expiry - FRONT_END
         assert bound == []
 
+    def test_contracts_expire_fewer_than_30_rows_apart(self, contracts) -> None:
+        """Each later contract's own 40-row start falls before the previous front's 10-row end.
+
+        The post says CL contracts expire fewer than 30 rows apart in the file,
+        the distance from a window's 40-row start to its 10-row end.
+        """
+        windows = module.front_windows(contracts)
+        pairs = list(zip(windows, windows[1:], strict=False))
+        assert max(b.expiry - a.expiry for a, b in pairs) < FRONT_START - FRONT_END == 30
+        assert all(b.expiry - FRONT_START < a.last for a, b in pairs)
+
     def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(
         self, contracts, later, result
     ) -> None:
