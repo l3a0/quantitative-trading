@@ -2,13 +2,14 @@
 
 No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Chan's Chapter 6 offers a looser
-version. A fund of oil producers tracks the spot price, and a fund of oil
-futures earns the roll return on top of the spot, so holding one against the
-other in the direction the roll return favours should collect it. Every
-location below is in ``research/book-notes/algorithmic-trading.md``.
+version. Chan argues that a fund of oil producers tracks the spot price,
+while a fund of oil futures earns the roll return on top of the spot, so
+holding one against the other in the direction the roll return favours
+should collect it. Every location below is in
+``research/book-notes/algorithmic-trading.md``.
 
 1. **Location 1939.** USO "doesn't actually own oil. It invests in oil
-   futures contracts", so XLE need not track it the way it tracks the spot.
+   futures contracts", so even if XLE tracks the spot, it need not track USO.
 2. **Location 2385.** A producer ETF such as XLE "usually cointegrates with
    the spot price", and the roll return can break its tie to the futures.
 3. **Location 2718** calls a negative roll return contango. Location 2326
@@ -102,8 +103,9 @@ names them rather than copying them silently.
    [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found
    that this file subtracts each dividend in dollars from every earlier close.
    That leaves the replication untouched, because Chan's script read the same
-   bytes. It does change what a holder of XLE earned, and no second XLE
-   series over this window is committed to measure by how much.
+   bytes. If the file adjusts XLE the way it adjusts SPY and GDX, its XLE
+   returns are not what a holder earned, and no second XLE series over this
+   window is committed to measure by how much.
 2. **The CL strip** from ``inputDataDaily_CL_20120502.mat``, basis ``raw``,
    saved 2012-05-03, 89 contracts from CL-2007F to CL-2014K over 2,867 days
    from 2000-11-20, with no spot column.

@@ -8946,8 +8946,9 @@ Four things.
 in dollars from every earlier close, which
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found.
 That leaves the replication untouched, because Chan's script read the same
-bytes. It does change what a holder of XLE earned, and no second XLE
-series over this window is committed to measure by how much.
+bytes. If the file adjusts XLE the way it adjusts SPY and GDX, its XLE
+returns are not what a holder earned, and no second XLE series over this
+window is committed to measure by how much.
 
 **What the trade earned while it held a view.** The first 123 days carry no
 ratio, because the strip's first contract opens its front window on

@@ -529,9 +529,10 @@ class TestWhatThePostQuotes:
     over the front's or that a day earns on the position held the day before,
     are held against the code by ``TestTheRules`` and ``TestTheSpecification``
     and are not read here. The post's two tables are each read whole, as the
-    grid of its cells with its row labels and column heads, so a cell
-    changed, added, dropped or moved fails, while the same table turned on
-    its side still passes. Lesson 5's
+    grid of its cells with its row labels and column heads, so a cell's
+    number or label changed, or a cell added, dropped or moved, fails, while
+    the same table turned on its side still passes. A number's unit is not
+    read, so Lesson 5's percent signs could be dropped and pass. Lesson 5's
     table repeats "the trade" under "Compounded" and "Summed", so its rows are
     compared in order rather than by label.
 
