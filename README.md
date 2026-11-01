@@ -7607,7 +7607,8 @@ It builds each run figure at the precision the post prints it and finds it
 in a fragment that occurs once, reads both tables whole, and reads the alt
 text's exact figures as a second copy. It reads the 29 sign changes, and
 SPY's 14.98, zero last gap, 24 dividends and both download dates, against
-the tests that pin them. Where a word states a fact the run decides, it
+the tests that pin them, and that the only XLE series in the repository is
+Chan's against `data/vintages.jsonl`. Where a word states a fact the run decides, it
 asserts the run bears the word out. Among those words are a third, under a
 fifth of the earning days, under a seventh, one fewer than 1,129, 127 and 84
 percent, the contango of early 2009, and eight of the nine backwardation

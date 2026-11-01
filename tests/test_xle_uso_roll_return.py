@@ -78,7 +78,7 @@ from chan.khandani_lo_book_two import gap, matches
 from chan.matlab_helpers import backshift, drawdown_path, smartmean
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
 from chan.tu_momentum import figures
-from chan.vintage import VintageUnavailable
+from chan.vintage import VintageUnavailable, read_manifest
 from chan.vx_calendar_spread import held_pair_ratio
 from chan.xle_uso_roll_return import (
     BACKWARDATION,
@@ -558,7 +558,10 @@ class TestWhatThePostQuotes:
     in ``tests/test_roll_returns.py``, and SPY's 14.98, its zero gap on the
     last day, its 24 dividends and both download dates against
     ``test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day``
-    in ``tests/test_series.py``. Each is read from that test's source.
+    in ``tests/test_series.py``. Each is read from that test's source. That
+    the only XLE series in the repository is Chan's, as Lesson 4 and the
+    section on what this replication cannot say both state, is read against
+    ``data/vintages.jsonl``, which records one XLE vintage.
 
     Summary item 5's and Lesson 5's headings are read for "a third". The
     copies left unread include the title's and the subtitle's "a third", the
@@ -856,7 +859,7 @@ class TestWhatThePostQuotes:
         assert not_found_once(text, fragments) == []
 
     def test_lesson_4(self, text) -> None:
-        """SPY's figures as the dividend test in ``tests/test_series.py`` pins them."""
+        """SPY's figures as ``tests/test_series.py`` pins them, and the one XLE series."""
         test = "test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day"
         downloaded = _pinned("test_series.py", test, r'raw_dated="(\d{4}-\d{2}-\d{2})"')
         adjusted = _pinned("test_series.py", test, r'adjusted_dated="(\d{4}-\d{2}-\d{2})"')
@@ -864,7 +867,15 @@ class TestWhatThePostQuotes:
         last_gap = _pinned("test_series.py", test, r"== \([\d.]+, ([\d.]+)\)")
         dividends = _pinned("test_series.py", test, r"len\(dividends\) == (\d+)")
         words = {"0.0": "zero"}
+        # "The only XLE series in the repository is Chan's": the manifest
+        # records one XLE vintage, lifted from the fund file the run reads.
+        (only,) = [e for e in read_manifest() if e.symbol == XLE]
+        assert (only.vendor, only.source_workbook) == ("chan-mat", ETF_FILE)
         fragments = [
+            "The only XLE series in the repository is Chan’s, so nothing measures the gap "
+            "between his XLE and the price that traded.",
+            "The fund file subtracts dividends, and the repository holds no second XLE series "
+            "over Chan’s dates.",
             f"against SPY’s raw closes from Yahoo Finance, downloaded {downloaded}, found SPY’s "
             f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
             f"The gap shrinks by each of the {dividends} dividends SPY paid over the file’s span "
