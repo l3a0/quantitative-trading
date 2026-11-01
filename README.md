@@ -7549,7 +7549,7 @@ repeating them, and draws five lessons from Entry 39 of the replication log.
 5. The 244 days earning on backwardation hold 0.308117 of the summed daily
    return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
    implies a roll return of 0.072380, and holding contango's position
-   throughout gives an APR of 0.044949.
+   throughout gives an APR of 0.044949. Every figure is exploratory.
 
 Five groups of what it says are not pinned here.
 
@@ -7565,14 +7565,17 @@ Five groups of what it says are not pinned here.
 3. Readings no test asserts: that the ratio approximates the roll return
    under the book's model, that the old front is still priced for the 10
    rows after the script moves on, that rescaling gives a holder's return
-   and subtraction reads larger in the earliest years, that a yfinance
-   adjusted close rescales, that a fund drops by about its dividend on the
+   and subtraction reads larger in the earliest years, that Yahoo
+   Finance's adjusted close rescales, that the file adjusts XLE the way it
+   adjusts SPY and GDX, that a fund drops by about its dividend on the
    day it goes out, that XLE pays dividends, that Chan's single contracts
    were not rewritten between his saves the way a continuous future is, that
    the contango days are the book's trade and the backwardation days a bet on
-   the funds' moves, and that a split by date was measured and left out.
+   the funds' moves, that USO's move is the spot's plus the roll return under
+   the book's model, and that a split at the end of 2008 was measured and left
+   out.
 4. Figures the post states in words or rounds from pinned ones, such as a
-   third, under a fifth of the earning days, about 7 percent, close to USO's
+   third, under a fifth of the earning days, under a seventh, close to USO's
    fall, far exceeds, a small part, one fewer than 1,129, 127 and 84 percent,
    and the contango of early 2009. The figure's alt text reads its curves
    approximately too.

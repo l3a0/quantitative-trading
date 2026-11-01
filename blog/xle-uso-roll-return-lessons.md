@@ -67,7 +67,7 @@ The trade rests on two claims from the book, and this replication tests neither.
 1. **XLE stands in for crude’s spot price.** Chan says a producers’ fund usually cointegrates with the spot (p. 178). The file the script loads holds no spot price. Chan’s later save of those contracts holds one over all of Chan’s dates, but nothing here tests XLE against it.
 2. **USO holds the front contract.** The script’s ratio reads its own front, which is not always the contract nearest expiry. On 734 of the 1,375 days with a ratio, the script’s front is the nearest contract the file prices that day. On the other 641 it is the second-nearest. The script moves to the next contract 10 rows before the current one’s last price, and for those 10 rows the old contract is still priced. So “front month” in the signal means the contract the script reads, which need not be the one USO held that day.
 
-From 2006-04-26 to 2012-04-09 the two funds went opposite ways. USO’s close fell from 69.54 to 38.97, or 43.9603 percent. XLE’s rose from 51.97 to 69.61, or 33.9427 percent. A trade mostly short USO and long XLE gains from both moves, whether or not either move came from the roll return. Lesson 5 splits those days by the view the trade held, contango or backwardation, and measures how much of USO’s move the ratio’s roll return accounts for.
+From 2006-04-26 to 2012-04-09 the two funds went opposite ways. USO’s close fell from 69.54 to 38.97, or 43.9603 percent. XLE’s rose from 51.97 to 69.61, or 33.9427 percent. A trade mostly short USO and long XLE gains from both moves, whether or not either move came from the roll return. Lesson 5 splits those days by the view the trade held, contango or backwardation, and sets USO’s move on each group’s days beside the roll return the ratio implies.
 
 ## Lesson 2: every printed figure lands on Chan’s files
 
@@ -122,9 +122,9 @@ A fund that pays a dividend drops in price by about the dividend on the day it g
 1. **Rescaling.** Multiply every earlier close by a factor, so each day’s percentage change equals what a holder earned with the dividend reinvested. Yahoo Finance’s adjusted close does this.
 2. **Subtraction.** Take each dividend, in dollars, off every earlier close. Each day’s dollar move stays as it traded, except on the day the dividend goes out. The earlier closes are lower, though, so each percentage change is a dollar move over a smaller price.
 
-Chan’s fund file subtracts. A check of the file against a raw SPY download found SPY’s close on 2006-04-26 sitting 14.98 below the price that traded. The gap shrinks by each of the 24 dividends SPY paid over the file’s span and is zero on its last day. The [gold miners post](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file and notes the same adjustment.
+Chan’s fund file subtracts. A check of the file against SPY’s raw closes from Yahoo Finance, downloaded 2026-10-03, found SPY’s close on 2006-04-26 sitting 14.98 below the price that traded. The gap shrinks by each of the 24 dividends SPY paid over the file’s span and is zero on its last day. The [gold miners post](https://github.com/l3a0/quantitative-trading/blob/main/blog/gold-miners-oil-lessons.md#the-test-and-the-file) read the same file and notes the same adjustment.
 
-XLE pays dividends too, so its daily moves in this file read larger in size than a holder’s, most of all in the earliest years. By how much is not known here. The only XLE series committed is Chan’s, so nothing measures the gap between his XLE and the price that traded.
+XLE pays dividends too. If the file adjusts XLE the way it adjusts SPY and GDX, the fund of gold miners, XLE’s daily moves in this file read larger in size than a holder’s, most of all in the earliest years. By how much is not known here. The only XLE series committed is Chan’s, so nothing measures the gap between his XLE and the price that traded.
 
 None of this touches the replication, because Chan’s script read the same bytes. It does mean the trade’s figures are what the script computes on Chan’s file, not what holding the two funds earned.
 
@@ -150,13 +150,13 @@ The trade earns each day on the view it held the day before. Splitting its days 
 \end{array}
 ```
 
-The trade’s daily returns sum to 0.946538 over all of Chan’s dates. The backwardation days hold 0.308117 of that, about a third, on under a fifth of the days that earn anything.
+The trade’s daily returns sum to 0.946538 over all of Chan’s dates. The backwardation days hold 0.308117 of that, about a third, on under a fifth of the days that earn anything. Compounded returns multiply rather than add, so the share is read from the sums.
 
 A fixed view shows how much the backwardation days matter. Hold contango’s position, short USO and long XLE, on every day the trade holds anything, and ignore the ratio’s sign. That earns an APR of 0.044949 and a Sharpe ratio of 0.364524, against the trade’s 0.159102 and 1.046596. The fixed view ends at 29.87 percent where the trade ends at 140.53 percent. The dashed line in the figure is that fixed view. It falls through the backwardation stretches of 2007 and 2008, where the trade’s line rises.
 
-### How much of USO’s move the implied roll return accounts for
+### USO’s move beside the implied roll return
 
-The rows under “Summed” add up one number for each of the group’s days. For the trade it is the day’s return. For USO it is the day’s log move, and those sum to the natural log of one plus USO’s compounded move. The last row applies the equation for γ above to each day. It takes 12 times the log of the front over the back, on the ratio that set that day’s view, and divides by 252. It reads every ratio as two contracts a month apart, and it approximates the roll return a holder of the futures would collect under the book’s model. So USO’s row and the last row are sums of the same kind and can be compared.
+The rows under “Summed” add up one number for each of the group’s days. For the trade it is the day’s return. For USO it is the day’s log move, and those sum to the natural log of one plus USO’s compounded move. The last row applies the equation for γ above to each day. It takes 12 times the log of the front over the back, on the ratio that set that day’s view, and divides by 252. It reads every ratio as two contracts a month apart, and it approximates the roll return a holder of the futures would collect under the book’s model. So USO’s row and the last row are sums of the same kind and can be compared. Under the book’s model, USO’s move is the spot’s move plus the roll return. These rows leave out what the spot did over the same days, so they set two sizes side by side rather than measure how much of USO’s move the roll return caused.
 
 The two groups tell different stories.
 

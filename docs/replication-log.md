@@ -8932,8 +8932,11 @@ Three things.
    contango's position on every day the trade holds anything gives an APR of
    0.044949 and a Sharpe ratio of 0.364524. `TestWhatThePostMeasures` pins
    all of it, and the write-up found it. The split comes from the rule's own
-   two views rather than a date picked after the curve was seen, and it
-   describes this sample without testing anything.
+   two views, so it has no parameter to tune, but it came after the run was
+   seen. A split at the end of 2008 was also measured and left out, because
+   its date would have been picked after seeing the curve, and nothing
+   committed keeps its numbers. The split describes this sample without
+   testing anything.
 
 ### What this entry cannot say
 
