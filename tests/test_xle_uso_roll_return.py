@@ -531,7 +531,10 @@ class TestWhatThePostQuotes:
 
     The copies left unread include the title's and the subtitle's "a third",
     the summary's five groups, the five figures and the book's two named in
-    the summary, the dates of Chan's span where they repeat, and the alt
+    the summary, the summary's second copy of the 0.308117 and 0.946538 that
+    Lesson 5 reads, the 67 funds the fund file holds, which
+    ``tests/test_series.py`` counts, the dates of Chan's span where they
+    repeat, and the alt
     text's rounded readings of the lines, such as "about 30 percent by late
     2007", "near 141 percent" and "mostly between 1.00 and 1.03". The finding
     that a save a week later moves every close of the crude oil reversal
@@ -594,7 +597,8 @@ class TestWhatThePostQuotes:
             "last priced row,",
             f"The {FRONT_START} decides only the front window of {contracts.columns[0]}, the "
             "January 2007 contract,",
-            f"The APR is the compounded annual return over {DAYS_PER_YEAR} trading days.",
+            "The APR is the compounded return per year, taking a year as "
+            f"{DAYS_PER_YEAR} trading days.",
             f"times √{DAYS_PER_YEAR}, with no risk-free rate.",
             f"**`{ETF_FILE}`**, saved {etf_saved}. USO and XLE hold {len(closes):,} closes each "
             f"from {closes.index[0].date()} to {closes.index[-1].date()}, with none missing.",
@@ -618,9 +622,10 @@ class TestWhatThePostQuotes:
         uso, xle = last[USO] / first[USO] - 1, last[XLE] / first[XLE] - 1
         assert uso < 0 < xle, "fell and rose"
         assert later.spot.reindex(result.days).notna().all()
+        (later_saved,) = {m.obtained for m in later.members}
         fragments = [
-            "Chan’s later save of those contracts holds one on every one of the "
-            f"{len(result.days):,} days the two calendars share,",
+            f"Chan’s later save of the same CL contracts, on {later_saved}, holds a spot price on "
+            f"every one of the {len(result.days):,} days the two calendars share,",
             f"On {places.count(1)} of the {len(places):,} days with a ratio, the script’s front "
             f"is the nearest contract the file prices that day. On the other {places.count(2)} "
             "it is the second-nearest.",
@@ -699,8 +704,8 @@ class TestWhatThePostQuotes:
             f"Of the {int(defined.sum()):,} days with a ratio, the trade holds contango’s "
             f"position on {int((held == CONTANGO).all(axis=1).sum()):,} and backwardation’s on "
             f"{int((held == BACKWARDATION).all(axis=1).sum())}. On {len(at_one)} days, "
-            f"{at_one[0].date()} and {at_one[1].date()}, the ratio is exactly 1 and it holds "
-            "nothing.",
+            f"{at_one[0].date()} and {at_one[1].date()}, the ratio is exactly 1 and the trade "
+            "holds nothing.",
             f"It also holds nothing on the first {unset} days of Chan’s dates, from "
             f"{result.days[0].date()} to {result.days[unset - 1].date()}.",
             f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
@@ -806,7 +811,8 @@ class TestWhatThePostQuotes:
             f"that set that day’s view, and divides by {DAYS_PER_YEAR}.",
             f"USO fell by {-uso_contango:.4f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
-            f"XLE rising {100 * contango.xle:.4f} percent over the same days added to it.",
+            f"XLE rising {100 * contango.xle:.4f} percent over the same days added to the "
+            "trade’s gain.",
             f"USO rose by {uso_backwardation:.4f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
             "rise.",
@@ -835,8 +841,8 @@ class TestWhatThePostQuotes:
             f"With n as the divisor the Sharpe ratio is {f.sharpe:.6f}, with n − 1 it is "
             f"{_sharpe_dividing_by_n_minus_1(result.daily):.6f}, and both print as "
             f"{SCRIPT_SHARPE}.",
-            f"After its first entry on {result.days[first].date()}, the position changes on "
-            f"{changes} days.",
+            f"After the trade’s first entry on {result.days[first].date()}, the position "
+            f"changes on {changes} days.",
         ]
         assert not_found_once(text, fragments) == []
 
