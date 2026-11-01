@@ -937,6 +937,8 @@ class TestWhatThePostQuotes:
         uso_leg, xle_leg = (CONTANGO * moves[earning]).sum(axis=0) / len(LEGS)
         assert uso_leg + xle_leg == pytest.approx(contango.summed, abs=TIGHT)
         assert 0 < uso_leg < contango.summed / 2 < xle_leg
+        # "though USO’s compounded fall in the table is larger than XLE’s rise"
+        assert 0 < contango.xle < -contango.uso
         trade_end = cumulative_return(result.daily)[-1]
         fragments = [
             "5. **The few backwardation days earn a third of the return.**",
@@ -962,8 +964,9 @@ class TestWhatThePostQuotes:
             f"USO fell by {-uso_contango:.4f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
             "Added up day by day, as the trade’s row under “Summed” is, the long XLE leg earned "
-            "the trade more than the short USO leg did, so these days too were in large part a "
-            "bet on XLE’s own move.",
+            "the trade more than the short USO leg did, though USO’s compounded fall in the "
+            "table is larger than XLE’s rise.",
+            "So these days too were in large part a bet on XLE’s own move.",
             f"USO rose by {uso_backwardation:.4f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
             "rise.",
