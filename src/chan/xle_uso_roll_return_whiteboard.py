@@ -12,7 +12,9 @@ draws.
    list whose first item opens "XLE stands in for crude’s spot price." On a
    trading-day axis from October 2006 to January 2007, a thin grey bar runs to
    CL-2007F's last price, a thick black bar marks CL-2007F's front window, and
-   a second thick black bar marks CL-2007G's, starting on the row after.
+   a second thick black bar marks CL-2007G's, starting on the row after,
+   with grey words naming it the February 2007 contract, since the post names
+   only CL-2007F by its month.
    A brown brace over the rows where the two overlap says CL-2007F is still
    priced there, so the front is the second-nearest contract. A closing note
    gives how often the front is the nearest contract and how often the
@@ -20,7 +22,7 @@ draws.
 2. USO's log move against the roll return the ratio implies, in Lesson 5,
    after the two-item list whose first item opens "On the contango days, the
    implied roll return comes close to USO’s fall." Two groups of two bars
-   hang from a zero line: on the contango days a black bar down for USO's log
+   meet a zero line: on the contango days a black bar down for USO's log
    move beside a brown bar nearly as long for the roll return, marked
    "close", and on the backwardation days a black bar up for USO's log move
    beside a short brown bar for the roll return, with a black brace on the
@@ -32,7 +34,7 @@ Neither sketch is schematic. Every date, count and value on them comes from
 :func:`chan.xle_uso_roll_return.by_view` on the committed files. Every bar
 in the first sits on the axis at its own trading days, and every bar in the
 second ends at an affine function of its value. Both values in each group are
-log quantities per dollar held in one leg, so the two bars share one scale.
+log quantities, so every bar is drawn to one scale.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look and frame rate. They draw
@@ -88,6 +90,16 @@ def gif_name(scene: Scene) -> str:
 def _day(date: str) -> str:
     """A date's month and day, ``12-06`` for ``2006-12-06``."""
     return date[5:]
+
+
+#: CL's month codes, January to December, as each contract's last letter.
+MONTH_CODES = "FGHJKMNQUVXZ"
+
+
+def _delivery(symbol: str) -> str:
+    """A contract's delivery month, ``February 2007`` for ``CL-2007G``."""
+    month = MONTH_CODES.index(symbol[-1]) + 1
+    return pd.Timestamp(year=int(symbol[-5:-1]), month=month, day=1).strftime("%B %Y")
 
 
 def _month(date: str) -> str:
@@ -202,7 +214,7 @@ def day_x(run: Handover, date: str) -> float:
 
 def _brace_down(x0: float, x1: float, ends: float, tip: float) -> tuple:
     """A brace from ``x0`` to ``x1`` with its ends at ``ends`` and its point at
-    ``tip`` in the middle, as :mod:`chan.gld_gc_whiteboard` draws one."""
+    ``tip`` in the middle, shaped like the brace :mod:`chan.gld_gc_whiteboard` draws."""
     middle, centre = (ends + tip) / 2, (x0 + x1) / 2
     return _line(
         [
@@ -281,6 +293,15 @@ def _handover(run: Handover) -> Scene:
             size=12,
             ha="right",
         ),
+        Label(
+            f"the {_delivery(run.new)} contract",
+            new0 - 0.25,
+            NEW_Y - 0.33,
+            names="new-front",
+            color=MUTED,
+            size=11,
+            ha="right",
+        ),
         _stroke(
             "overlap",
             _brace_down(new0, day_x(run, run.overlap_last), BRACE_ENDS, BRACE_TIP),
@@ -328,8 +349,7 @@ class Split:
 
     For each view, the days earning on it, USO's log move over those days,
     ``ln(1 + uso)`` of its compounded return, and the roll return the ratio
-    implies, summed over the same days. Both are log quantities per dollar
-    held in one leg.
+    implies, summed over the same days. Both are log quantities.
     """
 
     contango_days: int

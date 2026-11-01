@@ -99,6 +99,7 @@ HANDOVER_LABELS = [
     "last price 12-19",
     "CL-2007F front, 10-20 to 12-05: 31 rows",
     "CL-2007G front, 12-06 to 01-05: 20 rows",
+    "the February 2007 contract",
     "CL-2007F still priced: 10 rows",
     "so the front is the second-nearest",
     "of the 1,375 days with a ratio: nearest on 734, second-nearest on 641",
@@ -477,6 +478,7 @@ class TestTheHandover:
             row = contracts.loc[d].to_numpy()
             priced = np.flatnonzero(np.isfinite(row))
             nearest = [row[priced[k] + 1] / row[priced[k]] for k in (0, 1)]
+            assert (nearest[0] == value) != (nearest[1] == value)
             places.append(1 if nearest[0] == value else 2)
         assert (handover.with_ratio, handover.nearest, handover.second) == (
             len(places),
@@ -535,6 +537,7 @@ class TestTheHandoverSketch:
             "last price 01-08",
             "CL-2001H front, 01-03 to 01-04: 2 rows",
             "CL-2001J front, 01-05 to 01-08: 3 rows",
+            "the April 2001 contract",
             "CL-2001H still priced: 2 rows",
             "so the front is the second-nearest",
             "of the 2,345 days with a ratio: nearest on 1,234, second-nearest on 1,111",
@@ -555,6 +558,7 @@ class TestTheHandoverSketch:
             MUTED,
             INK,
             INK,
+            MUTED,
             ACCENT,
             ACCENT,
             INK,
@@ -565,8 +569,31 @@ class TestTheHandoverSketch:
         assert _labels_of(scene, "axis") == HANDOVER_LABELS[:2]
         assert _labels_of(scene, "old-priced") == [HANDOVER_LABELS[2]]
         assert _labels_of(scene, "old-front") == [HANDOVER_LABELS[3]]
-        assert _labels_of(scene, "new-front") == [HANDOVER_LABELS[4]]
-        assert _labels_of(scene, "overlap") == HANDOVER_LABELS[5:]
+        assert _labels_of(scene, "new-front") == HANDOVER_LABELS[4:6]
+        assert _labels_of(scene, "overlap") == HANDOVER_LABELS[6:]
+
+    def test_each_label_sits_beside_what_it_names(self, every) -> None:
+        """Which words sit by which bar is the sketch's meaning, so each
+        label's side of its stroke is held, not only the stroke it names."""
+        scene = every[0]
+        old, priced = _stroke(scene, "old-front"), _stroke(scene, "old-priced")
+        new, brace = _stroke(scene, "new-front"), _stroke(scene, "overlap")
+        old_label, new_label, month = (_label(scene, t) for t in HANDOVER_LABELS[3:6])
+        assert old_label.ha == "left" and old.x.min() <= old_label.x < old.x.max()
+        assert old_label.y > sketches.OLD_Y
+        assert new_label.ha == month.ha == "right"
+        assert new_label.x == month.x < new.x.min()
+        assert new_label.y == sketches.NEW_Y > month.y > sketches.AXIS_Y
+        last = _label(scene, HANDOVER_LABELS[2])
+        assert last.x > priced.x.max() and last.y == sketches.OLD_Y
+        for text in HANDOVER_LABELS[6:8]:
+            label = _label(scene, text)
+            assert label.ha == "right" and label.x < brace.x.min(), text
+            assert sketches.NEW_Y < label.y < sketches.OLD_Y, text
+        start, end = (_label(scene, t) for t in HANDOVER_LABELS[:2])
+        assert (start.x, end.x) == (sketches.AXIS_X0, sketches.AXIS_X1)
+        assert start.y == end.y < sketches.AXIS_Y
+        assert _label(scene, HANDOVER_LABELS[-1]).y < start.y
 
     def test_every_bar_sits_at_its_own_trading_days(self, every, handover) -> None:
         scene = every[0]
@@ -613,6 +640,9 @@ class TestTheHandoverSketch:
             "a thin grey bar runs in from the left",
             "A thick black bar over its left part",
             "a second thick black bar starts on the next trading day",
+            "On the upper row",
+            "On the lower row",
+            "Between the rows",
             "a brown brace spans the days from 12-06 to 12-19",
             "Every bar sits at its own trading days on the axis.",
             "The finished drawing holds for twelve seconds.",
@@ -645,6 +675,13 @@ class TestTheSplit:
         assert f"{split.backwardation_uso:.4f}" == "0.5323", SPEC
         assert f"{split.contango_roll:.6f}" == "-0.766081", SPEC
         assert f"{split.backwardation_roll:.6f}" == "0.072380", SPEC
+
+    def test_the_words_close_and_beyond_hold_on_the_run(self, split) -> None:
+        """The green "close" and the brace on the gap are verdicts, so the run
+        must bear them out: the roll return is over nine tenths of USO's move
+        on the contango days and under a fifth of it on the backwardation days."""
+        assert split.contango_roll / split.contango_uso > 0.9, SPEC
+        assert split.backwardation_roll / split.backwardation_uso < 0.2, SPEC
 
 
 #: A made-up split, so the words and bars that should follow the run do.
@@ -753,6 +790,17 @@ class TestTheSplitSketch:
         contango = _label(scene, SPLIT_LABELS[0])
         backwardation = _label(scene, SPLIT_LABELS[6])
         assert contango.y > ZERO_Y > backwardation.y
+        left_edge = min(b.x.min() for b in bars.values())
+        right_edge = max(b.x.max() for b in bars.values())
+        assert contango.x <= left_edge and backwardation.x > right_edge
+
+    def test_the_gap_words_sit_right_of_the_braces_point(self, every) -> None:
+        scene = every[1]
+        brace = _stroke(scene, "gap")
+        for text in SPLIT_LABELS[11:13]:
+            label = _label(scene, text)
+            assert label.ha == "left" and label.x > brace.x.max(), text
+            assert brace.y.min() < label.y < brace.y.max(), text
 
     def test_each_value_sits_past_its_bars_end_and_each_name_across_the_line(self, every) -> None:
         scene = every[1]
@@ -794,7 +842,9 @@ class TestTheSplitSketch:
             "A black bar stands up from the line",
             "a short brown bar",
             "a black brace on the gap between the two bars’ tops",
-            "Every value is a log return per dollar held in one leg",
+            "Both values in each group are log quantities",
+            "A green check mark beside the brown bar",
+            "A dashed grey line runs from the top of the black bar",
             "every bar is drawn to one scale",
             "The finished drawing holds for twelve seconds.",
         ):
