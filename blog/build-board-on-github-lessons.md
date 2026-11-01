@@ -130,7 +130,7 @@ One run of a set of scripts printed all three. The scripts sat in a session’s 
 
 Reads were most of the update turns’ tokens but under half their dollars. The update turns read 389 million tokens from cache, wrote 17.0 million to it, and produced at least 0.99 million tokens of output. At the prices above, the reads come to about \$78 of the \$185.22, the writes to about \$88 and the output to about \$20.
 
-The output count is a lower bound, because a transcript can record only part of a reply’s output. So every dollar figure priced from the transcripts leaves out some output, by an amount nothing measured.
+The output count is a lower bound, because a transcript can record only part of a reply’s output. So every dollar figure priced from the transcripts can leave out some output, by an amount nothing measured.
 
 ## Lesson 2: concurrent writers paid for the version check
 
