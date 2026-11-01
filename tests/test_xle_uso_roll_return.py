@@ -883,9 +883,9 @@ class TestWhatThePostQuotes:
             f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
             f"The gap shrinks by each of the {dividends} dividends SPY paid over the file’s span "
             f"and is {words[last_gap]} on its last day.",
-            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, set against those raw "
-            "closes, give those dividends, each one from the step in the rescaling factor on the "
-            "day it went out.",
+            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends when "
+            "set against the raw closes. Each one comes from the step in the rescaling factor on "
+            "the day it went out.",
         ]
         assert not_found_once(text, fragments) == []
 
