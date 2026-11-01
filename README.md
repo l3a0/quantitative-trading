@@ -7570,8 +7570,7 @@ Five groups of what it says are not pinned here.
    and subtraction reads larger in the earliest years, that Yahoo
    Finance's adjusted close rescales, that the file adjusts XLE the way it
    adjusts SPY and GDX, that a fund drops by about its dividend on the
-   day it goes out, that XLE pays dividends, that Chan's single contracts
-   were not rewritten between his saves the way a continuous future is, that
+   day it goes out, that XLE pays dividends, that
    the backwardation days were a bet on the funds' moves, that USO's move is
    the spot's plus the roll return under the book's model, and that a split
    at the end of 2008 was measured and left out.

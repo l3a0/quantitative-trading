@@ -846,6 +846,8 @@ class TestTheSplitSketch:
         assert brace.x.min() > _stroke(scene, "backwardation-roll").x.max()
         assert level.y == pytest.approx(np.full(level.points, bar_y(split.backwardation_uso)))
         assert level.x.min() > _stroke(scene, "backwardation-uso").x.max()
+        # It runs above the brown bar, starting left of it.
+        assert level.x.min() < _stroke(scene, "backwardation-roll").x.min()
         assert level.x.max() == pytest.approx(brace.x.min())
         assert level.dashed
 
@@ -882,7 +884,7 @@ class TestTheSplitSketch:
             "A dashed grey line runs from the top of the black bar, above the brown bar, to a "
             "black brace.",
             "The brace stands to the right of the brown bar and spans from the brown bar’s top "
-            "up to the dashed line",
+            "up to the dashed line, with black words beside it",
             "Both values in each group are log quantities",
             "Black words beside the brown bar read “close to” and “USO’s fall”.",
             "every bar is drawn to one scale",
