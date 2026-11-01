@@ -743,8 +743,8 @@ class TestWhatThePostQuotes:
         fragments = [
             f"The average annual return is {DAYS_PER_YEAR} times the mean daily return, without "
             "compounding.",
-            f"The book prints two of the five, {BOOK_APR_PERCENT} percent and “about "
-            f"{BOOK_SHARPE}”.",
+            f"The book prints two of the five, an APR of {BOOK_APR_PERCENT} percent and a Sharpe "
+            f"ratio of “about {BOOK_SHARPE}”.",
             f"Using n − 1 instead gives a Sharpe ratio of {n_minus_1:.6f}, which also rounds to "
             f"{SCRIPT_SHARPE}.",
             f"as γ fitted across the {words[roll_returns.NEAREST]} nearest contracts each day.",

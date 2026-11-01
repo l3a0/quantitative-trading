@@ -88,7 +88,7 @@ The script’s closing comment prints five figures. A figure lands when the comp
 \end{array}
 ```
 
-The average annual return is 252 times the mean daily return, without compounding. The maximum drawdown is the deepest fall from a previous high, and the longest drawdown is the most days in a row spent below a previous high. The book prints two of the five, 16 percent and “about 1”. They are the script’s APR and Sharpe ratio rounded, and the book’s dates are the fund file’s first and last days, so the text fits the script’s run.
+The average annual return is 252 times the mean daily return, without compounding. The maximum drawdown is the deepest fall from a previous high, and the longest drawdown is the most days in a row spent below a previous high. The book prints two of the five, an APR of 16 percent and a Sharpe ratio of “about 1”. They are the script’s APR and Sharpe ratio rounded, and the book’s dates are the fund file’s first and last days, so the text fits the script’s run.
 
 Two caveats come with the match.
 
