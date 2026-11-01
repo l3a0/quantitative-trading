@@ -804,8 +804,8 @@ class TestWhatThePostQuotes:
             f"{int((held == BACKWARDATION).all(axis=1).sum())}. On {len(at_one)} days, "
             f"{at_one[0].date()} and {at_one[1].date()}, the ratio is exactly 1 and the trade "
             "holds nothing.",
-            f"It also holds nothing on its first {unset} days, the days the two calendars share "
-            f"from {result.days[0].date()} to {result.days[unset - 1].date()}.",
+            f"It also holds nothing on its first {unset} days, the days the fund file and the "
+            f"CL file share from {result.days[0].date()} to {result.days[unset - 1].date()}.",
             f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
             f"on {result.days[start].date()}.",
             "Counting the two days the ratio is exactly 1, the trade holds nothing on "

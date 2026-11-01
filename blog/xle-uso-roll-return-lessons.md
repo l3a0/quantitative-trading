@@ -92,7 +92,7 @@ The average annual return is 252 times the mean daily return, without compoundin
 
 Two caveats come with the match.
 
-1. **The order of the run.** A first run printed all five figures before the plan for this replication wrote down when a figure lands. The plan then took a rule earlier replications here had already used, so nothing in it was chosen to fit. The replication ran one reading of the script, so it had no set of readings to pick a match from.
+1. **The order of the run.** A first run printed all five figures before the plan for this replication wrote down when a figure lands. The plan then took a rule that earlier replications here had already used, so nothing in it was chosen to fit. The replication ran one reading of the script, so it had no set of readings to pick a match from.
 2. **The Sharpe ratio’s divisor.** The run computes the standard deviation with n, the number of days, as its divisor. Using n − 1 instead gives a Sharpe ratio of 1.046247, which also rounds to 1.05. The printout cannot tell the two apart.
 
 ### How often the ratio and Example 5.3’s γ call the same view
@@ -109,7 +109,7 @@ On the 2 days the ratio is exactly 1 it calls no view, and γ calls backwardatio
 
 Of the 1,375 days with a ratio, the trade holds contango’s position on 1,129 and backwardation’s on 244. On 2 days, 2008-02-07 and 2008-08-07, the ratio is exactly 1 and the trade holds nothing. So the trade is mostly short USO and long XLE.
 
-It also holds nothing on its first 123 days, the days the two calendars share from 2006-04-26 to 2006-10-19. The CL file’s first contract is CL-2007F, and its front window opens on 2006-10-20. Earlier contracts are not in the file, so no ratio exists before then. Counting the two days the ratio is exactly 1, the trade holds nothing on 125 days in all.
+It also holds nothing on its first 123 days, the days the fund file and the CL file share from 2006-04-26 to 2006-10-19. The CL file’s first contract is CL-2007F, and its front window opens on 2006-10-20. Earlier contracts are not in the file, so no ratio exists before then. Counting the two days the ratio is exactly 1, the trade holds nothing on 125 days in all.
 
 Chan’s figures count those 123 days as earning 0, as the script does. Measured from 2006-10-20 instead, the APR is 0.174513 and the Sharpe ratio 1.092618. The drawdown figures do not change, because the deepest fall and the longest run below a high both come later.
 
