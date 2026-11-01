@@ -793,7 +793,8 @@ class TestWhatThePostQuotes:
             f"from {result.days[0].date()} to {result.days[unset - 1].date()}.",
             f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
             f"on {result.days[start].date()}.",
-            f"With the two days at 1, the trade holds nothing on {result.flat} days in all.",
+            "Counting the two days the ratio is exactly 1, the trade holds nothing on "
+            f"{result.flat} days in all.",
             f"Chan’s figures count those {unset} days as earning 0,",
             f"Measured from {result.days[start].date()} instead, the APR is "
             f"{from_start.apr:.6f} and the Sharpe ratio {from_start.sharpe:.6f}.",
