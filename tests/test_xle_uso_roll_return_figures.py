@@ -278,6 +278,16 @@ class TestTheShading:
         assert held_runs(result.days, held) == drawn
 
     @pytest.mark.parametrize("panel", ["curve", "ratio"])
+    def test_eight_of_the_nine_spans_fall_between_july_2007_and_october_2008(
+        self, axes, result, panel
+    ) -> None:
+        """The alt text's "All but one fall between July 2007 and October 2008"."""
+        drawn = _drawn_spans(axes[panel], "backwardation", result.days)
+        inside = [s for s in drawn if day("2007-07-01") <= s[0] and s[1] <= day("2008-10-31")]
+        assert (len(drawn), len(inside)) == (9, 8), SPEC
+        assert drawn[-1] not in inside
+
+    @pytest.mark.parametrize("panel", ["curve", "ratio"])
     def test_the_backwardation_days_are_shaded_in_the_light_accent(self, axes, panel) -> None:
         color, alpha = module.BACKWARDATION_SHADE
         assert (color, alpha) == (ACCENT, 0.16)

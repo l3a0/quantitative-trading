@@ -7574,11 +7574,10 @@ Five groups of what it says are not pinned here.
    the funds' moves, that USO's move is the spot's plus the roll return under
    the book's model, and that a split at the end of 2008 was measured and left
    out.
-4. Figures the post states in words or rounds from pinned ones, such as a
-   third, under a fifth of the earning days, under a seventh, close to USO's
-   fall, far exceeds, a small part, one fewer than 1,129, 127 and 84 percent,
-   and the contango of early 2009. The figure's alt text reads its curves
-   approximately too.
+4. Comparisons the post states in words that no test bounds: close to
+   USO's fall, far exceeds and a small part. The figure's alt text reads its
+   curves approximately too, as in about 30 percent by late 2007 and near
+   141 percent.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7592,11 +7591,25 @@ its 24 dividends to `TestTheETFFileSubtractsEachDividend` in
 every close in the crude oil post's window, which the post cites from the
 crude oil reversal and momentum post, traces to
 `test_the_later_save_sits_0_27_higher_on_every_day` in
-[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py). Nine
-had no pin before it.
+[tests/test_cl_reversal_momentum.py](tests/test_cl_reversal_momentum.py).
+
+`TestWhatThePostQuotes` in the first of those files reads the post's copies.
+It builds each run figure at the precision the post prints it and finds it
+in a fragment that occurs once, reads both tables whole, and reads the alt
+text's exact figures as a second copy. It reads the 29 sign changes and
+SPY's 14.98 and 24 dividends against the tests that pin them, and asserts
+the run bears out a third, under a fifth of the earning days, under a
+seventh, one fewer than 1,129, 127 and 84 percent, the contango of early
+2009 and eight of the nine backwardation spans falling between July 2007
+and October 2008. It leaves unread the five groups above, the title's and
+the subtitle's copies of a third, and the repeated copies its docstring
+names.
+
+Nine figures had no pin before the post.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
-   gives the same ratio on all 1,375 days.
+   gives the same ratio on all 1,375 days and prices its spot on all 1,498
+   days the two calendars share.
 2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
    from 51.97 to 69.61, or 33.9427 percent.
 3. The script's front is the nearest priced contract on 734 days and the
@@ -7619,7 +7632,8 @@ had no pin before it.
    its legend prints as 140.53 and 29.87 percent, the
    drawdown's high of 1.272665 on 2009-02-18 and trough of 0.835584 on
    2009-06-29, the longest run below a high from 2009-02-19 to 2011-01-24,
-   the nine backwardation spans, and the ratio's low of 0.982067 on 2007-09-26
+   the nine backwardation spans, eight of them between July 2007 and October
+   2008, and the ratio's low of 0.982067 on 2007-09-26
    and high of 1.111489 on 2009-02-05.
 
 Its one figure is drawn from the committed vintages by

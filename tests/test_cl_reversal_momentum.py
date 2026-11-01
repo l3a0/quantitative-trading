@@ -177,6 +177,8 @@ class TestTheVintages:
         assert _six(trade(same, combination_positions(same))) == (0.117600, 1.100368)
 
     def test_the_later_save_sits_0_27_higher_on_every_day(self, cl, later_cl) -> None:
+        """``blog/xle-uso-roll-return-lessons.md`` cites this shift too, so a change to it
+        moves that post."""
         assert later_cl.index.equals(cl.index)
         assert np.allclose(later_cl.to_numpy() - cl.to_numpy(), 0.27)
 
