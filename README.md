@@ -7574,10 +7574,11 @@ Five groups of what it says are not pinned here.
    and subtraction reads larger in the earliest years, that Yahoo
    Finance's adjusted close rescales, that the file adjusts XLE the way it
    adjusts SPY and GDX, that a fund drops by about its dividend on the
-   day it goes out, that XLE pays dividends, that
-   the backwardation days were a bet on the funds' moves, that USO's move is
-   the spot's plus the roll return under the book's model, and that a split
-   at the end of 2008 was measured and left out.
+   day it goes out, that XLE pays dividends, that XLE's rise in the file may
+   be larger than the traded price's, that the backwardation days were a bet
+   on the funds' moves and the contango days in large part a bet on XLE's own
+   move, that USO's move is the spot's plus the roll return under the book's
+   model, and that a split at the end of 2008 was measured and left out.
 4. Comparisons the post states in words whose sentences no test reads: a
    small part, dwarf and far larger. `test_lesson_5` bounds the run behind
    them, holding the implied roll return under a seventh of USO's log move on
@@ -7591,8 +7592,8 @@ Every other number in the post traces to an assertion in
 [tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
 for the figure's own numbers. CL's γ changing sign 29 times, which the post
 cites from the spot and roll returns post, traces to
-[tests/test_roll_returns.py](tests/test_roll_returns.py). SPY's 14.98, its 24
-dividends and both download dates trace to
+[tests/test_roll_returns.py](tests/test_roll_returns.py). SPY's 14.98, its
+zero gap on the last day, its 24 dividends and both download dates trace to
 `TestTheETFFileSubtractsEachDividend` in
 [tests/test_series.py](tests/test_series.py), and the fund file's 67 funds to
 `TestTheCommittedPanelsAreChansArrays` there. A save dated a week later moving
@@ -7605,32 +7606,36 @@ crude oil reversal and momentum post, traces to
 It builds each run figure at the precision the post prints it and finds it
 in a fragment that occurs once, reads both tables whole, and reads the alt
 text's exact figures as a second copy. It reads the 29 sign changes, and
-SPY's 14.98, 24 dividends and both download dates, against the tests that
-pin them. Where a word states a fact the run decides, it asserts the run
-bears the word out. Among those words are a third, under a fifth of the
-earning days, under a seventh, one fewer than 1,129, 127 and 84 percent, the
-contango of early 2009, and eight of the nine backwardation spans falling
-between July 2007 and October 2008. Others are a ratio above 1 being
-contango and giving a negative roll return, the average annual return being
-252 times the mean daily return, and the fixed view falling through the
-longer backwardation stretches of 2007 and 2008 where the trade's line
-rises. `TestTheSplit` in
+SPY's 14.98, zero last gap, 24 dividends and both download dates, against
+the tests that pin them. Where a word states a fact the run decides, it
+asserts the run bears the word out. Among those words are a third, under a
+fifth of the earning days, under a seventh, one fewer than 1,129, 127 and 84
+percent, the contango of early 2009, and eight of the nine backwardation
+spans falling between July 2007 and October 2008. Others are a ratio above 1
+being contango, the implied roll return summing below zero on the contango
+days and above it on the backwardation days, XLE's leg earning more than
+half the contango days' sum, the later save not rewriting the CL file's
+contracts, the average annual return being 252 times the mean daily
+return, and the fixed view falling through the longer backwardation
+stretches of 2007 and 2008 where the trade's line rises. `TestTheSplit` in
 [tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
 bounds the roll return at over nine tenths of USO's log move on the contango
 days and under a fifth on the backwardation days, which keeps close to and
 far exceeds true, and `TestTheHandover` there holds that CL-2007F is still
 priced on the first 10 of CL-2007G's front rows. `TestWhatThePostQuotes`
 leaves unread the five groups above, the title's and the subtitle's copies
-of a third, and repeated copies of figures it reads elsewhere, among them
-those its docstring names.
+of a third, repeated copies of figures it reads elsewhere, and some
+sentences whose words the run decides, among them those its docstring
+names. Sentences restating the script's rules are held against the code by
+`TestTheRules` and `TestTheSpecification` rather than read in the post.
 
 Nine figures had no pin before the post.
 
 1. The 40-row start binds only for CL-2007F, and the save of 2012-08-14
    holds the same 89 contracts, gives the same ratio on all 1,375 days and
    prices its spot on all 1,498 days the two calendars share.
-2. USO's close falls from 69.54 to 38.97, or 43.9603 percent, and XLE's rises
-   from 51.97 to 69.61, or 33.9427 percent.
+2. In Chan's fund file, USO's close falls from 69.54 to 38.97, or 43.9603
+   percent, and XLE's rises from 51.97 to 69.61, or 33.9427 percent.
 3. The script's front is the nearest priced contract on 734 days and the
    second-nearest on 641.
 4. The ratio and Example 5.3's γ on the save of 2012-08-14 agree on 1,354 of

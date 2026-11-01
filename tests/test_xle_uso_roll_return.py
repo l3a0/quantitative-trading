@@ -520,11 +520,15 @@ class TestWhatThePostQuotes:
     a re-pin that leaves the post behind, fails here, while rewording the
     prose between two figures does not. Where a word states a fact the run
     decides, such as "fell", "under a seventh" or "about a third", the run is
-    asserted to bear it out and the sentence holding the word is read, apart
-    from the few named at the end of this docstring. The
-    post's two tables are each read whole, as the grid of its cells with its
-    row labels and column heads, so a cell changed, added, dropped or moved
-    fails, while the same table turned on its side still passes. Lesson 5's
+    asserted to bear it out and the sentence holding the word is read. That
+    covers a set of such sentences rather than every one. Sentences that
+    restate the script's rules, such as that the ratio is the back's price
+    over the front's or that a day earns on the position held the day before,
+    are held against the code by ``TestTheRules`` and ``TestTheSpecification``
+    and are not read here. The post's two tables are each read whole, as the
+    grid of its cells with its row labels and column heads, so a cell
+    changed, added, dropped or moved fails, while the same table turned on
+    its side still passes. Lesson 5's
     table repeats "the trade" under "Compounded" and "Summed", so its rows are
     compared in order rather than by label.
 
@@ -548,11 +552,11 @@ class TestWhatThePostQuotes:
        bands with the months the widest spans. Lesson 3's prose reads the
        108-day and 20-day stretches with their dates.
 
-    Five values come from pins in two other files rather than from this run.
+    Six values come from pins in two other files rather than from this run.
     CL's γ changing sign 29 times is read against
     ``test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango``
-    in ``tests/test_roll_returns.py``, and SPY's 14.98, its 24 dividends and
-    both download dates against
+    in ``tests/test_roll_returns.py``, and SPY's 14.98, its zero gap on the
+    last day, its 24 dividends and both download dates against
     ``test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day``
     in ``tests/test_series.py``. Each is read from that test's source.
 
@@ -564,8 +568,8 @@ class TestWhatThePostQuotes:
     holds, which ``tests/test_series.py`` counts, the dates of Chan's span
     where they repeat, and the alt text's rounded readings of the lines, such
     as "about 30 percent by late 2007", "near 141 percent" and "mostly between
-    1.00 and 1.03". A few sentences whose words the run decides are left
-    unread too: Lesson 2's that the book's two are the script's APR and
+    1.00 and 1.03". Sentences whose words the run decides that are left
+    unread include Lesson 2's that the book's two are the script's APR and
     Sharpe ratio rounded, Lesson 3's that both drawdowns come later, Lesson
     5's that USO's daily log moves sum to the log of one plus its compounded
     move and that the contango days were short USO and long XLE, and Habit
@@ -627,6 +631,8 @@ class TestWhatThePostQuotes:
         assert len(missing) == 2
         later_ratio = front_ratio(later.contracts).loc[result.days[defined]].to_numpy()
         assert (later_ratio == result.ratio[defined]).all()
+        span = later.contracts.loc[contracts.index[0] : contracts.index[-1]]
+        assert span.equals(contracts), "not rewritten"
         above, below = result.ratio > 1, result.ratio < 1
         assert (result.positions[above] == CONTANGO).all(), "above 1 is contango"
         assert (result.positions[below] == BACKWARDATION).all(), "below 1 is backwardation"
@@ -647,6 +653,7 @@ class TestWhatThePostQuotes:
             "A positive roll return therefore puts the back below the front, which is "
             "backwardation, and a negative one puts it above, which is contango.",
             "so a ratio above 1 gives a negative roll return.",
+            "That reading assumes the two contracts are a month apart, which on CL they are.",
             f"CL contracts expire a month apart, which in this file is fewer than "
             f"{FRONT_START - FRONT_END} rows, the distance from a window’s {FRONT_START}-row start "
             f"to its {FRONT_END}-row end. So each contract’s {FRONT_START}-row start falls before "
@@ -678,6 +685,7 @@ class TestWhatThePostQuotes:
             f"{int(defined.sum()):,} of the shared days.",
             f"The later save of {later_saved} gives the same ratio on all "
             f"{int(defined.sum()):,} days.",
+            "Chan’s single contracts were not rewritten that way.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -702,8 +710,8 @@ class TestWhatThePostQuotes:
             "it is the second-nearest.",
             f"The script moves to the next contract {FRONT_END} rows before the current one’s "
             "last price,",
-            f"USO’s close fell from {first[USO]:.2f} to {last[USO]:.2f}, or {-100 * uso:.4f} "
-            f"percent. XLE’s rose from {first[XLE]:.2f} to {last[XLE]:.2f}, or "
+            f"In Chan’s fund file, USO’s close fell from {first[USO]:.2f} to {last[USO]:.2f}, "
+            f"or {-100 * uso:.4f} percent. XLE’s rose from {first[XLE]:.2f} to {last[XLE]:.2f}, or "
             f"{100 * xle:.4f} percent.",
         ]
         assert not_found_once(text, fragments) == []
@@ -852,14 +860,18 @@ class TestWhatThePostQuotes:
         test = "test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day"
         downloaded = _pinned("test_series.py", test, r'raw_dated="(\d{4}-\d{2}-\d{2})"')
         adjusted = _pinned("test_series.py", test, r'adjusted_dated="(\d{4}-\d{2}-\d{2})"')
-        first_gap = _pinned("test_series.py", test, r"== \(([\d.]+), 0\.0\)")
+        first_gap = _pinned("test_series.py", test, r"== \(([\d.]+), [\d.]+\)")
+        last_gap = _pinned("test_series.py", test, r"== \([\d.]+, ([\d.]+)\)")
         dividends = _pinned("test_series.py", test, r"len\(dividends\) == (\d+)")
+        words = {"0.0": "zero"}
         fragments = [
             f"against SPY’s raw closes from Yahoo Finance, downloaded {downloaded}, found SPY’s "
             f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
-            f"The gap shrinks by each of the {dividends} dividends SPY paid",
-            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends, each "
-            "one from the step in the rescaling factor on the day it went out.",
+            f"The gap shrinks by each of the {dividends} dividends SPY paid over the file’s span "
+            f"and is {words[last_gap]} on its last day.",
+            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, set against those raw "
+            "closes, give those dividends, each one from the step in the rescaling factor on the "
+            "day it went out.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -897,14 +909,20 @@ class TestWhatThePostQuotes:
             assert np.prod(1 + result.daily[on]) > 1 > np.prod(1 + fixed_daily[on]), (
                 f"the trade rises and the fixed view falls through {first.date()} to {last.date()}"
             )
-        # Each leg's share of the backwardation days' sum, which the post's
-        # "mostly by being long USO" and "a little by being short XLE" say.
+        # Each leg's share of each group's sum. On the backwardation days the
+        # post says "mostly by being long USO" and "a little by being short
+        # XLE". On the contango days it says XLE's rise "earned the trade more
+        # than its short USO leg did" and "in large part".
         prices = closes.loc[result.days, list(LEGS)].to_numpy(dtype=float)
         moves = prices / backshift(1, prices) - 1
         earning = (backshift(1, held) == BACKWARDATION).all(axis=1)
         uso_leg, xle_leg = (BACKWARDATION * moves[earning]).sum(axis=0) / len(LEGS)
         assert uso_leg + xle_leg == pytest.approx(backwardation.summed, abs=TIGHT)
         assert 0 < xle_leg < backwardation.summed / 10 < 9 * backwardation.summed / 10 < uso_leg
+        earning = (backshift(1, held) == CONTANGO).all(axis=1)
+        uso_leg, xle_leg = (CONTANGO * moves[earning]).sum(axis=0) / len(LEGS)
+        assert uso_leg + xle_leg == pytest.approx(contango.summed, abs=TIGHT)
+        assert 0 < uso_leg < contango.summed / 2 < xle_leg
         trade_end = cumulative_return(result.daily)[-1]
         fragments = [
             "5. **The few backwardation days earn a third of the return.**",
@@ -929,8 +947,9 @@ class TestWhatThePostQuotes:
             f"that set that day’s view, and divides by {DAYS_PER_YEAR}.",
             f"USO fell by {-uso_contango:.4f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
-            f"XLE rising {100 * contango.xle:.4f} percent over the same days added to the "
-            "trade’s gain.",
+            f"XLE rising {100 * contango.xle:.4f} percent over the same days earned the trade "
+            "more than its short USO leg did, so these days too were in large part a bet on "
+            "XLE’s own move.",
             f"USO rose by {uso_backwardation:.4f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
             "rise.",
