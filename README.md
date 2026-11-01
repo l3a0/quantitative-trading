@@ -7535,6 +7535,7 @@ Chan reports an APR of 16 percent and a Sharpe ratio of about 1 from
 post, the crude oil calendar spread post, the spot and roll returns post, the
 crude oil reversal and momentum post and the gold miners post rather than
 repeating them, and draws five lessons from Entry 39 of the replication log.
+Every result in it is exploratory.
 
 1. The pair stands in for crude's spot and its futures only by the book's
    argument, and the script's front is the nearest contract on 734 of the
@@ -7549,7 +7550,7 @@ repeating them, and draws five lessons from Entry 39 of the replication log.
 5. The 244 days earning on backwardation hold 0.308117 of the summed daily
    return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
    implies a roll return of 0.072380, and holding contango's position
-   throughout gives an APR of 0.044949. Every figure is exploratory.
+   throughout gives an APR of 0.044949.
 
 Five groups of what it says are not pinned here.
 
@@ -7563,21 +7564,19 @@ Five groups of what it says are not pinned here.
    that overlay the contango flag on its plot, both in `XLE_CL_rollReturn.m`
    at `e4bc46f` of ericnberwick/EpchanPreview.
 3. Readings no test asserts: that the ratio approximates the roll return
-   under the book's model, that the old front is still priced for the 10
-   rows after the script moves on, that rescaling gives a holder's return
+   under the book's model, that CL's γ is mostly negative, as the spot and
+   roll returns post shows, that rescaling gives a holder's return
    and subtraction reads larger in the earliest years, that Yahoo
    Finance's adjusted close rescales, that the file adjusts XLE the way it
    adjusts SPY and GDX, that a fund drops by about its dividend on the
    day it goes out, that XLE pays dividends, that Chan's single contracts
    were not rewritten between his saves the way a continuous future is, that
-   the contango days are the book's trade and the backwardation days a bet on
-   the funds' moves, that USO's move is the spot's plus the roll return under
-   the book's model, and that a split at the end of 2008 was measured and left
-   out.
-4. Comparisons the post states in words that no test bounds: close to
-   USO's fall, far exceeds and a small part. The figure's alt text reads its
-   curves approximately too, as in about 30 percent by late 2007 and near
-   141 percent.
+   the backwardation days were a bet on the funds' moves, that USO's move is
+   the spot's plus the roll return under the book's model, and that a split
+   at the end of 2008 was measured and left out.
+4. The figure's alt text's readings of its curves, which are approximate,
+   as in about 30 percent by late 2007 and near 141 percent, and the words
+   naming its line styles.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -7601,9 +7600,15 @@ SPY's 14.98 and 24 dividends against the tests that pin them, and asserts
 the run bears out a third, under a fifth of the earning days, under a
 seventh, one fewer than 1,129, 127 and 84 percent, the contango of early
 2009 and eight of the nine backwardation spans falling between July 2007
-and October 2008. It leaves unread the five groups above, the title's and
-the subtitle's copies of a third, and the repeated copies its docstring
-names.
+and October 2008. `TestTheSplit` in
+[tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
+bounds the roll return at over nine tenths of USO's log move on the contango
+days and under a fifth on the backwardation days, which keeps close to and
+far exceeds true, and `TestTheHandover` there holds that CL-2007F is still
+priced on the first 10 of CL-2007G's front rows. `TestWhatThePostQuotes`
+leaves unread the five groups above, the title's and the subtitle's copies
+of a third, and repeated copies of figures it reads elsewhere, among them
+those its docstring names.
 
 Nine figures had no pin before the post.
 

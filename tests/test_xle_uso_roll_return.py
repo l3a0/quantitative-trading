@@ -590,7 +590,13 @@ class TestWhatThePostQuotes:
         assert len(missing) == 2
         later_ratio = front_ratio(later.contracts).loc[result.days[defined]].to_numpy()
         assert (later_ratio == result.ratio[defined]).all()
+        above, below = result.ratio > 1, result.ratio < 1
+        assert (result.positions[above] == CONTANGO).all(), "above 1 is contango"
+        assert (result.positions[below] == BACKWARDATION).all(), "below 1 is backwardation"
+        assert (MONTHS_PER_YEAR * np.log(1 / result.ratio[above]) < 0).all(), "negative"
         fragments = [
+            "Above 1 is contango, and below 1 is backwardation.",
+            "so a ratio above 1 gives a negative roll return.",
             f"So the roll return, annualised, is about {MONTHS_PER_YEAR} times the log of the "
             "front over the back.",
             f"Each contract is the front from {FRONT_START} rows to {FRONT_END} rows before its "
@@ -706,8 +712,8 @@ class TestWhatThePostQuotes:
             f"{int((held == BACKWARDATION).all(axis=1).sum())}. On {len(at_one)} days, "
             f"{at_one[0].date()} and {at_one[1].date()}, the ratio is exactly 1 and the trade "
             "holds nothing.",
-            f"It also holds nothing on the first {unset} days of Chan’s dates, from "
-            f"{result.days[0].date()} to {result.days[unset - 1].date()}.",
+            f"It also holds nothing on its first {unset} days, the days the two calendars share "
+            f"from {result.days[0].date()} to {result.days[unset - 1].date()}.",
             f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
             f"on {result.days[start].date()}.",
             f"With the two days at 1, that leaves {result.flat} days holding nothing.",
@@ -767,12 +773,14 @@ class TestWhatThePostQuotes:
         """SPY's figures as the dividend test in ``tests/test_series.py`` pins them."""
         test = "test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day"
         downloaded = _pinned("test_series.py", test, r'raw_dated="(\d{4}-\d{2}-\d{2})"')
+        adjusted = _pinned("test_series.py", test, r'adjusted_dated="(\d{4}-\d{2}-\d{2})"')
         first_gap = _pinned("test_series.py", test, r"== \(([\d.]+), 0\.0\)")
         dividends = _pinned("test_series.py", test, r"len\(dividends\) == (\d+)")
         fragments = [
             f"against SPY’s raw closes from Yahoo Finance, downloaded {downloaded}, found SPY’s "
             f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
             f"The gap shrinks by each of the {dividends} dividends SPY paid",
+            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -793,9 +801,24 @@ class TestWhatThePostQuotes:
         assert backwardation.roll / uso_backwardation < 1 / 7, "under a seventh"
         f = result.figures
         fixed = figures(fixed_view(closes, result))
-        fixed_end = cumulative_return(fixed_view(closes, result))[-1]
+        fixed_daily = fixed_view(closes, result)
+        fixed_end = cumulative_return(fixed_daily)[-1]
+        assert (CONTANGO, LEGS) == ((-1.0, 1.0), (USO, XLE)), "short USO and long XLE"
+        earning = np.zeros(len(result.days), dtype=bool)
+        backwardation_held = (held == BACKWARDATION).all(axis=1)
+        earning[1:] = backwardation_held[:-1] & (result.days[1:].year <= 2008)
+        assert np.prod(1 + fixed_daily[earning]) < 1 < np.prod(1 + result.daily[earning]), (
+            "falls through the backwardation stretches of 2007 and 2008, where the trade rises"
+        )
         trade_end = cumulative_return(result.daily)[-1]
         fragments = [
+            "5. **The few backwardation days earn a third of the return.**",
+            "## Lesson 5: the backwardation days earn a third of the return",
+            "2. **On the backwardation days, USO’s rise far exceeds the implied roll return.**",
+            "Hold contango’s position, short USO and long XLE, on every day the trade holds "
+            "anything,",
+            "It falls through the backwardation stretches of 2007 and 2008, where the trade’s "
+            "line rises.",
             f"1. **The {contango.days:,} days earning on contango.** This is one fewer than the "
             f"{held_contango:,} days it held contango’s position, because the last day, "
             f"{result.days[-1].date()}, is one of them and nothing follows it.",

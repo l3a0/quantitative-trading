@@ -653,6 +653,10 @@ class TestTheHandoverSketch:
             "On the lower row",
             "Between the rows",
             "a brown brace spans the days from 12-06 to 12-19",
+            "with grey words under it",
+            "where the grey bar still runs above the second black bar",
+            "with brown words",
+            "Black words at the bottom read",
             "Every bar sits at its own trading days on the axis.",
             "The finished drawing holds for twelve seconds.",
         ):
@@ -866,6 +870,12 @@ class TestTheSplitSketch:
         alt = _alt(every[1])
         for phrase in (
             "A black bar hangs down from the line",
+            "A grey zero line runs across the board.",
+            "Above it on the left, black words read",
+            "named “USO” above the line",
+            "Below the line on the right, black words read",
+            "named “USO” below the line",
+            "Grey words at the bottom read",
             "a brown bar nearly as long",
             "A black bar stands up from the line",
             "a short brown bar",
