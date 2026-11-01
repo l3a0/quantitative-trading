@@ -7664,7 +7664,7 @@ drawings for twelve seconds. Neither is schematic.
 
 1. `xle_uso_roll_return_sketch_front_handover.gif`, in Lesson 1, draws
    CL-2007F's front window from 2006-10-20 to 2006-12-05 and CL-2007G's from
-   the next trading day to 2007-01-05, on the CL strip's calendar. A brace
+   the next trading day to 2007-01-05, on the CL file's calendar. A brace
    marks the 10 rows on which CL-2007F is still priced, so the front is the
    second-nearest contract. It reads the dates from `front_windows` and gives
    the 734 and 641 of the 1,375 days with a ratio on which the front is the
