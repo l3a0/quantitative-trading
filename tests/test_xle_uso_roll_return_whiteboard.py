@@ -4,8 +4,8 @@ One sketches Lesson 1's claim that the script's front moves to the next
 contract 10 rows before the old one's last price, so on those rows the front
 is the second-nearest contract the file prices. The other sketches Lesson 5's
 split: on the contango days the roll return the ratio implies comes close to
-USO's log move, and on the backwardation days it is small beside it. What
-is pinned is what a reader takes from each.
+USO's log move, and on the backwardation days USO's log move far exceeds it.
+What is pinned is what a reader takes from each.
 
 1. The handover sketch reads its dates, row counts and day counts from
    :class:`chan.xle_uso_roll_return_whiteboard.Handover`. The test derives

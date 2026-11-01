@@ -278,7 +278,14 @@ class TestTheVintages:
 
 
 class TestTheSpecification:
-    """The script's rule on both vintages, over the 1,498 days both calendars hold."""
+    """The script's rule on both vintages, over the 1,498 days both calendars hold.
+
+    Every pin built on the run's ratio also reads the CL file's rows after the
+    last of those days, 2012-04-09, because the script finds each expiry as a
+    contract's last priced row. Two also assert over the CL file's rows before
+    the first of them, from 2000-11-20: the first front ratio and CL-2007F's 31
+    front rows, which find no ratio on any row before 2006-10-20.
+    """
 
     def test_the_average_annual_return(self, result) -> None:
         f = result.figures

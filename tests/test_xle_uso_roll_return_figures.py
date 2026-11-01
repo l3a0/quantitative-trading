@@ -12,7 +12,9 @@ The figure reads the vintages and the specification that
 ``tests/test_xle_uso_roll_return.py`` states in its module docstring:
 ``data/inputdata_etf/`` USO and XLE, vendor chan-mat, basis adjusted, saved
 2012-04-10, and ``data/inputdatadaily_cl_20120502/``, vendor chan-mat, basis
-raw, saved 2012-05-03, over the 1,498 days from 2006-04-26 to 2012-04-09.
+raw, saved 2012-05-03, over the 1,498 days from 2006-04-26 to 2012-04-09,
+with the ratio also reading the CL file's rows after the last of them, as
+``TestWhatThePostMeasures`` there says.
 
 Exploratory, like everything Entry 39 computes here.
 """

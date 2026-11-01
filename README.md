@@ -1291,13 +1291,14 @@ strip and the ratio the calendar spread's schedule would give in its place.
 On synthetic strips it holds the 40-row start, a later front waiting for the
 previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded. It holds what the
-write-up measured too: the 40-row start binding only for CL-2007F, the same
-89 contracts with every price unchanged and the same ratio on the save of
-2012-08-14, and its spot on all 1,498 shared days, the script's front as the
-nearest priced contract on 734 days and the second on 641, the ratio against
-Example 5.3's γ, the figures from 2006-10-20, and each view's days, returns
-and implied roll return beside the fixed view's. On synthetic frames it holds
-the split by view and the fixed view. The blog post about it is the exception,
+write-up measured too: the 40-row start binding only for CL-2007F, the save
+of 2012-08-14 holding the same 89 contracts with every price of the CL file
+unchanged, giving the same ratio and pricing its spot on all 1,498 shared
+days, the script's front as the nearest priced contract on 734 days and the
+second on 641, the ratio against Example 5.3's γ, the figures from
+2006-10-20, and each view's days, returns and implied roll return beside the
+fixed view's. On synthetic frames it holds the split by view and the fixed
+view. The blog post about it is the exception,
 and what it says that nothing here asserts is listed below.
 
 [tests/test_opening_gap.py](tests/test_opening_gap.py) does it for the
