@@ -5,18 +5,21 @@ This file is the single authority for every run figure
 ``TestWhatThePostMeasures`` holds the figures the post measured beyond the
 script's printout, ``TestWhatThePostQuotes`` reads the post's copies of them,
 and README.md lists what the post states that no test asserts, such as its
-rounded readings. The post also quotes four kinds of number and one finding
+rounded readings. The post also quotes five kinds of number and one finding
 held elsewhere.
 
 1. Its figure's labels, which ``tests/test_xle_uso_roll_return_figures.py``
    holds.
-2. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
-3. SPY's close 14.98 below the price that traded, its 24 dividends and the
-   two dates its Yahoo Finance closes were downloaded, which
-   ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` holds.
-4. The 67 funds the fund file holds, which
+2. Its sketches' dates, row counts and twelve-second hold, which
+   ``tests/test_xle_uso_roll_return_whiteboard.py`` holds.
+3. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
+4. SPY's close 14.98 below the price that traded, its zero gap on the file's
+   last day, its 24 dividends and the two dates its Yahoo Finance closes were
+   downloaded, which ``TestTheETFFileSubtractsEachDividend`` in
+   ``tests/test_series.py`` holds.
+5. The 67 funds the fund file holds, which
    ``TestTheCommittedPanelsAreChansArrays`` in ``tests/test_series.py`` holds.
-5. The finding that a save dated a week later moves every close of the crude
+6. The finding that a save dated a week later moves every close of the crude
    oil reversal post's continuous future, which
    ``test_the_later_save_sits_0_27_higher_on_every_day`` in
    ``tests/test_cl_reversal_momentum.py`` holds.
@@ -521,7 +524,7 @@ class TestWhatThePostQuotes:
     prose between two figures does not. Where a word states a fact the run
     decides, such as "fell", "under a seventh" or "about a third", the run is
     asserted to bear it out and the sentence holding the word is read. That
-    covers a set of such sentences rather than every one. Sentences that
+    covers a set of such sentences rather than every one. Some sentences that
     restate the script's rules, such as that the ratio is the back's price
     over the front's or that a day earns on the position held the day before,
     are held against the code by ``TestTheRules`` and ``TestTheSpecification``

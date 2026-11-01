@@ -7576,9 +7576,9 @@ Five groups of what it says are not pinned here.
    adjusts SPY and GDX, that a fund drops by about its dividend on the
    day it goes out, that XLE pays dividends, that XLE's rise in the file may
    be larger than the traded price's, that the backwardation days were a bet
-   on the funds' moves and the contango days in large part a bet on XLE's own
-   move, that USO's move is the spot's plus the roll return under the book's
-   model, and that a split at the end of 2008 was measured and left out.
+   on the funds' moves, that USO's move is the spot's plus the roll return
+   under the book's model, and that a split at the end of 2008 was measured
+   and left out.
 4. Comparisons the post states in words whose sentences no test reads: a
    small part, dwarf and far larger. `test_lesson_5` bounds the run behind
    them, holding the implied roll return under a seventh of USO's log move on
@@ -7588,9 +7588,11 @@ Five groups of what it says are not pinned here.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py), or to
+[tests/test_xle_uso_roll_return.py](tests/test_xle_uso_roll_return.py), to
 [tests/test_xle_uso_roll_return_figures.py](tests/test_xle_uso_roll_return_figures.py)
-for the figure's own numbers. CL's γ changing sign 29 times, which the post
+for the figure's own numbers, or to
+[tests/test_xle_uso_roll_return_whiteboard.py](tests/test_xle_uso_roll_return_whiteboard.py)
+for the sketches' dates, row counts and twelve-second hold. CL's γ changing sign 29 times, which the post
 cites from the spot and roll returns post, traces to
 [tests/test_roll_returns.py](tests/test_roll_returns.py). SPY's 14.98, its
 zero gap on the last day, its 24 dividends and both download dates trace to
@@ -7627,7 +7629,8 @@ priced on the first 10 of CL-2007G's front rows. `TestWhatThePostQuotes`
 leaves unread the five groups above, the title's and the subtitle's copies
 of a third, repeated copies of figures it reads elsewhere, and some
 sentences whose words the run decides, among them those its docstring
-names. Sentences restating the script's rules are held against the code by
+names. Some sentences restating the script's rules, such as that the ratio
+is the back's price over the front's, are held against the code by
 `TestTheRules` and `TestTheSpecification` rather than read in the post.
 
 Nine figures had no pin before the post.

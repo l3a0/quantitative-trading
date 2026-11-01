@@ -327,8 +327,8 @@ class ViewEarnings:
     daily returns added up. ``roll`` adds ``12 · ln(front / back) / 252``
     over the same days, on the ratio that set the view, so it reads each
     day's ratio as an annual roll return with the two contracts a month
-    apart, which approximates the roll return the view collected in log
-    terms.
+    apart, which approximates, in log terms, the roll return a holder of the
+    futures would collect over those days under the book's model.
     """
 
     days: int
