@@ -572,11 +572,12 @@ where they were first built. The other forty-five were built here.
     0.159102, and a maximum drawdown of −0.192321 lasting 487 days. The APR
     and the Sharpe ratio round to the book's 16 percent and "about 1". The
     strip's first front window opens on 2006-10-20, so the window's first 123
-    days hold nothing. The ETF file subtracts dividends in dollars, so the
-    returns are not what a holder of XLE earned. The 244 days earning on
-    backwardation hold 0.308117 of the trade's summed daily return of
-    0.946538, and on them USO rose 0.5323 in log terms while the ratio
-    implies a roll return of 0.072380. Every figure is exploratory.
+    days hold nothing. The ETF file subtracts dividends in dollars. If it
+    adjusts XLE the way it adjusts SPY and GDX, its XLE returns are not what
+    a holder earned. The 244 days earning on backwardation hold 0.308117 of
+    the trade's summed daily return of 0.946538, and on them USO rose
+    0.532304 in log terms while the ratio implies a roll return of 0.072380.
+    Every figure is exploratory.
 40. The opening gap strategy on FSTX, the STOXX Europe 50 index future on
     Eurex, which the book calls the Dow Jones STOXX 50. It is Example 7.1 of
     *Algorithmic Trading*, run on Chan's 2012-05-17 save. A day is
@@ -7546,10 +7547,11 @@ Every result in it is exploratory.
    1,373 days the ratio is not exactly 1.
 3. The trade holds contango on 1,129 days and backwardation on 244, and
    nothing on its first 123. From 2006-10-20 its APR is 0.174513.
-4. The ETF file subtracts dividends in dollars, so XLE's returns are not what
-   a holder earned, and nothing committed measures by how much.
+4. The ETF file subtracts dividends in dollars. If it adjusts XLE the way it
+   adjusts SPY and GDX, its XLE returns are not what a holder earned, and
+   nothing committed measures by how much.
 5. The 244 days earning on backwardation hold 0.308117 of the summed daily
-   return of 0.946538. On them USO rose 0.5323 in log terms while the ratio
+   return of 0.946538. On them USO rose 0.532304 in log terms while the ratio
    implies a roll return of 0.072380, and holding contango's position on
    every day the trade holds anything gives an APR of 0.044949.
 
@@ -7652,7 +7654,7 @@ Nine figures had no pin before the post.
    compounding to 0.790269 and 0.343539 and summing to 0.638420 and 0.308117
    of 0.946538.
 7. USO moves −0.567754 and 0.702850 and XLE 0.549091 and −0.097061 over those
-   days, USO's log moves are −0.8388 and 0.5323, and the ratio implies roll
+   days, USO's log moves are −0.838762 and 0.532304, and the ratio implies roll
    returns of −0.766081 and 0.072380.
 8. Holding contango's position on every held day gives an APR of 0.044949 and
    a Sharpe ratio of 0.364524.
@@ -7698,8 +7700,8 @@ drawings for twelve seconds. Neither is schematic.
    the 734 and 641 of the 1,375 days with a ratio on which the front is the
    nearest and the second-nearest contract the file prices.
 2. `xle_uso_roll_return_sketch_roll_vs_uso.gif`, in Lesson 5, draws USO's log
-   move beside the roll return the ratio implies, to one scale: −0.8388
-   against −0.766081 on the 1,128 days earning on contango, and 0.5323 against
+   move beside the roll return the ratio implies, to one scale: −0.838762
+   against −0.766081 on the 1,128 days earning on contango, and 0.532304 against
    0.072380 on the 244 days earning on backwardation, all read from `by_view`.
 
 Redraw both with:

@@ -8925,8 +8925,8 @@ Three things.
    backwardation on 244. Their daily returns sum to 0.638420 and 0.308117 of
    0.946538, and compound to 0.790269 and 0.343539. On the contango days USO
    fell 0.567754 and the ratio implies a roll return of −0.766081 in log
-   terms, against USO's log move of −0.8388. On the backwardation days USO
-   rose 0.702850, or 0.5323 in log terms, and XLE fell 0.097061, while the
+   terms, against USO's log move of −0.838762. On the backwardation days USO
+   rose 0.702850, or 0.532304 in log terms, and XLE fell 0.097061, while the
    ratio implies 0.072380 in log terms, adding 12 · ln(front / back) / 252
    over the days and reading each ratio as contracts a month apart. Holding
    contango's position on every day the trade holds anything gives an APR of
@@ -8977,7 +8977,7 @@ Its two whiteboard sketches draw none of the table's rows. The one in
 Lesson 1 reads CL-2007F's and CL-2007G's front windows from `front_windows`,
 and the 734 and 641 days on which the front is the nearest and the
 second-nearest contract the file prices. The one in Lesson 5 reads USO's log
-moves of −0.8388 and 0.5323 and the implied roll returns of −0.766081 and
+moves of −0.838762 and 0.532304 and the implied roll returns of −0.766081 and
 0.072380 from `by_view`. `uv run python -m chan.xle_uso_roll_return_whiteboard`
 redraws them.
 

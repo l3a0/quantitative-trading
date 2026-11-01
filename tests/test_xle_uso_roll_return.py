@@ -503,8 +503,8 @@ class TestWhatThePostMeasures:
         assert views["contango"].roll == pytest.approx(-0.7660808253619001, abs=TIGHT)
         assert views["backwardation"].roll == pytest.approx(0.07237958945892248, abs=TIGHT)
         # USO's own log move on the same days, against which the roll return is read.
-        assert f"{math.log(1 + views['contango'].uso):.4f}" == "-0.8388"
-        assert f"{math.log(1 + views['backwardation'].uso):.4f}" == "0.5323"
+        assert f"{math.log(1 + views['contango'].uso):.6f}" == "-0.838762"
+        assert f"{math.log(1 + views['backwardation'].uso):.6f}" == "0.532304"
 
     def test_holding_contango_s_position_on_every_held_day(self, closes, result) -> None:
         f = figures(fixed_view(closes, result))
@@ -532,9 +532,9 @@ class TestWhatThePostQuotes:
     grid of its cells with its row labels and column heads, so a cell's
     number or label changed, or a cell added, dropped or moved, fails, while
     the same table turned on its side still passes. A number's unit is not
-    read, so Lesson 5's percent signs could be dropped and pass. Lesson 5's
-    table repeats "the trade" under "Compounded" and "Summed", so its rows are
-    compared in order rather than by label.
+    read, so Lesson 5's percent signs could be dropped and pass. Both tables'
+    rows are compared in order rather than by label, which is what lets
+    Lesson 5's table repeat "the trade" under "Compounded" and "Summed".
 
     The post states several figures more than once. Where a figure repeats,
     the copies read include these.
@@ -547,7 +547,7 @@ class TestWhatThePostQuotes:
        table and again where Lesson 5 sets the fixed view beside them, and
        the Sharpe ratio a third time in the section on what this replication
        cannot say, beside its n − 1 value.
-    3. **The backwardation days.** USO's 0.5323 and the roll return's
+    3. **The backwardation days.** USO's 0.532304 and the roll return's
        0.072380 are read in the summary of results, in Lesson 5's table and
        in Lesson 5's list.
     4. **The alt text.** Its exact figures are read there as a second copy:
@@ -618,7 +618,7 @@ class TestWhatThePostQuotes:
             f"It is short USO and long XLE on {int((held == CONTANGO).all(axis=1).sum()):,} days, "
             f"the reverse on {int((held == BACKWARDATION).all(axis=1).sum())}, and holds nothing "
             f"for its first {unset} days.",
-            f"On those days USO rose {math.log(1 + backwardation.uso):.4f} in log terms, while "
+            f"On those days USO rose {math.log(1 + backwardation.uso):.6f} in log terms, while "
             f"the roll return the signal reads came to {backwardation.roll:.6f}.",
         ]
         assert not_found_once(text, fragments) == []
@@ -962,13 +962,13 @@ class TestWhatThePostQuotes:
             f"{signed(100 * trade_end)} percent.",
             f"It takes {MONTHS_PER_YEAR} times the log of the front over the back, on the ratio "
             f"that set that day’s view, and divides by {DAYS_PER_YEAR}.",
-            f"USO fell by {-uso_contango:.4f} in log terms, and the ratio implies a roll return "
+            f"USO fell by {-uso_contango:.6f} in log terms, and the ratio implies a roll return "
             f"of {signed(contango.roll, 6)} over the same days.",
             "Added up day by day, as the trade’s row under “Summed” is, the long XLE leg earned "
             "the trade more than the short USO leg did, though USO’s compounded fall in the "
             "table is larger than XLE’s rise.",
             "So these days too were in large part a bet on XLE’s own move.",
-            f"USO rose by {uso_backwardation:.4f} in log terms, while the ratio implies a roll "
+            f"USO rose by {uso_backwardation:.6f} in log terms, while the ratio implies a roll "
             f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
             "rise.",
             "Added up the same way, the trade earned these days mostly by being long USO while "
@@ -984,7 +984,7 @@ class TestWhatThePostQuotes:
             ["XLE", f"{100 * contango.xle:.4f}", f"{100 * backwardation.xle:.4f}"],
             ["Summed", "", ""],
             ["the trade", f"{contango.summed:.6f}", f"{backwardation.summed:.6f}"],
-            ["USO, in logs", f"{uso_contango:.4f}", f"{uso_backwardation:.4f}"],
+            ["USO, in logs", f"{uso_contango:.6f}", f"{uso_backwardation:.6f}"],
             ["implied roll return", f"{contango.roll:.6f}", f"{backwardation.roll:.6f}"],
         ]
         assert tables(text)[1] in either_way(table)

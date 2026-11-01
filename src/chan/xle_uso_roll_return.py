@@ -439,7 +439,7 @@ def report(etf: list[VintageEntry], strip: Strip, result: Arbitrage) -> None:
     )
     print(f"  first front ratio {first}")
     print()
-    print("  Annualised over 252 days with no cost. The ETF closes subtract dividends in dollars.")
+    print("  Annualised over 252 days with no cost. The ETF file subtracts dividends in dollars.")
     print("  Exploratory. docs/replication-log.md carries the verdicts.")
 
 

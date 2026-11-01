@@ -6,7 +6,8 @@ the old one is still priced, so "front month" means the contract the script
 reads, and the roll return the ratio implies comes close to USO's fall on the
 contango days and is a small part of its rise on the backwardation days. This module
 draws the two as scenes, and the post places each right after the list it
-draws.
+draws. The second describes one exploratory sample, split after the run was
+seen, as the post's Lesson 5 says.
 
 1. The front moves on before the last price, in Lesson 1, after the two-item
    list whose first item opens "XLE stands in for crude’s spot price." On a
@@ -394,7 +395,7 @@ ZERO_Y, PER_LOG = 2.6, 1.7
 #: Each bar's half width, and the bars' centres: USO's then the roll return's,
 #: contango's group then backwardation's.
 HALF = 0.3
-CONTANGO_X = (1.2, 2.5)
+CONTANGO_X = (1.1, 2.5)
 BACKWARDATION_X = (5.35, 6.5)
 #: How far a value's words sit below a bar that hangs down and above one that
 #: stands up, and the heights of the closing note's two lines.
@@ -455,7 +456,7 @@ def _roll_vs_uso(split: Split) -> Scene:
         _bar("contango-uso", c_uso, split.contango_uso, INK),
         Label("USO", c_uso, names_up, names="contango-uso", color=INK, size=11, ha="center"),
         Label(
-            _signed(split.contango_uso, 4),
+            _signed(split.contango_uso, 6),
             c_uso,
             c_uso_end - VALUE_OFF[0],
             names="contango-uso",
@@ -509,7 +510,7 @@ def _roll_vs_uso(split: Split) -> Scene:
         _bar("backwardation-uso", b_uso, split.backwardation_uso, INK),
         Label("USO", b_uso, names_down, names="backwardation-uso", color=INK, size=11, ha="center"),
         Label(
-            _signed(split.backwardation_uso, 4),
+            _signed(split.backwardation_uso, 6),
             b_uso,
             b_uso_end + VALUE_OFF[1],
             names="backwardation-uso",

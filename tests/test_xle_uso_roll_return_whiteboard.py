@@ -109,14 +109,14 @@ HANDOVER_LABELS = [
 SPLIT_LABELS = [
     "1,128 days earning on contango",
     "USO",
-    "−0.8388",
+    "−0.838762",
     "roll return",
     "−0.766081",
     "close to",
     "USO’s fall",
     "244 days earning on backwardation",
     "USO",
-    "0.5323",
+    "0.532304",
     "roll return",
     "0.072380",
     "USO’s move beyond",
@@ -691,8 +691,8 @@ class TestTheSplit:
             backwardation.roll,
         )
         assert (split.contango_days, split.backwardation_days) == (1128, 244), SPEC
-        assert f"{split.contango_uso:.4f}" == "-0.8388", SPEC
-        assert f"{split.backwardation_uso:.4f}" == "0.5323", SPEC
+        assert f"{split.contango_uso:.6f}" == "-0.838762", SPEC
+        assert f"{split.backwardation_uso:.6f}" == "0.532304", SPEC
         assert f"{split.contango_roll:.6f}" == "-0.766081", SPEC
         assert f"{split.backwardation_roll:.6f}" == "0.072380", SPEC
 
@@ -725,10 +725,10 @@ class TestTheSplitSketch:
         labels = scenes(handover, OTHER_SPLIT)[1].labels
         assert [labels[k] for k in (0, 2, 4, 7, 9, 11)] == [
             "2,000 days earning on contango",
-            "−0.4000",
+            "−0.400000",
             "−0.123457",
             "99 days earning on backwardation",
-            "0.3000",
+            "0.300000",
             "0.250000",
         ]
 
