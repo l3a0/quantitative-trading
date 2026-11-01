@@ -377,6 +377,9 @@ class TestThePost:
         assert "named six data sections" in text and "against six checks" in text
         assert "read 6 sections\n+ GitHub" in flow.labels
         assert "render,\n6 checks" in flow.labels
+        after = text.split("named six data sections.", 1)[1].lstrip("\n")
+        listed = re.match(r"(?:\d+\. .*\n)+", after)
+        assert listed is not None and len(listed.group().splitlines()) == 6
 
     def test_the_gif_is_embedded_once(self) -> None:
         text = POST.read_text(encoding="utf-8")

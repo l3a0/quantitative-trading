@@ -8811,9 +8811,9 @@ nothing, so the replication log has no entry for it. It draws six lessons.
 1. Writing the page by hand cost a turn for every change, 240 updates in
    1.887 days at about \$111 a day.
 2. The version check refused 77 writes across 57 of the 240 updates.
-3. 87 of 146 sub-agent reports ended with something still stale, a count from
-   the transcripts alone, and some events, such as a merge from GitHub's web
-   page, reached no session.
+3. 87 of 146 sub-agent transcripts held a report naming something still stale,
+   a count from the transcripts alone, and some events, such as a merge from
+   GitHub's web page, reached no session.
 4. The owner's ranking lived only in the artifact until a backfill moved it
    onto labels, links and issue lines.
 5. The move cost \$101.80, and on an estimate, it pays back in about a day
@@ -8832,8 +8832,8 @@ day and the return table, could be checked by a test and is not.
    2026-10-11 21:17Z priced at Claude Opus 5.5 list prices: the 240 updates,
    the \$185.22 and the \$24.41, in its three parts of 132, 24 and 28 turns,
    that make \$209.63, the first update at 02:44Z, \$111.09 a day, the medians,
-   times and cost range by kind of update, the token counts and the about \$78
-   and at least \$85 they price to, the in-session counts under each grouping
+   times and cost range by kind of update, the token counts and the about \$78,
+   \$88 and \$20 they price to, the in-session counts under each grouping
    cutoff, and the 77 refused writes across 57 updates.
 2. The after estimate, from one label edit of 2 turns at about 280,000 tokens
    of context and \$0.165, and one board check of 22 turns and \$0.92, the
@@ -8841,14 +8841,15 @@ day and the return table, could be checked by a test and is not.
    updates, 11.4 percent, that ran one. Also the return table computed from it,
    the re-run at the 9.5 sync rounds a day measured, about \$29.2, the \$0.264
    an update and the 14.5 sync rounds a day the model implies, the \$8.40,
-   about \$4.45 a day, of skill loads, board reads and harness runs the model
-   leaves out, and the re-run on the earlier measurement's inputs, about 3.8
-   days.
+   about \$4.45 a day, that skill loads, board reads and harness runs cost
+   before the move, and the re-run on the earlier measurement's inputs, about
+   3.8 days.
 3. The cost of the move, \$101.80 in five parts, and the earlier measurement of
    about \$51 a day with its counts, quoted from [issue
    531](https://github.com/l3a0/quantitative-trading/issues/531).
-4. Counts from transcripts alone: the 87 stale reports of 146, with the 6 and
-   the 53 classified otherwise, and the two incidents.
+4. Counts from transcripts alone: the 87 of 146 transcripts whose reports named
+   something still stale, with the 6 and the 53 classified otherwise, and the
+   phrase search that sorted them, and the two incidents.
 5. Facts read from GitHub while the post was written: the merge times, the
    board runs and their timings, the backfill's planned and landed writes, the
    `band:N` labels and `Board order:` lines, the line counts of the skill, the
@@ -8864,13 +8865,15 @@ day and the return table, could be checked by a test and is not.
    19:30Z on 2026-10-19, with up to 603 minutes between two scheduled runs, and
    the session-started runs of 2026-10-19, the retry of 2026-10-26, and the
    move to the template's shared workflow on 2026-10-29 with its 112-line
-   caller.
+   caller, and the shared copy's limit of three reads at the commit pinned on
+   2026-11-01.
 6. Readings and rounding no test asserts: about one in four, 23.75 percent,
    about 11 percent, about a day and a third, and that each refused write could
-   have overwritten another session's change.
+   have overwritten another writer's change.
 7. Its references, cited rather than computed, which include the list prices
    and that Actions usage is free for a public repository. GitHub's rule that
-   only the newest waiting run survives is stated without a citation.
+   only the newest waiting run survives, and that an issue-body edit carries no
+   version check, are stated without a citation.
 
 The post also carries one looping whiteboard sketch, drawn by
 [src/chan/build_board_whiteboard.py](src/chan/build_board_whiteboard.py) on

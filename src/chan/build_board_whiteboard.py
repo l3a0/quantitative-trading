@@ -9,9 +9,9 @@ right after the paragraph that says "A session no longer writes the board."
    row, "before (by hand)", is the update a session or a sub-agent made: read
    the six sections and GitHub, edit, render and run the six checks, then
    write with the version pin. A vermilion arrow labelled "refused" runs from
-   the write back to the read, for the pin refusing a write when another
-   session wrote first. The bottom row, "after (from GitHub)", is a session
-   setting a label, which is a GitHub event, which starts the Action that
+   the write back to the read, for the pin refusing a write when a section it
+   carries changed since the read. The bottom row, "after (from GitHub)", is a
+   session setting a label, which is a GitHub event, which starts the Action that
    rebuilds the page. A berry arrow labelled "PR merges / CI finishes" enters
    the event from below with no session behind it, because GitHub records
    those events itself.
