@@ -8842,12 +8842,17 @@ each one's window, date and method where it first appears.
 5. Facts read from GitHub while the post was written: the merge times, the
    board runs and their timings, the backfill's planned and landed writes,
    the `band:N` labels and `Board order:` lines, the line counts of the skill,
-   the script and the tests, and the cron runs not yet seen.
+   the script and the tests, the cron runs not yet seen by 22:54Z and the
+   first at 23:06Z, and the Pages cache lifetime. The facts dated after
+   2026-10-11 were read from GitHub during the post's review on 2026-11-01:
+   the two fixes and the cron move of 2026-10-12, the schedule measured over
+   185 hours and the session-started runs of 2026-10-19, and the move to the
+   template's shared workflow on 2026-10-29 with its 112-line caller.
 6. Readings and rounding no test asserts: about one in four, about a day and
    a third, and that each refused write could have overwritten another
    session's change.
 7. Its references, cited rather than computed, which include the list prices
-   and the Pages and Actions behaviour.
+   and that Actions usage is free for a public repository.
 
 [blog/capped-low-beta-lessons.md](blog/capped-low-beta-lessons.md) is a
 forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
