@@ -503,6 +503,10 @@ class TestTheUpdateFlowSketch:
         tip = refused.y[under_read].max()
         assert tip == pytest.approx(refused.y[0]) and tip < bottom
         assert r0 < refused.x[-1] < r1 and refused.y[-1] < tip
+        # After the shaft's last visit to the tip, only the head's two arms
+        # follow, each 0.22 long, so a head flipped to point down fails here.
+        last = len(refused.y) - 1 - refused.y[::-1].argmax()
+        assert (tip - refused.y[last:]).max() <= 0.22
         label = _label(flow, "refused")
         assert RETURN_Y < label.y < bottom
         assert r1 < label.x < x0

@@ -8863,7 +8863,9 @@ the same way. It
 builds more slowly than the USD.CAD post's sketches and holds its finished
 drawing for twelve seconds.
 
-It is schematic and carries no figures from any run. Redraw it with:
+It is schematic and carries no figures from any run. The "6 sections" and "6
+checks" in its boxes are the retired skill's counts as the post quotes them,
+and the test holds them as words rather than deriving them. Redraw it with:
 
 ```bash
 uv run python -m chan.build_board_whiteboard

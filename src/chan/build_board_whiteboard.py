@@ -44,9 +44,10 @@ with no change is a no-op diff. Redraw it with::
 
 from __future__ import annotations
 
-import math
 from collections.abc import Sequence
 from pathlib import Path
+
+import numpy as np
 
 from chan.palette import ACCENT, INKS, LOST
 from chan.paths import FIGURES_DIR
@@ -151,13 +152,11 @@ def _row(tag: str, row: Sequence[tuple[str, str, float]]) -> list[Stroke | Label
 
 
 def _bent_arrow(points: Sequence[tuple[float, float]]) -> tuple:
-    """A polyline through ``points`` with a two-stroke head on its last segment,
-    the head :func:`chan.usdcad_tests_whiteboard._arrow` draws."""
-    (xa, ya), (xb, yb) = points[-2], points[-1]
-    angle, head = math.atan2(yb - ya, xb - xa), 0.22
-    left = (xb - head * math.cos(angle - 0.5), yb - head * math.sin(angle - 0.5))
-    right = (xb - head * math.cos(angle + 0.5), yb - head * math.sin(angle + 0.5))
-    return _line([*points, left, (xb, yb), right])
+    """A polyline through ``points`` whose last segment is drawn by
+    :func:`chan.usdcad_tests_whiteboard._arrow`, so its head is that one."""
+    body_x, body_y = _line(points[:-1])
+    head_x, head_y = _arrow(*points[-2], *points[-1])
+    return np.concatenate([body_x, head_x[1:]]), np.concatenate([body_y, head_y[1:]])
 
 
 def _update_flow() -> Scene:
