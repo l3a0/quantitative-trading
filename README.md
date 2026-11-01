@@ -1293,9 +1293,10 @@ previous one to end, the NaN left off every front window, the one-day lag and
 the half-capital divisor. It also holds both reads guarded. It holds what the
 write-up measured too: the 40-row start binding only for CL-2007F, the save
 of 2012-08-14 holding the same 89 contracts with every price of the CL file
-unchanged, giving the same ratio and pricing its spot on all 1,498 shared
-days, the script's front as the nearest priced contract on 734 days and the
-second on 641, the ratio against Example 5.3's γ, the figures from
+unchanged, giving the same ratio on all 1,375 days that have one and
+pricing its spot on all 1,498 shared days, the script's front as the
+nearest priced contract on 734 days and the second on 641, the ratio
+against Example 5.3's γ, the figures from
 2006-10-20, and each view's days, returns and implied roll return beside the
 fixed view's. On synthetic frames it holds the split by view and the fixed
 view. The blog post about it is the exception,
