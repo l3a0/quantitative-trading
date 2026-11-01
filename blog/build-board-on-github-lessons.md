@@ -193,7 +193,7 @@ That is an estimated \$0.264 per update and about \$33.5 a day.
 
 Three known gaps make the computed saving smaller than the true one, one omission makes it larger, and one unknown cuts either way. The three gaps that understate the saving come first.
 
-1. The estimate applies the 11.4 percent to every update, which models 14.5 sync rounds a day against the 9.5 measured. At the measured rate, (127.2 − 9.5)(0.165) + 9.5(1.03) gives about \$29.2 a day.
+1. The estimate applies the 11.4 percent to every update, which models 14.5 sync rounds a day, 0.114 × 127.2, against the 9.5 measured, the 18 board checks over Lesson 1’s 1.887 days. At the measured rate, (127.2 − 9.5)(0.165) + 9.5(1.03) gives about \$29.2 a day.
 2. It also charges a label edit to updates that now need none, such as a merge.
 3. The before figure leaves out the turns that read each sub-agent’s report, which the measurement did not price.
 

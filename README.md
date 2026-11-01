@@ -8824,36 +8824,45 @@ nothing, so the replication log has no entry for it. It draws six lessons.
 Seven groups of what it says are not pinned here, and none of its figures
 traces to a test. The cost figures come from Claude Code transcripts, which
 are private and machine-local, so no test can read them, and the post states
-each one's window, date and method where it first appears.
+each one's window, date and method where it first appears. The arithmetic the
+post derives from figures on its own page, such as \$111.09 a day and the
+return table, could be checked by a test and is not.
 
 1. Figures before the move, from board-update turns over 2026-10-10 00:00Z to
    2026-10-11 21:17Z priced at Claude Opus 5.5 list prices: the 240 updates,
    the \$185.22 and \$24.41 that make \$209.63, \$111.09 a day, the medians,
-   times and cost range by kind of update, the token counts, the in-session
-   counts under each grouping cutoff, and the 77 refused writes across 57
-   updates.
-2. The after estimate, from one label edit and one board check, and the
-   return table computed from it.
+   times and cost range by kind of update, the token counts and the about \$78
+   and at least \$85 they price to, the in-session counts under each grouping
+   cutoff, and the 77 refused writes across 57 updates.
+2. The after estimate, from one label edit and one board check, the \$0.11
+   it cost to start the check's sub-agent and the 18 of 158 sub-agent
+   updates, 11.4 percent, that ran one. Also the return table computed from
+   it, the re-run at the 9.5 sync rounds a day measured, about \$29.2, and
+   the re-run on the earlier measurement's inputs, about 3.8 days.
 3. The cost of the move, \$101.80 in five parts, and the earlier measurement
    of about \$51 a day with its counts, quoted from
    [issue 531](https://github.com/l3a0/quantitative-trading/issues/531).
-4. Counts from transcripts alone: the 87 stale reports of 146 and the two
-   incidents.
+4. Counts from transcripts alone: the 87 stale reports of 146, with the 6 and
+   the 53 classified otherwise, and the two incidents.
 5. Facts read from GitHub while the post was written: the merge times, the
    board runs and their timings, the backfill's planned and landed writes,
    the `band:N` labels and `Board order:` lines, the line counts of the skill,
-   the script and the tests, the cron runs not yet seen by 22:54Z and the
-   first at 23:06Z, and the Pages cache lifetime. The facts dated after
-   2026-10-11 were read from GitHub during the post's review on 2026-11-01:
-   the two fixes and the cron move of 2026-10-12, the two race failures of
-   2026-10-17, the schedule measured over 185 hours and the session-started
-   runs of 2026-10-19, the retry of 2026-10-26, and the move to the
-   template's shared workflow on 2026-10-29 with its 112-line caller.
+   the script and the tests, the workflow's 141 lines, six triggers and three
+   events that start no run, the skill's six data sections and six checks and
+   its record of the 2026-10-05 page-rule defect, the cron runs not yet seen
+   by 22:54Z and the first at 23:06Z, the Pages cache lifetime and the page's
+   2-minute refetch. The facts dated after 2026-10-11 were read from GitHub
+   during the post's review on 2026-11-01: the two fixes and the cron move of
+   2026-10-12, the two race failures of 2026-10-17, the schedule measured
+   over 185 hours and the session-started runs of 2026-10-19, the retry of
+   2026-10-26, and the move to the template's shared workflow on 2026-10-29
+   with its 112-line caller.
 6. Readings and rounding no test asserts: about one in four, about a day and
    a third, and that each refused write could have overwritten another
    session's change.
 7. Its references, cited rather than computed, which include the list prices
-   and that Actions usage is free for a public repository.
+   and that Actions usage is free for a public repository. GitHub's rule that
+   only the newest waiting run survives is stated without a citation.
 
 [blog/capped-low-beta-lessons.md](blog/capped-low-beta-lessons.md) is a
 forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
