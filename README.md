@@ -8849,6 +8849,29 @@ each one's window, date and method where it first appears.
 7. Its references, cited rather than computed, which include the list prices
    and the Pages and Actions behaviour.
 
+The post also carries one looping whiteboard sketch, drawn by
+[src/chan/build_board_whiteboard.py](src/chan/build_board_whiteboard.py) on
+the USD.CAD post's sketch machinery, after the paragraph saying a session no
+longer writes the board. `build_board_sketch_update_flow.gif` draws the board
+before and after the move as two rows of boxes. The top row is the update a
+session or sub-agent made by hand, with a vermilion arrow labelled "refused"
+from the write back to the read for the version pin. The bottom row is a
+session setting a label, the GitHub event, the Action rebuilding and the page,
+with a berry arrow for the merges and CI runs that GitHub records itself. It
+builds more slowly than the USD.CAD post's sketches and holds its finished
+drawing for twelve seconds.
+
+It is schematic and carries no figures from any run. Redraw it with:
+
+```bash
+uv run python -m chan.build_board_whiteboard
+```
+
+[tests/test_build_board_whiteboard.py](tests/test_build_board_whiteboard.py)
+holds its words, its colours, the order of each row's boxes, where the two
+coloured arrows start and end, and that the GIF follows its paragraph in the
+post.
+
 [blog/capped-low-beta-lessons.md](blog/capped-low-beta-lessons.md) is a
 forty-fifth post, about Chan's rule at Kindle location 4709 of *Quantitative
 Trading* tested at the two ceilings on leverage his own text gives, 2 under
