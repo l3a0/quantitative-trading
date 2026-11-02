@@ -1030,7 +1030,8 @@ class TestTheSwitchSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(every[1])
         for phrase in (
-            "A grey axis of TU’s trading days runs along the bottom from 2012-03-19 to 2012-03-30",
+            "A grey axis of TU’s trading days runs along the bottom from 2012-03-19 to 2012-03-30, "
+            "one tick a day",
             "A thick black line covers the March line from 03-19 to 03-21",
             "a second thick black line covers the June line from 03-22 to 03-30",
             "a brown line labelled “Chan’s continuous close” runs to 03-20",
