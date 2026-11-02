@@ -159,7 +159,7 @@ So the rebuild’s daily changes match those of Chan’s continuous close within
 
 ## Lesson 4: a rule declared late, and a variant set aside
 
-A rule fixed before the data is read can be tested by the data. A rule fixed after trying many variants has already been fitted to it. The plan was to write this experiment’s rule down before computing any figure. That did not happen. Two trial runs first tried about 90 variants, across lags, held contracts, units, thresholds and roll rules. That count comes from a written note about the runs, and no test here checks it.
+A rule fixed before the data is read can be tested by the data. A rule fixed after trying many variants has already been fitted to it. The plan was to write this experiment’s rule down before computing any figure. That did not happen. Two trial runs first tried about 90 variants, across lags, held contracts, units, thresholds and roll rules. That count comes from a written note about the runs, and no test here checks it. The same note records that those runs had already computed the declared rule and found it beating Example 6.1’s rule on all three figures.
 
 The declaration rests on three grounds the trial runs did not choose.
 

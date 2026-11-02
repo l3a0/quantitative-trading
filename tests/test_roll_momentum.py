@@ -623,10 +623,10 @@ class TestTheComparisonMargins:
         for threshold in SHARPE_SIGN_THRESHOLDS:
             assert at_threshold(result, threshold).sharpe > result.example_figures.sharpe, threshold
 
-    def test_row_4_s_margin_is_about_the_rebuild_s_own_error(self, check) -> None:
+    def test_row_4_s_margin_is_about_the_rebuild_s_shift_in_the_apr(self, check) -> None:
         """0.035 points of APR, against the 0.031 the rebuild and the save part by over 849 rows."""
-        apr_error = check.revised_on_rebuild.apr - check.revised_on_save.apr
-        assert apr_error == pytest.approx(0.000309, abs=5e-7), (
+        apr_shift = check.revised_on_rebuild.apr - check.revised_on_save.apr
+        assert apr_shift == pytest.approx(0.000309, abs=5e-7), (
             SPEC
             + "; over the 849 window rows inputdataohlcdaily_20120511/tu.csv covers,"
             + " 2009-01-02..2012-05-11, less the same rule earning that save's close on those rows"
@@ -727,7 +727,11 @@ class TestTheRowsBeside:
         assert check.example_on_save == tu_momentum.tu_momentum(save[1]).active_line_figures
 
     def test_the_64_uncovered_days_cannot_carry_the_gap(self, result, check) -> None:
-        """They would need about 4.2 percent between them to reach the book's 2.5, and earn 0.03."""
+        """They would need about 4.2 percent between them to reach the book's 2.5, and earn 0.03.
+
+        The 4.2 percent reads the declared rule's APR on the second vintage, over the 849
+        window rows it covers.
+        """
         uncovered = result.window_days > pd.Timestamp("2012-05-11")
         assert int(uncovered.sum()) == 64
         need = (1.025 ** (913 / 252)) / (1 + check.revised_on_save.apr) ** (849 / 252) - 1

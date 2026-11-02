@@ -6917,8 +6917,9 @@ Five groups of what it says are not pinned here.
    2009, to August 13, 2012, are at 2690. The book's figures are pinned, and
    its words are not.
 2. Facts from the run's own disclosure rather than the data: the two scratch
-   runs, their count of about 90 readings, and that the fifth-contract
-   reading came out of them. No test repeats any of them.
+   runs, their count of about 90 readings, that they had already found the
+   declared rule beating Example 6.1's on all three figures, and that the
+   fifth-contract reading came out of them. No test repeats any of them.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value

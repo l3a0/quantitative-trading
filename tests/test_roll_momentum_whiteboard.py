@@ -620,8 +620,8 @@ class TestTheSwingSketch:
         carries its rule's name."""
         scene = every[0]
         assert _labels_of(scene, "example")[:2] == SWING_LABELS[:2]
-        assert SWING_LABELS[7].startswith("declared:")
-        assert SWING_LABELS[8].startswith("Example 6.1:")
+        assert scene.labels[7].startswith("declared:")
+        assert scene.labels[8].startswith("Example 6.1:")
 
     def test_the_flat_share_of_ticks_is_the_flat_share_of_days(self, every, swing) -> None:
         scene = every[0]
