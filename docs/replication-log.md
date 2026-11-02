@@ -4307,7 +4307,8 @@ and its two sketches, which `uv run python -m chan.calendar_spread_figures` and
 ## Entry 16: Conditional Parameter Optimization, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own
-Algorithmic Trading Business*, revised edition, Example 7.1, pp. 137 to 146.
+Algorithmic Trading Business*, revised edition, Example 7.1 and the passage
+before it that introduces the method, pp. 138 to 146.
 Shipped under [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
 Eleven rows, all derivable from [tests/test_cpo.py](../tests/test_cpo.py) on a
@@ -4391,17 +4392,17 @@ rows trace to the pages read on 2026-10-03, recorded on
 
 | # | Row | Published | Where |
 | --- | --- | --- | --- |
-| 1 | Unconditional cumulative return over the three test years | 73% | p. 145, not among the highlights |
-| 2 | Unconditional annual return | 17.29% | p. 145, not among the highlights |
-| 3 | Unconditional Sharpe ratio | 1.947 | p. 145, not among the highlights |
-| 4 | Unconditional Calmar ratio | 0.984 | p. 145, not among the highlights |
-| 5 | Conditional beats unconditional on every metric | "All other metrics are improved using CPO" | p. 145, not among the highlights |
-| 6 | The conditional column | 83%, 19.77%, 2.325 and 1.454 | p. 145, not among the highlights |
+| 1 | Unconditional cumulative return over the three test years | 73% | p. 146, not among the highlights |
+| 2 | Unconditional annual return | 17.29% | p. 146, not among the highlights |
+| 3 | Unconditional Sharpe ratio | 1.947 | p. 146, not among the highlights |
+| 4 | Unconditional Calmar ratio | 0.984 | p. 146, not among the highlights |
+| 5 | Conditional beats unconditional on every metric | "All other metrics are improved using CPO" | p. 146, not among the highlights |
+| 6 | The conditional column | 83%, 19.77%, 2.325 and 1.454 | p. 146, not among the highlights |
 | 7 | The arithmetic annual return | nothing | n/a |
 | 8 | Both arms net of 1 basis point a round trip | nothing, the book mentions no costs | n/a |
 | 9 | Round trips a day | nothing beyond multiple round trips a day | Kindle location 3444 |
 | 10 | Where 1.947 sits among the 400 cells' test Sharpe ratios | nothing | n/a |
-| 11 | The span and the split | 2006-01-01 to 2020-12-31, 80% and 20%, the test the last three years | Kindle location 3444, and p. 145 for the test years |
+| 11 | The span and the split | 2006-01-01 to 2020-12-31, 80% and 20%, the test the last three years | Kindle location 3444, and p. 146 for the test years |
 
 The book's own figures disagree with each other. 17.29% a year compounds to
 61.4% over three years, not 73%, and 19.77% to 71.8%, not 83%, which

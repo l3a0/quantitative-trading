@@ -622,7 +622,7 @@ class TestTheBoundariesAndConstants:
         )
 
     def test_the_exit_fraction_is_the_book_s_minus_0_6(self):
-        """p. 140. A short exits at 0.55 under −0.6 and would hold under −0.5."""
+        """pp. 140 to 141. A short exits at 0.55 under −0.6 and would hold under −0.5."""
         assert positions(np.array([1.2, 0.55]), 1.0, np.array([True, False])).tolist() == [-1, 0]
 
     def test_the_grids_are_the_printed_ones(self):

@@ -4337,12 +4337,14 @@ Six groups of its figures are not pinned here.
    "but nobody (until they read this book!) is predicting the returns of this
    particular GLD trading strategy" from location 3617, both through
    [its committed notes](research/book-notes/quantitative-trading.md). "May
-   execute multiple round trips per day" is quoted from p. 140 and "random
+   execute multiple round trips per day" is quoted from p. 141 and "random
    forest with boosting" from p. 142, which the notes hold at locations 3444
-   and 3517 and the pages read on 2026-10-03 place on those pages. The
-   eleven tokens of the printed entry grid and the stated start of January 1,
-   2006 are quoted from p. 137.
-2. The book's printed results on p. 145, the eight figures and "all other
+   and 3517. The eleven tokens of the printed entry grid and the stated start
+   of January 1, 2006 are quoted from p. 140. These pages were read in the
+   Kindle Cloud Reader on 2026-11-01, and they replace the screen labels of
+   2026-10-03, which put the grid and the start date on p. 137 and the
+   results on p. 145.
+2. The book's printed results on p. 146, the eight figures and "all other
    metrics" improved, which the committed notes do not hold. The eight figures are `chan.cpo`'s constants `BOOK_UNCONDITIONAL`
    and `BOOK_CONDITIONAL`, but nothing ties those constants to the page.
 3. The third party's figures, a run on Kibot bars from 2009 with a test Sharpe
@@ -4354,7 +4356,7 @@ Six groups of its figures are not pinned here.
    `git show cb30336:tests/test_cpo.py` shows them.
 5. Arithmetic no test asserts: that three parameters and seven indicators on
    each of two funds at seven lookbacks make 101 features, against the book's
-   115 at p. 140, that
+   115 at p. 141, that
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
    19 readings, that a fraction such as 3.40 is the percentage 340%, and that
    gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.

@@ -8,7 +8,7 @@ scores every parameter set and trades the best one the next day. What is
 predicted is the strategy's return, not the asset's price.
 
 The strategy underneath trades GLD on one-minute bars against a GLD/GDX spread,
-pp. 137 to 146 of the 2021 revised edition. Chan prints two columns for the
+pp. 140 to 146 of the 2021 revised edition. Chan prints two columns for the
 test years 2018 to 2020: the parameters held fixed, which he calls
 unconditional, and the parameters re-chosen daily, which he calls conditional.
 
@@ -52,19 +52,19 @@ from scipy.signal import lfilter
 from chan import archive
 from chan.archive import ArchiveEntry
 
-# --- what the book prints, pp. 137 and 145 -----------------------------------
+# --- what the book prints, pp. 140 to 146 ------------------------------------
 
-#: The hedge ratio's grid, ``GDX_weight``, p. 137.
+#: The hedge ratio's grid, ``GDX_weight``, p. 140.
 GDX_WEIGHTS = (2.0, 2.5, 3.0, 3.5, 4.0)
 #: The entry grid. The book prints eleven tokens for a stated ten, ending
 #: "2, 2, 5", and reading 7 takes the last three as 2 and 2.5.
 ENTRY_THRESHOLDS = (0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.25, 1.5, 2.0, 2.5)
-#: The spread's lookback grid, in minutes, p. 137.
+#: The spread's lookback grid, in minutes, p. 140.
 LOOKBACKS = (30, 60, 90, 120, 180, 240, 360, 720)
 #: ``exit_threshold = −0.6 × entry_threshold``, fixed after Chan's own
-#: optimisation, p. 140.
+#: optimisation, pp. 140 to 141.
 EXIT_FRACTION = -0.6
-#: The indicators' lookbacks, in minutes, p. 140.
+#: The indicators' lookbacks, in minutes, p. 141.
 FEATURE_LOOKBACKS = (50, 100, 200, 400, 800, 1600, 3200)
 
 #: The first and last regular-session bars, by the minute a bar opens.
@@ -87,9 +87,9 @@ EARLY_CLOSES = frozenset(
         "2019-11-29", "2019-12-24", "2020-11-27", "2020-12-24",
     }
 )  # fmt: skip
-#: Chan's span ends here, p. 137. It starts at GDX's first day, reading 3.
+#: Chan's span ends here, p. 140. It starts at GDX's first day, reading 3.
 SPAN_END = "2020-12-31"
-#: The share of trading days the train set takes, p. 137 and reading 9.
+#: The share of trading days the train set takes, p. 140 and reading 9.
 TRAIN_FRACTION = 0.8
 TRADING_DAYS = 252
 #: Reported beside the pins and deciding nothing, reading 16.
@@ -98,7 +98,7 @@ COST_PER_ROUND_TRIP = 1e-4
 #: 34 over 5, kept when a single lookback sets the fast window, reading 12.
 AO_SLOW_RATIO = 34 / 5
 
-#: Chan's p. 145 table, at the precision he prints it.
+#: Chan's p. 146 table, at the precision he prints it.
 BOOK_UNCONDITIONAL = {"cumulative": 0.73, "annual": 0.1729, "sharpe": 1.947, "calmar": 0.984}
 BOOK_CONDITIONAL = {"cumulative": 0.83, "annual": 0.1977, "sharpe": 2.325, "calmar": 1.454}
 #: The decimal places Chan prints each figure to.
