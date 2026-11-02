@@ -35,8 +35,9 @@ in each figure's failure message as :data:`SPEC`.
   ``chan.tu_momentum``'s ``signals`` on the rebuilt level, then
   ``positions``, then ``strategy_returns`` on the rebuilt return.
 
-Each computed figure is held at six decimals, so a change cannot move it inside
-the book's rounding unnoticed, and each of rows 1 to 3 at the precision the
+Each figure the declared rule and Example 6.1 compute over the window is held
+at six decimals, so a change cannot move it inside the book's rounding
+unnoticed, and each of rows 1 to 3 at the precision the
 book printed, through ``matches`` and ``gap``. The book's figures are module
 constants, and there are no ``SCRIPT_*`` constants because no script ships.
 
@@ -724,8 +725,10 @@ class TestTheRowsBeside:
         uncovered = result.window_days > pd.Timestamp("2012-05-11")
         assert int(uncovered.sum()) == 64
         need = (1.025 ** (913 / 252)) / (1 + check.revised_on_save.apr) ** (849 / 252) - 1
+        assert need == pytest.approx(0.042251, abs=5e-7), SPEC
         assert round(100 * need, 1) == 4.2
         added = np.prod(1 + result.daily[result.window][np.asarray(uncovered)]) - 1
+        assert added == pytest.approx(0.000284, abs=5e-7), SPEC
         assert round(100 * added, 2) == 0.03
 
     def test_both_rules_on_the_rebuild_over_the_same_rows(self, check) -> None:
@@ -942,8 +945,17 @@ class TestWhatThePostQuotes:
         ]
         assert tables(text)[1] in either_way(expected)
 
-    def test_the_summary(self, result, text) -> None:
+    def test_the_summary(self, result, check, text) -> None:
         example = result.example_figures
+        found = result.figures
+        assert not matches(100 * found.apr, BOOK_APR_PERCENT), "misses"
+        assert not matches(found.sharpe, BOOK_SHARPE), "misses"
+        assert not matches(-100 * found.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT), "misses"
+        assert all(margin > 0 for margin in margins(result)), "beats on all three"
+        on_save, example_on_save = check.revised_on_save, check.example_on_save
+        assert on_save.apr > example_on_save.apr, "the same win"
+        assert on_save.sharpe > example_on_save.sharpe, "the same win"
+        assert abs(on_save.max_drawdown) < abs(example_on_save.max_drawdown), "the same win"
         low, high = APR_SIGN_THRESHOLDS
         for threshold in APR_SIGN_THRESHOLDS:
             assert at_threshold(result, threshold).apr < example.apr, "turns it negative"
@@ -954,6 +966,10 @@ class TestWhatThePostQuotes:
         for threshold in SHARPE_SIGN_THRESHOLDS:
             assert at_threshold(result, threshold).sharpe > example.sharpe, "still wins"
         fragments = [
+            "The rule misses all three printed figures.",
+            "It does beat Example 6.1 on all three when the two rules run on one series over one "
+            "window.",
+            "shows the same win on the days it covers.",
             f"a threshold of {100 * low:.1f} or {100 * high:.1f} percent instead of the book’s "
             f"{100 * THRESHOLD:.0f} turns it negative.",
             f"At {100 * ALL_THREE_THRESHOLD:.1f} percent the rule here loses on all three, "
@@ -974,6 +990,10 @@ class TestWhatThePostQuotes:
         assert months == {2, 5, 8, 11}, "a quarter apart"
         assert (result.month_position == 0).all(), "never trades"
         np.testing.assert_array_equal(result.position, roll_position(*roll_signals(result.gamma)))
+        no_gamma = roll_signals(np.array([np.nan]))
+        assert not no_gamma[0][0] and not no_gamma[1][0], "neither long nor short"
+        assert len(result.gamma) == len(result.days) == len(strip.contracts), "the full file"
+        assert result.example_cut_first_figures.apr != result.example_figures.apr
         np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
         save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
@@ -999,7 +1019,8 @@ class TestWhatThePostQuotes:
             f"capital, opened on one day and held for {HOLD_DAYS}.",
             f"its level {LOOKBACK} trading days back",
             f"Long where γ is strictly above {THRESHOLD:.2f} and short where it is strictly below "
-            f"{signed(-THRESHOLD, 2)}.",
+            f"{signed(-THRESHOLD, 2)}. A day with no γ is neither long nor short.",
+            "Every series is computed on the full file first and only then "
             f"trimmed to {WINDOW_START.date()} to {WINDOW_END.date()}, the {window} trading days "
             "of the window Chan names on p. 206.",
             f"no value for the window’s first {LOOKBACK} trading days. Its signal would then "
@@ -1027,6 +1048,9 @@ class TestWhatThePostQuotes:
         set_on = one[np.flatnonzero(result.window) - 1]
         gamma = pd.Series(result.gamma, index=result.days)
         assert int((held < 0).sum()) == 0, "never short"
+        for found in (result.figures, on_save, on_rebuild):
+            assert not matches(100 * found.apr, BOOK_APR_PERCENT), "far from the book"
+            assert not matches(found.sharpe, BOOK_SHARPE), "far from the book"
         before_window = result.days[np.flatnonzero(result.window)[0] - 1]
         assert one[np.flatnonzero(result.window)[0] - 1], "the first was set before the window"
         assert held[0] == 0, "opens the window flat"
@@ -1050,6 +1074,8 @@ class TestWhatThePostQuotes:
         first = np.flatnonzero(result.window)[:equal]
         assert np.abs(result.gamma[first]).max() < 10.0**ZERO_EXPONENT
         fragments = [
+            "All three miss.",
+            "Both sit far from the book.",
             "The APR and the Sharpe ratio land below the book, and the drawdown is shallower "
             "than the book’s.",
             f"On the window’s first {WORDS[equal]} days, the {WORDS[NEAREST]} nearest contracts "
@@ -1115,7 +1141,15 @@ class TestWhatThePostQuotes:
         after = np.asarray(result.window_days >= pd.Timestamp("2009-10-01"))
         after_revised = tu_momentum.figures(result.daily[result.window][after]).sharpe
         after_example = tu_momentum.figures(result.example_daily[result.window][after]).sharpe
+        assert all(margin > 0 for margin in margins(result)), "all three claims hold"
+        assert on_save.apr > example_on_save.apr and on_save.sharpe > example_on_save.sharpe
+        assert abs(on_save.max_drawdown) < abs(example_on_save.max_drawdown), "hold on the close"
+        assert on_save.apr - example_on_save.apr > 0, "keeps its sign"
+        assert check.revised_on_rebuild.apr - check.example_on_rebuild.apr > 0, "keeps its sign"
         fragments = [
+            "All three claims hold. They hold on Chan’s continuous close too, over the "
+            f"{check.shared_window_rows} days it covers.",
+            "It keeps its sign on both copies of the prices",
             f"There the declared rule gives an APR of {100 * on_save.apr:.4f} percent against "
             f"Example 6.1’s {100 * example_on_save.apr:.4f} percent, a Sharpe ratio of "
             f"{on_save.sharpe:.6f} against {example_on_save.sharpe:.6f}, and a drawdown of "
@@ -1158,6 +1192,8 @@ class TestWhatThePostQuotes:
         contracts = strip.contracts
         held = held_contracts(contracts)
         rolls, neither, new_only = roll_rows_matching_neither(strip, result, save)
+        _, shifted, _ = roll_rows_printing_each_contract(strip, result, save)
+        assert shifted == rolls, "shifted as on the days after"
         eight = roll_momentum(strip, roll_rows=ROLL_ROWS + 1).figures
         last = contracts["TU-2012H"].last_valid_index()
         through = held.index[held == "TU-2012H"][-1]
@@ -1178,7 +1214,7 @@ class TestWhatThePostQuotes:
             f"contract’s own through the {ORDINALS[ROLL_ROWS + 1]} trading day before that "
             f"contract’s last price, and the new contract’s from the {ORDINALS[ROLL_ROWS - 1]}.",
             f"On the {ORDINALS[ROLL_ROWS]}, the day between, its price is already the new "
-            "contract’s,",
+            "contract’s, shifted as on the days after.",
             f"On {neither} of the {rolls} rolls in its span,",
             f"and on {'one' if new_only == 1 else new_only} it matches the new contract’s.",
             "a switch one day earlier, the declared rule gives "

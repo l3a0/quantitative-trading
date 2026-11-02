@@ -6924,7 +6924,9 @@ Five groups of what it says are not pinned here.
    farthest prices are equal finds no roll among them, and that the strip
    cannot say whether the exchange or the data vendor set those prices, and
    that the strip is the only TU file in the repository's data that reaches
-   the window's end.
+   the window's end. The post's words for how the rebuild and the
+   fifth-contract variant pick a contract are not read either, though tests on
+   the code hold both rules.
 4. Arithmetic the post takes between pinned figures in words: the three
    months between the 2012-05-11 save's last day and the window's end. The
    post reads the APR margins' move from 0.000304 to 0.000225 as about a
