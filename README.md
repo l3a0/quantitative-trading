@@ -9449,12 +9449,14 @@ figures on Chan's file, to
 for the figure's own numbers, or to
 [tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
 for the sketches'. `TestThePostQuotesTheRun` reads one copy of each figure
-the run or Chan's file gives from the post itself, so changing that copy fails
-a test. It does not read the italic summary, the lessons list, a figure's
-later repeats, the alt texts, the caption, the Kindle pages, figures stated in
-words other than five counts and the ranks of seventh and second, or
-approximate dates such as late 2007 and September 2001's ruin, so a change
-there fails nothing. Its first four tests read committed
+the run or Chan's file gives from the post itself, together with the words
+each assertion quotes around it, so changing that copy or those words fails a
+test. It reads nothing else in the post. Every other copy of a figure goes
+unread, and sometimes that is the first copy the post prints. So do the
+italic summary, the lessons list, the alt texts, the caption, the Kindle
+pages, approximate dates such as late 2007 and September 2001's ruin, and any
+figure stated in words outside the quoted text, so a change there fails
+nothing. Its first four tests read committed
 files and run everywhere, and the rest need the archive. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
 `TestWhatThePostCounted` item 2 and four figures the run's table of

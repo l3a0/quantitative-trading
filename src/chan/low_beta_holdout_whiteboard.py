@@ -15,10 +15,10 @@ right after the paragraph it draws.
    the upper bound of 0.1360, and red hatching right of the bound marks the
    advantages the data reject. A brass bracket below the axis runs from 0 to Y,
    0.2948, which is 1.645 plus 0.8416 of the same standard errors. A short brass
-   tick on it marks where its first 1.645 standard errors end, the same length
-   as the black bracket. That point, 1.645 × 0.1185 or 0.1950, carries no label,
-   because the post does not state it. It sits in Lesson 1, after the paragraph
-   that ends "from a deficit of the same size."
+   tick on it marks where its first 1.645 standard errors end, so that first
+   piece is the same length as the black bracket. That point, 1.645 × 0.1185 or
+   0.1950, carries no label, because the post does not state it. It sits in
+   Lesson 1, after the paragraph that ends "from a deficit of the same size."
 2. Either of two months sets the sign: a second axis of the yearly gap, with a
    dashed grey upright at 0 through five rows. The top row is a red dot at the
    gap over all 208 months, −0.0590. Below it, a black arrow runs from that

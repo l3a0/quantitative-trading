@@ -35,7 +35,8 @@ The result is **registered**, under both amendments of 2026-10-11. The skip
 rule was chosen after the first non-positive formation, 2026-04-30, was
 visible, and before d, its Newey-West t or Y had been computed. Every
 holding month comes after the first edition's release in November 2008, so the
-span is a holdout as long as that edition prints the rule. Membership is
+span is a holdout as long as that edition prints the claim, apart from the skip
+rule. Membership is
 only as complete as the monthly coverage rule allows, which the survivor label
 pins.
 
@@ -916,8 +917,11 @@ class TestWhatThePostMeasured:
     0.0818, and k in March 2026 and March 2020. The upper bound reads the
     registered test's own standard error,
     and the ruin line and the ruinous leverage are the helpers Entry 45's post
-    added after its run. A beta or a leverage is named by its formation date,
-    and a return or a ruin line by its holding month.
+    added after its run. The low fifth's betas below 0.10 are named by their
+    formation dates, and every other figure, the high fifth's beta at the peak
+    and each k included, by the holding month it applied to. So the run's table
+    prints March 2026's k on its 2026-02-27 row and March 2020's on its
+    2020-02-28 row.
     """
 
     def test_the_one_sided_upper_bound_on_the_levered_sides_advantage(self, holdout) -> None:
@@ -1113,6 +1117,14 @@ class TestTheReport:
         assert "skip amendment" in out and "this is a holdout" in out
         assert "as long as that edition prints it" in out
         assert "apart from the skip rule" in out
+        assert (
+            "came after the first skipped formation's low-group mean beta was seen and "
+            "before d, its Newey-West t or Y had been computed." in out
+        )
+        assert "2020-02-28       505     499      497    99    0.4414     1.5080   3.4162" in out
+        assert "2025-02-28       503     501      500   100    0.0818     1.5641  19.1106" in out
+        assert "2025-03-31       504     502      500   100    0.0563     1.5738  27.9727" in out
+        assert "2026-02-27       503     501      499    99    0.1705     1.6086   9.4342" in out
 
 
 POST = Path(__file__).resolve().parents[1] / "blog" / "low-beta-holdout-lessons.md"
@@ -1148,12 +1160,14 @@ class TestThePostQuotesTheRun:
     the archive through the ``holdout`` fixture and skip without it.
 
     One copy of each figure the run or Chan's file gives is the affordable
-    bound, so changing that copy fails a test. The italic summary, the lessons
-    list, a figure's later repeats, the alt texts, the caption, the Kindle
-    pages, approximate dates such as late 2007 and September 2001's ruin, and
-    figures stated in words other than the counts ``WORDS`` and the ranks of
-    seventh and second are not read here. The title's gap is, because it is the figure a
-    reader sees first.
+    bound, so changing that copy fails a test. Each assertion also quotes the
+    words around its figure, and changing those fails a test too. Nothing else
+    in the post is read. Every other copy of a figure goes unread, and sometimes
+    that is the first copy the post prints. So do the italic summary, the
+    lessons list, the alt texts, the caption, the Kindle pages, approximate
+    dates such as late 2007 and September 2001's ruin, and any figure stated in
+    words outside the quoted text. The title's gap is read, because it is the
+    figure a reader sees first.
     """
 
     text = POST.read_text("utf-8")

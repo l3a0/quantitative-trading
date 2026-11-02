@@ -11702,7 +11702,8 @@ Four things.
 
 **Whether a smaller gap exists.** This test finds a gap below 0.2948 a year
 less than four times in five, and the point estimate of −0.0590 sits well
-inside that. The panel holds no months beyond these.
+inside that. The test already reads every month that its span and the skip
+rule allow.
 
 **What survivorship does to either side.** 6,816 member-months fail the row
 check against the filing, and 4,614 of them carry a ticker absent from the

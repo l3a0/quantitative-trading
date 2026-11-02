@@ -77,7 +77,7 @@ changes were written before any beta or return on this panel was computed.
 The skip rule was chosen after one non-positive formation was visible, and N is
 smaller by however many it skips. Every holding month comes after the first edition's
 release in November 2008, so it is a holdout for the claim as long as that edition
-prints it, which this repository has not checked.
+prints it, apart from the skip rule. This repository has not checked that edition.
 
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
@@ -577,7 +577,7 @@ def report(holdout: Holdout) -> None:
         "  Registered on issue 526 with issue 275's plan and its ruin amendment of 2026-10-11, "
         "before any beta or return was computed on this panel. Issue 526's skip amendment, of "
         "the same day, came after the first skipped formation's low-group mean beta was seen "
-        "and before any return."
+        "and before d, its Newey-West t or Y had been computed."
     )
     print(
         "  Every holding month comes after the first edition's release in November 2008, "
