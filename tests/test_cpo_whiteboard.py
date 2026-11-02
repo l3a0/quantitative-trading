@@ -394,6 +394,13 @@ class TestTheCommand:
 
 
 class TestThePost:
+    def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
+        footer = POST.read_text(encoding="utf-8").rstrip().splitlines()[-1]
+        base = "https://github.com/l3a0/quantitative-trading/blob/main/"
+        code = f"[the whiteboard sketches]({base}src/chan/cpo_whiteboard.py)"
+        tests = f"[what the sketches draw]({base}tests/test_cpo_whiteboard.py)"
+        assert code in footer and tests in footer
+
     def test_each_gif_follows_the_paragraph_it_draws(self) -> None:
         paragraphs = _paragraphs()
         for opening, name in zip(FOLLOWS, GIFS, strict=True):
@@ -586,12 +593,26 @@ class TestTheRuleSketch:
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(every[0])
         for phrase in (
-            "falls below −entry",
-            "rises back above −0.6 times the entry",
-            "rises above +entry",
-            "falls back below +0.6 times the entry",
+            "A green dot where the path falls below −entry",
+            "A brass dot where the path rises back above −0.6 times the entry",
+            "A red dot where the path rises above +entry",
+            "A brass dot where the path falls back below +0.6 times the entry",
+            "each dropping a grey dashed guide to the strip",
         ):
             assert phrase in alt, phrase
+
+    def test_each_word_of_the_strip_sits_under_its_stretch(self, every) -> None:
+        scene = every[0]
+        for word in _labels(scene):
+            if not word.names.startswith("held-") or word.text == "position":
+                continue
+            stretch = _stroke(scene, word.names)
+            assert word.x == pytest.approx((stretch.x[0] + stretch.x[-1]) / 2), word.names
+            assert word.y < STRIP_Y, word.names
+
+    def test_each_guide_is_dashed(self, every) -> None:
+        for k in range(4):
+            assert _stroke(every[0], f"guide-{k}").dashed, k
 
 
 # --- Lesson 2: the annual returns against the cumulative ones -----------------
@@ -723,3 +744,11 @@ class TestTheAnnualReturnsSketch:
         alt = _alt(every[1])
         assert "the most three years of daily returns averaging an arithmetic 17.29%" in alt
         assert "A red mark above both" in alt
+        assert "A dashed brass ceiling above it" in alt
+        assert "a red bracket from the ceiling up to the mark" in alt
+
+    def test_the_bracket_stands_right_of_the_marks_it_joins(self, every) -> None:
+        scene = every[1]
+        bracket = _stroke(scene, "short").x
+        right = max(_stroke(scene, gid).x.max() for gid in ("ceiling", "printed"))
+        assert np.allclose(bracket, bracket[0]) and bracket[0] > right

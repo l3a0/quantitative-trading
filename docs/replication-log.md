@@ -4537,7 +4537,8 @@ added in its review before publishing on 2026-11-01.
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/conditional-parameter-optimization-lessons.md](../blog/conditional-parameter-optimization-lessons.md)
-moves with it, since that post quotes most of these figures. So does its one
+moves with it, since that post quotes most of these figures and two classes
+in [tests/test_cpo.py](../tests/test_cpo.py) read it against them. So does its one
 figure, which draws row 10 and redraws only where the archive is, with
 `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures`, and so do
 its two whiteboard sketches, which `uv run python -m chan.cpo_whiteboard`

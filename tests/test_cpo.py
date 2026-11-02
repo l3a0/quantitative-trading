@@ -16,13 +16,17 @@ in ``data/archive_vintages.jsonl``, and its specification, the readings
 declared on issue 23 before any number was computed.
 
 ``blog/conditional-parameter-optimization-lessons.md`` quotes these pins, and
-its figure's own labels are held by ``tests/test_cpo_figures.py``. What the
-post says that nothing here asserts is listed in README's ``## The write-up``.
+two classes at the end of this file read the post itself, one copy of each
+figure: ``TestThePostQuotesWhatEveryCloneComputes`` for what needs no bars, and
+``TestThePostQuotesTheRun`` for the run's figures. Its figure's own labels are
+held by ``tests/test_cpo_figures.py``. What the post says that nothing here
+asserts is listed in README's ``## The write-up``.
 """
 
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -50,6 +54,13 @@ from chan.cpo import (
     zscore,
 )
 from tests.conftest import archive_skip_reason
+
+#: The seeds the model was refit with after the result was seen, the ones the
+#: claim holds for, and the range of the re-chosen Sharpe ratio across them.
+#: ``test_the_claim_holds_for_2_of_10_seeds`` pins them, and the post quotes them.
+SEEDS_TRIED = 10
+SEEDS_THE_CLAIM_HOLDS_FOR = (2, 7)
+SEED_SHARPE_RANGE = (5.166, 6.353)
 
 # --- literal readings of the rules, the references the fast code is held to ---
 
@@ -607,17 +618,16 @@ class TestExample71OnTheArchive:
         unconditional = metrics(result.unconditional_returns)
         rows = np.arange(n_train, n_days)
         held, sharpes = [], []
-        for seed in range(10):
+        for seed in range(SEEDS_TRIED):
             model = HistGradientBoostingRegressor(random_state=seed).fit(x, y)
             chosen = conditional_choices(model, features, n_train, n_days)
             conditional = metrics(returns[rows, chosen])
             sharpes.append(conditional["sharpe"])
             if claim_holds(unconditional, conditional):
                 held.append(seed)
-        assert held == [2, 7]
+        assert tuple(held) == SEEDS_THE_CLAIM_HOLDS_FOR
         assert sharpes[0] == pytest.approx(5.274377985680034, abs=1e-9)
-        assert round(min(sharpes), 3) == 5.166
-        assert round(max(sharpes), 3) == 6.353
+        assert (round(min(sharpes), 3), round(max(sharpes), 3)) == SEED_SHARPE_RANGE
 
     def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
         """Added after the result was seen. Spearman's rank correlation, deciding nothing."""
@@ -847,3 +857,310 @@ class TestTheWiring:
         assert result.conditional_returns.tolist() == [0.012, 0.013, 0.014]
         assert result.conditional_trips.tolist() == [12, 13, 50]
         assert result.cell_trips.tolist() == [25.0] * 400
+
+
+# --- the post, read against the code and the run ------------------------------
+
+POST = (
+    Path(__file__).resolve().parents[1] / "blog" / "conditional-parameter-optimization-lessons.md"
+)
+
+#: The counts the post spells out in words.
+WORDS = {2: "two", 3: "three", 5: "five", 7: "seven", 8: "eight", 10: "ten"}
+
+_METRIC_ROWS = {
+    "cumulative": "Cumulative return",
+    "annual": "Annual return",
+    "sharpe": "Sharpe ratio",
+    "calmar": "Calmar ratio",
+}
+
+
+def _percent(fraction: float, places: int) -> str:
+    return f"{100 * fraction:.{places}f}%"
+
+
+def _signed(text: str) -> str:
+    """The post writes a minus sign, not a hyphen."""
+    return text.replace("-", "\N{MINUS SIGN}")
+
+
+def _quotes(text: str, phrase: str) -> None:
+    """Fail naming the phrase, so a reworded sentence reads as one rather than as a number."""
+    assert phrase in text, f"the post no longer says: {phrase}"
+
+
+def _table(text: str, head: str) -> dict[str, list[str]]:
+    """The first math table whose head row starts with ``head``, as cells by metric."""
+    for block in text.split("```math")[1:]:
+        table = block.split("```", 1)[0]
+        lines = table.strip().splitlines()
+        if lines[1].startswith(f"\\text{{{head}}}"):
+            rows = {}
+            for line in lines[2:]:
+                if line.startswith("\\text{"):
+                    cells_ = [cell.strip().rstrip("\\").strip() for cell in line.split("&")]
+                    rows[cells_[0][len("\\text{") : -1]] = [
+                        cell.replace("\\%", "%") for cell in cells_[1:]
+                    ]
+            return rows
+    raise AssertionError(f"the post has no table headed {head}")
+
+
+def _figure(metric: str, value: float, places: int) -> str:
+    """A table cell: a return as a percent, a ratio as a number."""
+    if metric in ("cumulative", "annual"):
+        return _percent(value, places - 2)
+    return f"{value:.{places}f}"
+
+
+class TestThePostQuotesWhatEveryCloneComputes:
+    """The post's figures that need no bars, one copy of each, read from the post itself.
+
+    The post says Chan's arithmetic in Lesson 2, the early closes and the
+    12:59 fix in Lesson 3, and the grid and rules are checked on every copy of
+    the repository. These tests read each of those figures once, from the
+    sentence or table cell named in each test, and hold it to the module's
+    constants. A second copy of a figure elsewhere in the post is not read.
+    The run's own figures need the archive, so ``TestThePostQuotesTheRun``
+    reads those.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_book_columns_of_the_lesson_1_tables(self) -> None:
+        """Chan's eight printed figures, at his precision, are the module's constants."""
+        for head, book in (
+            ("Fixed arm", cpo.BOOK_UNCONDITIONAL),
+            ("Re-chosen arm", cpo.BOOK_CONDITIONAL),
+        ):
+            rows = _table(self.text, head)
+            for metric, name in _METRIC_ROWS.items():
+                assert rows[name][1] == _figure(metric, book[metric], cpo.BOOK_DECIMALS[metric])
+
+    def test_lesson_2_compounds_chan_s_annual_returns(self) -> None:
+        fixed, rechosen = cpo.BOOK_UNCONDITIONAL, cpo.BOOK_CONDITIONAL
+        _quotes(
+            self.text,
+            f"{_percent(fixed['annual'], 2)} a year compounds to "
+            f"{_percent((1 + fixed['annual']) ** 3 - 1, 1)} over three years, "
+            f"not the printed {_percent(fixed['cumulative'], 0)}",
+        )
+        _quotes(
+            self.text,
+            f"{_percent(rechosen['annual'], 2)} a year compounds to "
+            f"{_percent((1 + rechosen['annual']) ** 3 - 1, 1)}, "
+            f"not the printed {_percent(rechosen['cumulative'], 0)}",
+        )
+
+    def test_lesson_2_caps_them_read_as_arithmetic(self) -> None:
+        fixed, rechosen = cpo.BOOK_UNCONDITIONAL, cpo.BOOK_CONDITIONAL
+        _quotes(
+            self.text,
+            f"At an arithmetic {_percent(fixed['annual'], 2)} a year that sum is "
+            f"3 × {fixed['annual']:g}, and the cap is a cumulative return of "
+            f"{_percent(math.exp(3 * fixed['annual']) - 1, 1)}, "
+            f"still short of {_percent(fixed['cumulative'], 0)}",
+        )
+        _quotes(
+            self.text,
+            f"{_percent(rechosen['annual'], 2)} caps at "
+            f"{_percent(math.exp(3 * rechosen['annual']) - 1, 1)}, "
+            f"short of {_percent(rechosen['cumulative'], 0)}",
+        )
+
+    def test_lesson_3_the_early_closes_and_their_last_minute(self) -> None:
+        years = sorted(day[:4] for day in cpo.EARLY_CLOSES)
+        _quotes(
+            self.text, f"From {years[0]} to {years[-1]} there were {len(cpo.EARLY_CLOSES)} of them."
+        )
+        _quotes(self.text, f"It ended those days at {cpo.EARLY_CLOSE_LAST}")
+
+    def test_the_grid(self) -> None:
+        def span(values) -> str:
+            return f"from {min(values):g} to {max(values):g}"
+
+        weights, lookbacks, entries = cpo.GDX_WEIGHTS, cpo.LOOKBACKS, cpo.ENTRY_THRESHOLDS
+        _quotes(
+            self.text,
+            f"The book’s grid has {WORDS[len(weights)]} weights {span(weights)}, "
+            f"{WORDS[len(lookbacks)]} lookbacks {span(lookbacks)} minutes, and "
+            f"{WORDS[len(entries)]} entry thresholds {span(entries)}, so "
+            f"{len(weights)} × {len(lookbacks)} × {len(entries)} = {len(cells())} combinations",
+        )
+
+    def test_the_rules_the_split_and_the_cost(self) -> None:
+        inner = -EXIT_FRACTION
+        _quotes(
+            self.text,
+            f"Exit a long when the z-score rises back above {_signed(f'{EXIT_FRACTION:g}')} "
+            f"times the entry threshold, and exit a short when it falls back below "
+            f"{inner:g} times the threshold",
+        )
+        _quotes(self.text, f"regular session, {cpo.SESSION_FIRST} to {cpo.SESSION_LAST}")
+        _quotes(self.text, f"the first {cpo.TRAIN_FRACTION:.0%} of the days")
+        _quotes(self.text, f"a year of {cpo.TRADING_DAYS} trading days")
+        _quotes(
+            self.text,
+            f"At a cost of {cpo.COST_PER_ROUND_TRIP * 1e4:g} basis point a round trip",
+        )
+
+    def test_the_feature_count(self) -> None:
+        """Three parameters, then each indicator of each fund at each window."""
+        rng = np.random.default_rng(9)
+        close = pd.Series(100 * np.exp(rng.normal(0, 1e-3, 60).cumsum()))
+        bars = pd.DataFrame(
+            {"high": close + 0.05, "low": close - 0.05, "close": close, "volume": 1000}
+        )
+        named = cpo.indicators(bars, 10).shape[1]
+        windows = len(cpo.FEATURE_LOOKBACKS)
+        _quotes(
+            self.text,
+            f"{WORDS[named]} named technical indicators for each fund, each computed over "
+            f"{WORDS[windows]} windows",
+        )
+        _quotes(
+            self.text,
+            f"That makes 3 + {named} × 2 × {windows} = {3 + 2 * named * windows} features.",
+        )
+
+    def test_the_seeds_sentence_quotes_the_seed_pin(self) -> None:
+        """The figures ``test_the_claim_holds_for_2_of_10_seeds`` holds on the archive."""
+        low, high = SEED_SHARPE_RANGE
+        held = len(SEEDS_THE_CLAIM_HOLDS_FOR)
+        _quotes(
+            self.text,
+            f"Refit with seeds 0 to {SEEDS_TRIED - 1}, a check added after the result was seen",
+        )
+        _quotes(
+            self.text,
+            f"re-choosing wins on all four metrics for {WORDS[held]} of them, and its Sharpe "
+            f"ratio runs from {low:.3f} to {high:.3f}.",
+        )
+        _quotes(
+            self.text,
+            f"Of {WORDS[SEEDS_TRIED]} seeds tried afterwards, {WORDS[held]} reverse that.",
+        )
+
+
+class TestThePostQuotesTheRun:
+    """The post's figures from the run, one copy of each, read from the post itself.
+
+    Each test reads the sentence or table cell it names and holds it to the
+    shared run that ``TestExample71OnTheArchive`` pins, at the precision the
+    post prints. A second copy of a figure elsewhere in the post, such as the
+    5.700 in the opening list or the corrected columns of Lesson 3's tables,
+    is not read. These run only where the archive is, like the pins.
+    """
+
+    text = POST.read_text("utf-8")
+
+    def test_the_computed_columns_of_the_lesson_1_tables(self, result):
+        for head, returns in (
+            ("Fixed arm", result.unconditional_returns),
+            ("Re-chosen arm", result.conditional_returns),
+        ):
+            got = metrics(returns)
+            rows = _table(self.text, head)
+            for metric, name in _METRIC_ROWS.items():
+                assert rows[name][0] == _figure(metric, got[metric], cpo.BOOK_DECIMALS[metric])
+
+    def test_the_gaps_and_the_multiples(self, result):
+        got = metrics(result.unconditional_returns)
+        book = cpo.BOOK_UNCONDITIONAL
+        rounded = {m: round(got[m], cpo.BOOK_DECIMALS[m]) for m in _METRIC_ROWS}
+        gaps = {m: rounded[m] - book[m] for m in _METRIC_ROWS}
+        _quotes(
+            self.text,
+            f"The gaps between computed and printed figures are +{100 * gaps['cumulative']:.0f} "
+            f"and +{100 * gaps['annual']:.2f} percentage points on the two returns, and "
+            f"+{gaps['sharpe']:.3f} and +{gaps['calmar']:.3f} on the two ratios.",
+        )
+        times = {m: got[m] / book[m] for m in _METRIC_ROWS}
+        _quotes(
+            self.text,
+            f"about {times['cumulative']:.1f} times on cumulative return, "
+            f"{times['annual']:.1f} times on annual return, {times['sharpe']:.1f} times on "
+            f"the Sharpe ratio and {times['calmar']:.1f} times on the Calmar ratio",
+        )
+
+    def test_how_often_the_model_kept_the_fixed_cell(self, result):
+        chosen = result.conditional_cells
+        kept = int((chosen == cells().index(result.unconditional)).sum())
+        _quotes(
+            self.text,
+            f"on {kept} of the {len(result.test_days)} test days the model picked the same cell",
+        )
+        _quotes(
+            self.text,
+            f"it used {len(set(chosen.tolist()))} different cells and switched "
+            f"{int((np.diff(chosen) != 0).sum())} times",
+        )
+
+    def test_the_span_and_the_split(self, result):
+        _quotes(
+            self.text,
+            f"GDX did not trade until {result.days[0]:%Y-%m-%d}. From then to "
+            f"{result.days[-1]:%Y-%m-%d} there are {len(result.days):,} days",
+        )
+        _quotes(
+            self.text,
+            f"The test is the last {len(result.test_days)} of those days, from "
+            f"{result.test_days[0]:%Y-%m-%d} to {result.test_days[-1]:%Y-%m-%d}.",
+        )
+
+    def test_the_arithmetic_annual_returns(self, result):
+        fixed = metrics(result.unconditional_returns)["arithmetic_annual"]
+        rechosen = metrics(result.conditional_returns)["arithmetic_annual"]
+        _quotes(
+            self.text,
+            f"its annual return is {_percent(fixed, 2)} for the fixed arm and "
+            f"{_percent(rechosen, 2)} for the re-chosen one",
+        )
+
+    def test_one_basis_point_a_round_trip(self, result):
+        fixed = metrics(costed(result.unconditional_returns, result.unconditional_trips))
+        rechosen = metrics(costed(result.conditional_returns, result.conditional_trips))
+        _quotes(
+            self.text,
+            f"the fixed arm’s Sharpe ratio becomes {_signed(f'{fixed["sharpe"]:.3f}')} and its "
+            f"cumulative return {_signed(_percent(fixed['cumulative'], 1))}. The re-chosen arm’s "
+            f"become {_signed(f'{rechosen["sharpe"]:.3f}')} and "
+            f"{_signed(_percent(rechosen['cumulative'], 1))}.",
+        )
+
+    def test_the_chosen_cell_and_its_round_trips(self, result):
+        _quotes(
+            self.text,
+            f"picks `{result.unconditional.label}`: the smallest weight, the shortest lookback "
+            f"and the lowest entry threshold on the grid. On the test days it trades "
+            f"{result.unconditional_trips.mean():.1f} round trips a day",
+        )
+        _quotes(self.text, f"The re-chosen arm trades {result.conditional_trips.mean():.1f}.")
+
+    def test_the_edge_a_round_trip(self, result):
+        fixed = result.unconditional_returns.sum() / result.unconditional_trips.sum()
+        rechosen = result.conditional_returns.sum() / result.conditional_trips.sum()
+        _quotes(self.text, f"the fixed arm earns {fixed * 1e4:.3f} basis points a round trip")
+        _quotes(self.text, f"The re-chosen arm earns {rechosen * 1e4:.3f}.")
+
+    def test_the_400_cells(self, result):
+        sharpes = result.cell_sharpes
+        book = cpo.BOOK_UNCONDITIONAL["sharpe"]
+        nearest = int(np.argmin(np.abs(sharpes - book)))
+        _quotes(
+            self.text,
+            f"Across the {len(cells())} cells, the test Sharpe ratios run from "
+            f"{sharpes.min():.3f} to {sharpes.max():.3f}, with a median of "
+            f"{float(np.median(sharpes)):.3f}. Only {int((sharpes < book).sum())} cells sit "
+            f"below {book}. The nearest is `{cells()[nearest].label}`, at "
+            f"{sharpes[nearest]:.3f}, and it trades {result.cell_trips[nearest]:.2f} round trips",
+        )
+
+    def test_turnover_and_sharpe_ratio_rise_together(self, result):
+        rho = spearmanr(result.cell_trips, result.cell_sharpes).statistic
+        _quotes(self.text, f"is {rho:.2f}. These figures were added after the result was seen")
+
+    def test_the_overshoot_against_the_third_party(self, result):
+        times = metrics(result.unconditional_returns)["sharpe"] / cpo.BOOK_UNCONDITIONAL["sharpe"]
+        _quotes(self.text, f"both overshoot Chan’s 1.947, by {times:.1f} times here")

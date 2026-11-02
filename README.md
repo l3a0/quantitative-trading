@@ -998,8 +998,9 @@ Optimization. Its mechanics run everywhere. The recursions, the rules and the
 round trips are each held against a literal loop over the book's rules, and the
 rest by worked examples. Its pins run only where the
 owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
-because the full run takes about five minutes. The blog post about it is the
-exception, and what it says that nothing here asserts is listed below.
+because the full run takes about five minutes. Two of its classes read the
+blog post about it, and what the post says that nothing here asserts is listed
+below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
 each standalone line field for field everywhere, and the files' hashes and the
 minute bars' agreement with the committed daily closes wherever an archive is
@@ -4329,7 +4330,10 @@ computed figures trace to `TestExample71OnTheArchive` in
 archive of minute bars is and only when `QT_ARCHIVE_RUN=1` asks, because the
 bars are licensed and the repo commits only their hashes. Chan's arithmetic in
 Lesson 2, the early closes and the 12:59 fix in Lesson 3, and the grid and
-rules run on every clone.
+rules run on every clone. Two classes at the end of that file read the post
+itself, one copy of each figure, so a changed number in the post fails a test:
+`TestThePostQuotesWhatEveryCloneComputes` on every clone and
+`TestThePostQuotesTheRun` where the archive is.
 
 Six groups of its figures are not pinned here.
 
@@ -4355,10 +4359,9 @@ Six groups of its figures are not pinned here.
 4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
    merge of the first run, asserted them, and no test that runs today does.
    `git show cb30336:tests/test_cpo.py` shows them.
-5. Arithmetic no test asserts: the book's 115 features at p. 141, that
+5. Arithmetic no test asserts: the book's 115 features at p. 141, and that
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
-   19 readings, that a fraction such as 3.40 is the percentage 340%, and that
-   gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.
+   19 readings.
 6. Its references, cited rather than computed, and facts outside the data:
    that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
    that a basis point is a hundredth of a percent, that GLD holds gold and GDX
