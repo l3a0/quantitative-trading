@@ -259,7 +259,7 @@ where they were first built. The other forty-five were built here.
     seeds tried afterwards make it hold. At 1 basis point a round trip both
     arms lose money. Every reading the book left open was declared on the issue
     before any return was computed. The first run broke one of them, by keeping
-    extended-hours bars on early-close days, and the entry reports both runs.
+    the bars after 12:59 on early-close days, and the entry reports both runs.
     Every figure is exploratory.
 17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
     the 50 stocks with the highest 252-day return, shorts the 50 with the
@@ -4310,7 +4310,7 @@ is a fourteenth post, about Conditional Parameter Optimization, Example 7.1 of
 the revised *Quantitative Trading*. A model re-chooses a GLD/GDX spread
 strategy's three parameters each evening, and Chan reports that this beats
 holding them fixed on every metric he prints. The post draws four lessons from
-Entry 16 of the replication log.
+Entry 16 of the replication log. Every result in it is exploratory.
 
 1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
    Calmar ratio alone, so his claim fails for a stand-in model with its
@@ -4338,7 +4338,7 @@ there fails a test:
 `TestThePostQuotesWhatEveryCloneComputes` on every clone and
 `TestThePostQuotesTheRun` where the archive is.
 
-Six groups of its figures are not pinned here.
+Seven groups of its figures are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location. "As frequently as they like" is quoted from location 3414 and
@@ -4375,12 +4375,16 @@ Six groups of its figures are not pinned here.
    were copied from a software calendar of NYSE's schedule, that
    scikit-learn's default early stopping holds a tenth back on any fit of
    more than 10,000 rows, that its seed sets which tenth and the sample the
-   bins are cut from, that the session's last close comes from the last trade
-   before the closing auction, and that the 13:00 bar on an early close still
-   trades at regular-session volume, likely the closing auction. The seed
-   fixed in advance, the early-stopping setting left at its default and the
-   size of the held-out tenth are read by
+   bins are cut from, and that the session's last close comes from the last
+   trade before the closing auction. The seed fixed in advance, the
+   early-stopping setting left at its default and the size of the held-out
+   tenth are read by
    `TestThePostQuotesWhatEveryCloneComputes::test_the_seed_and_the_tenth_held_back`.
+7. A measurement on the archive's bars that no test asserts. On most of the
+   34 early closes, the 13:00 bar trades more than twice the volume of the
+   median minute in the hour before, in both `gld_intraday_1min.csv.gz`
+   (`3611a8f7…0de7a`) and `gdx_intraday_1min.csv.gz` (`c47f5890…711c`). That
+   is why the post calls it likely the closing auction.
 
 Eight of its figures had no pin before it, and each now has one. The first
 and the last two run on every clone, and the other five sit in

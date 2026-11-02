@@ -4330,8 +4330,8 @@ round trip both arms lose money.
 
 **The first run broke a declared reading, and both runs are reported.** On
 NYSE's 34 early closes from 2006 to 2020 the session ends at 13:00, and the
-first run kept the bars from 13:00 to 15:59, a 13:00 bar still at regular-session
-volume and extended-hours bars after it, against reading 2.
+first run kept the bars from 13:00 to 15:59, a 13:00 bar that usually trades
+heavily and extended-hours bars after it, against reading 2.
 The review of the pull request found it, and the fix implements the reading as
 declared rather than changing it. The corrected run gives every figure below.
 The first run gave 3.55, 0.6798, 5.791 and 15.676 for the unconditional column,
@@ -4471,7 +4471,7 @@ Three things, and the first is the verdict.
    trip that cell loses money. The cell nearest his 1.947 trades about once a
    day. A cost charged during his own optimisation, a fill one bar later, or a
    coarser bar could each move the choice toward cells like that. None was
-   declared before the run, so none was tried.
+   declared before the run, so the run tried none.
 3. **The third-party run overshot the same way.** The reproduction cited on
    the issue, on Kibot bars from 2009, reported a test Sharpe ratio of 5.974
    for its unconditional arm at 50.1 round trips a day. Both runs land on a

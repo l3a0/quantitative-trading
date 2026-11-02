@@ -107,6 +107,27 @@ def literal_positions(z, entry, first):
     return np.array(out, dtype=np.int8)
 
 
+def literal_positions_entries_first(z, entry, first):
+    """The same rules with the entries applied before the exits."""
+    exit_threshold = EXIT_FRACTION * entry
+    state = 0
+    out = []
+    for t, value in enumerate(z):
+        if first[t]:
+            state = 0
+        if not math.isnan(value):
+            if value < -entry:
+                state = 1
+            elif value > entry:
+                state = -1
+            if state == 1 and value > exit_threshold:
+                state = 0
+            if state == -1 and value < -exit_threshold:
+                state = 0
+        out.append(state)
+    return np.array(out, dtype=np.int8)
+
+
 def literal_round_trips(held, price, first, last, n_days, codes):
     """Walk each day, opening a trip on a change to a side and closing it on the next change."""
     total = np.zeros(n_days)
@@ -174,7 +195,7 @@ class TestTheBars:
     def test_an_early_close_ends_the_session_at_1259(self):
         """2019-11-29 closed at 13:00.
 
-        Its 13:00 bar still trades at regular-session volume, likely the closing
+        Its 13:00 bar, like most early closes', trades heavily, likely the closing
         auction, and the bars after it are extended hours.
         """
         index = pd.to_datetime(
@@ -264,8 +285,19 @@ class TestTheRules:
             positions(z, entry, first), literal_positions(z, entry, first)
         )
 
+    @pytest.mark.parametrize("entry", cpo.ENTRY_THRESHOLDS)
+    def test_applying_the_entries_first_gives_the_same_positions(self, entry):
+        """What :func:`chan.cpo.positions` says of the order of the rules."""
+        rng = np.random.default_rng(int(entry * 100))
+        first, _, _ = random_days(rng)
+        z = rng.normal(0, 1.4, len(first))
+        z[rng.random(len(z)) < 0.03] = np.nan
+        np.testing.assert_array_equal(
+            positions(z, entry, first), literal_positions_entries_first(z, entry, first)
+        )
+
     def test_a_long_flips_short_on_one_close(self):
-        """Exits before entries: the long exits and the short entry fires on the same minute."""
+        """An exit does not block an entry: the long exits and goes short on the same minute."""
         first = np.array([True, False, False])
         assert positions(np.array([-1.5, -0.8, 1.5]), 1.0, first).tolist() == [1, 1, -1]
 
@@ -477,7 +509,7 @@ class TestExample71OnTheArchive:
     re-chosen arm's figures in rows 5 to 9.
 
     The first run kept the bars after 12:59 on NYSE's 34 early closes, a 13:00 bar
-    still at regular-session volume and extended-hours bars after it, which broke
+    that usually trades heavily and extended-hours bars after it, which broke
     reading 2, and the review of the pull request found it.
     These pins are from the corrected run. Entry 16 sets the first run's figures
     beside them.
@@ -617,7 +649,10 @@ class TestExample71OnTheArchive:
         With over 10,000 rows the model's early stopping is on, so its seed
         picks the tenth of the train rows held out to judge it, and the sample
         its bins are cut from. Reading 14 declared seed 0, which row 5 pins.
-        Seeds 2 and 7 make re-choosing beat holding on all four metrics. This
+        Seeds 2 and 7 make re-choosing beat holding on all four metrics. It also
+        holds the range of the re-chosen Sharpe ratio across the ten seeds, the
+        fixed arm's Sharpe ratio inside that range, how many seeds win on each
+        metric, and that seed 0 gives exactly the run's own Sharpe ratio. This
         decides nothing. Like the re-chosen arm's figures in rows 5 to 9, it rests
         on the model, so a lock update can move it.
         """
@@ -823,7 +858,7 @@ class TestTheWiring:
     def test_the_model_reads_101_features_a_row(self):
         """Reading 12: three parameters, then seven indicators on each fund at seven lookbacks.
 
-        The post's item on the model and README quote 101 against the book's 115.
+        The post's item on the features and README quote 101 against the book's 115.
         This builds the design rows the way :func:`chan.cpo.run` does, so an
         indicator dropped or added in :func:`chan.cpo.daily_features` changes the
         width. ``test_row_11_the_span_and_the_split`` holds the width ``run`` builds.
@@ -946,9 +981,9 @@ class TestThePostQuotesWhatEveryCloneComputes:
     the archive's manifest. The seeds sentences are held to this file's
     ``SEED*`` constants, which ``test_the_claim_holds_for_2_of_10_seeds``
     derives on the archive. Most second copies elsewhere in the post are not
-    read. The seed counts are read in the opening list and in Lesson 1, and the
-    252 trading days in Lessons 1 and 2. The run's own figures need the
-    archive, so ``TestThePostQuotesTheRun`` reads those.
+    read. The seed counts are read in the opening list, in Lesson 1 and in the
+    closing paragraph, and the 252 trading days in Lessons 1 and 2. The run's
+    own figures need the archive, so ``TestThePostQuotesTheRun`` reads those.
     """
 
     text = POST.read_text("utf-8")
@@ -1105,6 +1140,12 @@ class TestThePostQuotesWhatEveryCloneComputes:
             f"makes re-choosing win on all four for {WORDS[held]} of them, and the claim fails "
             f"for the other {WORDS[SEEDS_TRIED - held]}.",
         )
+        _quotes(
+            self.text,
+            f"Refit with seeds 0 to {SEEDS_TRIED - 1} after the result was seen, the model makes "
+            f"re-choosing win on all four metrics for {WORDS[held]} of them, and the claim fails "
+            f"for the other {WORDS[SEEDS_TRIED - held]}.",
+        )
 
     def test_the_seeds_wins_per_metric(self) -> None:
         """How many of the ten seeds win on each metric, from ``SEED_WINS``."""
@@ -1163,12 +1204,14 @@ class TestThePostQuotesTheRun:
             f"{fixed[won]:.3f}.",
         )
         _quotes(self.text, f"In the corrected run it wins on the {name} alone.")
-        lost = [name for name in cpo.METRICS if rechosen[name] <= fixed[name]]
-        assert sorted(lost) == ["annual", "cumulative", "sharpe"]
-        _quotes(
-            self.text,
-            "It loses on the Sharpe ratio, on cumulative return and on annual return.",
-        )
+        spoken = {
+            "sharpe": "the Sharpe ratio",
+            "calmar": "the Calmar ratio",
+            "cumulative": "cumulative return",
+            "annual": "annual return",
+        }
+        lost = [spoken[name] for name in spoken if name != won]
+        _quotes(self.text, f"It loses on {lost[0]}, on {lost[1]} and on {lost[2]}.")
         _quotes(
             self.text,
             f"a range the fixed arm’s {fixed['sharpe']:.3f} lies inside.",
