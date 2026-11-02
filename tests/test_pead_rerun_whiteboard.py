@@ -5,20 +5,22 @@
    which region each count sits in: U inside both circles, the 47 inside CAL
    and outside PX, the 5 inside PX and outside CAL, and the 4 in the box
    outside both. Also pinned are that the brass outline runs only along the
-   part of CAL outside PX, that the brace spans the 5's and the 4's words,
-   that the 47 is the chart's brass and the 9 the chart's red, and the words
-   it prints. Every count is read from the committed ticker table through
-   :func:`chan.pead_rerun.read_committed`, and a made-up set moves the words.
+   part of CAL outside PX, that the brace spans the 5's and the 4's words
+   and points up at its middle, that the 47 is the chart's brass and the 9
+   the chart's red, and the words it prints. Every count is read from the
+   committed ticker table through :func:`chan.pead_rerun.read_committed`, and
+   a made-up set moves the words.
 2. The clock sketch, in Lesson 2, draws three rows on one clock from 6 a.m.
    to 10 p.m., each span moved 4 hours later. What is pinned is that every
    mark sits at its time under one affine map, the morning span's late copy
    lies inside the session tint and the afternoon span's past it, Apple's two
-   dots both lie past the close, each arrow runs exactly 4 hours, and the
-   words it prints. The earliest time, the two counts and Apple's times are
-   read from the committed index, which ``tests/test_earnings_filings.py``
-   pins on the same reader. The 4 hours and the 5 are constants from the
-   Internet Archive's copies of 2026-10-07, which the repository does not
-   hold, so the caption says so and nothing here derives them.
+   dots both lie past the close, each arrow runs exactly 4 hours and a
+   span's arrow starts over the middle of its span, and the words it prints.
+   The earliest time, the two counts and Apple's times are read from the
+   committed index, which ``tests/test_earnings_filings.py`` pins on the same
+   reader. The 4 hours and the 5 are constants from the Internet Archive's
+   copies of 2026-10-07, which the repository does not hold, so the caption
+   says so and nothing here derives them.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -637,6 +639,11 @@ class TestTheUniverseSketch:
         brace = _stroke(scene, "brace")
         b0, b1, by = BRACE
         assert (brace.x.min(), brace.x.max()) == pytest.approx((b0, b1))
+        # Its two ends are its lowest points and its one highest point is at
+        # its middle, so it reads as a brace pointing up at the words above it.
+        assert brace.y[0] == brace.y[-1] == brace.y.min()
+        assert brace.y.max() > by > brace.y.min()
+        assert brace.x[np.argmax(brace.y)] == pytest.approx((b0 + b1) / 2)
         five = _label(scene, UNIVERSE_LABELS[8])
         four = _label(scene, UNIVERSE_LABELS[9])
         assert b0 <= five.x < four.x < b1
@@ -748,7 +755,9 @@ class TestTheFilingTimes:
 
     def test_from_index_counts_the_open_in_the_session_and_the_close_outside_it(self) -> None:
         """Made-up filings on each side of 9:30 and 4:00, and Apple's mean
-        rounded to five minutes rather than any coarser step."""
+        rounded to five minutes. The three made-up Apple times have a mean of
+        4:45 and a median of 4:41, so a coarser step or the median reads 4:40
+        or 4:50 instead."""
 
         def release(ticker: str, stamp: str) -> Release:
             return Release(ticker, 1, stamp, "8-K", "2.02", "", stamp[:10], stamp, "")
@@ -759,12 +768,17 @@ class TestTheFilingTimes:
             release("X", "2011-03-01T15:59:59"),
             release("X", "2011-03-01T16:00:00"),
             release("AAPL", "2011-03-01T16:40:00"),
-            release("AAPL", "2011-03-02T16:44:00"),
+            release("AAPL", "2011-03-02T16:41:00"),
+            release("AAPL", "2011-03-03T16:54:00"),
         ]
         times = FilingTimes.from_index(index)
         assert (times.earliest, times.before_open, times.in_session) == ("09:29:59", 1, 2)
-        assert times.apple == ("2011-03-01T16:40:00", "2011-03-02T16:44:00")
-        assert clock_text(times.apple_hours) == "4:40 p.m."
+        assert times.apple == (
+            "2011-03-01T16:40:00",
+            "2011-03-02T16:41:00",
+            "2011-03-03T16:54:00",
+        )
+        assert clock_text(times.apple_hours) == "4:45 p.m."
 
     def test_r1_flags_none_of_the_405_and_none_of_the_1460_read_late(self) -> None:
         """The labels say R1 flags nothing in the session, which holds only if
@@ -908,15 +922,22 @@ class TestTheLateSketch:
         assert _stroke(scene, "afternoon").x.max() == pytest.approx(session.x1)
         assert _stroke(scene, "afternoon-late").x.min() == pytest.approx(session.x1)
 
-    def test_each_arrow_runs_four_hours(self, every) -> None:
+    def test_each_arrow_runs_four_hours(self, every, figures) -> None:
         """Every shift's shaft runs exactly :data:`LATE_HOURS` on the clock,
-        less the gaps that keep an arrow off Apple's two dots."""
+        less the gaps that keep an arrow off Apple's two dots. A span's arrow
+        starts over the middle of its span, so it ends over the middle of the
+        late copy."""
+        _, f = figures
         scene = every[1]
         hour = (HOUR_X[1] - HOUR_X[0]) / (HOURS[1] - HOURS[0])
-        for gid in ("morning-shift", "afternoon-shift"):
+        for gid, start, end in (
+            ("morning-shift", f.earliest_hours, 9.5),
+            ("afternoon-shift", 16.0 - LATE_HOURS, 16.0),
+        ):
             arrow = _stroke(scene, gid)
             assert arrow.x.max() - arrow.x.min() == pytest.approx(LATE_HOURS * hour), gid
             assert arrow.x[0] == arrow.x.min(), gid
+            assert arrow.x[0] == pytest.approx(hour_x((start + end) / 2)), gid
         apple = _stroke(scene, "apple-shift")
         assert apple.x.max() - apple.x.min() == pytest.approx(
             LATE_HOURS * hour - 2 * sketches.DOT_GAP
@@ -964,13 +985,20 @@ class TestTheLateSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         """Each time and place the alt text gives is built from the figures,
-        so a changed shift or Apple time leaves it stale and fails here."""
+        so a changed shift or Apple time leaves it stale and fails here. The
+        earliest filing is "just after" the hour it follows by under five
+        minutes, and Apple's dot "just past the close" by under an hour."""
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
         f = PINNED_TIMES
         opens, closes = 9.5, 16.0
+        hour = math.floor(f.earliest_hours)
+        assert 0 < f.earliest_hours - hour < 5 / 60
+        assert closes < f.apple_hours < closes + 1
         for phrase in (
             "The clock is drawn to scale.",
             f"from {clock_text(HOURS[0], minutes=False)} to {clock_text(HOURS[1], minutes=False)}",
+            f"from the earliest filing, just after {clock_text(hour, minutes=False)}, to the open",
+            "a black dot sits just past the close",
             f"The session from {clock_text(opens)} to {clock_text(closes)} is tinted red",
             f"moves a span or a time {LATE_HOURS} hours later",
             f"its red copy {LATE_HOURS} hours later lies inside the tint, labelled to the right "
