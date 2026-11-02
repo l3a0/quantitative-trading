@@ -831,7 +831,7 @@ one rebuilt series over one window with one arithmetic, was written on
 the scratch runs had measured it, though before the build, the order Entry
 13's row 10 allows when it is stated. The criterion reads the book's words
 with no margin, and a test pins each margin, because row 4's is about the
-size of the rebuild's own error. All three claims also hold on Chan's own
+size of the shift the rebuild puts in the declared rule's own APR. All three claims also hold on Chan's own
 2012-05-11 close over the rows it covers, under row 10. Rows 1 to 3 of the same entry are
 replications of printed figures under a rule declared after the scratch
 runs, so their verdicts name that rule.
@@ -8393,8 +8393,8 @@ loaded.
 | 6 | none, a claim | reproduced | −0.007299 against −0.009167, and −0.8077 percent against −0.9851 percent on the save. |
 | 7 | none | none, not a replication | The book's 2.5 percent, 2.1 and 1.1 percent are higher, higher and smaller than Example 6.1's printed 1.7 percent, 1 and 2.5 percent. Those sit on 2004-06-01 to 2012-05-11 rather than this window, so the book's own sentence compares two windows, which is why rows 4 to 6 run both rules on one. |
 | 8 | none | none, not a replication | Cutting first leaves Example 6.1's 250-day signal off for the window's first 250 rows, so rows 4 to 6 would compare against a rule that is not trading for much of the window. |
-| 9 | none | none, not a replication | The save's daily changes match the rebuild's within rounding on every row but row L − 7, where the rebuild takes the old contract's return. On 29 of the 32 rolls the save's change on that row matches neither contract's own, so the save fixes rows L − 8 and L − 6 and leaves row L − 7 open. |
-| 10 | none | none, not a replication | The rebuild's error over these rows is a small part of the gap to the book. |
+| 9 | none | none, not a replication | The save's daily changes match the rebuild's within rounding on every row but 30 of the 32 rows L − 7, where the rebuild takes the old contract's return. On 29 of the 32 rolls the save's change on that row matches neither contract's own, so the save fixes rows L − 8 and L − 6 and leaves row L − 7 open. |
+| 10 | none | none, not a replication | The rebuild moves each figure over these rows by a small part of the gap to the book. |
 | 11 | none | none, not a replication | γ stays above about 0 in the window, so the rule is long or flat and never short. |
 | 12 | none | none, not a replication | All five contracts share one price on the three days, so γ is about 0 there and the window opens flat. Those days fall inside a longer run, from before the window through 2009-09-29, in which the three farthest of the five share one price that changes from day to day, so the fit finds no roll among them. The strip cannot say whether the exchange or the vendor priced them so. |
 | 13 | none | none, not a replication | Every contract is a quarter from the next, so the month reading divides γ by 3 and never reaches the threshold. That is why the declared rule reads γ in column units. |

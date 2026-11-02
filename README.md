@@ -1257,8 +1257,10 @@ each claim's margin, the rebuild against the 2012-05-11 save, both rules on
 that save's own close, and the month-unit and fifth-contract readings. It
 also holds the declared rule and the roll's off-by-one on synthetic strips,
 the March 2012 roll, and the scale-break guard on every member's own rows.
-The blog post about it is the exception, and what it says that nothing here
-asserts is listed below.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the sketches' alt texts, and both of its tables whole,
+so editing a copy it reads fails. What the post says that nothing here asserts
+is listed below.
 
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) does it
 for Example 1.1's three hypothesis tests on TU. It pins every count exactly at
@@ -6899,7 +6901,8 @@ lessons from Entry 36 of the replication log.
    row, where the save's change matches neither contract's own on 29 of 32
    rolls.
 4. The rule was declared after about 90 scratch readings, so every result is
-   exploratory, and the fifth-contract reading that lands two of the book's figures is set aside.
+   exploratory, and the fifth-contract reading that lands two of the book's
+   figures is set aside.
 
 Five groups of what it says are not pinned here.
 
@@ -6912,8 +6915,9 @@ Five groups of what it says are not pinned here.
    signal", the 3 percent threshold, and the 2.5 percent, 2.1 and 1.1 percent
    are at 2690. The book's figures are pinned, and its words are not.
 2. Facts from the run's own disclosure rather than the data: the count of
-   about 90 scratch readings, and the Sharpe ratio of about 1.80 a scratch fit of γ on the four
-   nearest contracts gave the fifth-contract reading. No test repeats either.
+   about 90 scratch readings, and the Sharpe ratio of about 1.80 that a
+   scratch fit of γ on the four nearest contracts gave the fifth-contract
+   reading. No test repeats either.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
@@ -6923,15 +6927,15 @@ Five groups of what it says are not pinned here.
    cannot say whether the exchange or the data vendor set those prices, and
    that the strip is the only TU file in the repository's data that reaches
    the window's end.
-4. Arithmetic the post takes between pinned figures in words: the 64 window
-   rows the 2012-05-11 save does not cover, a third of γ as three times the month
-   reading, 341 of 913 as the rows outside the 572, and the APR margins of
-   0.000304 and 0.000225 over the save's 849 rows, each the difference of two
-   pinned APRs. The post also reads, in words, the three months between that
-   save's last day and the window's end, the change of about a quarter
-   between those two margins, and the margin of 0.000348 as far smaller than
-   the gap between the printed 2.5 and 1.7 percent.
-   The figure's alt text reads its curves approximately too.
+4. Arithmetic the post takes between pinned figures in words: the three
+   months between the 2012-05-11 save's last day and the window's end. The
+   post reads the APR margins' move from 0.000304 to 0.000225 as about a
+   quarter, as a fair share of the 0.000348, and as less than the 0.000309 by
+   which the rebuild moves the declared rule's own APR. It reads the margin of
+   0.000348 as far smaller than the gap between the printed 2.5 and 1.7
+   percent. The figure's alt text reads its curves approximately along the
+   way too, such as about 3.9 percent by late 2010, and only the curves' end
+   values and γ's rounded peak are checked.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
@@ -6975,9 +6979,11 @@ in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
 - The 64 days the 2012-05-11 save does not cover needing about 4.2 percent to
   reach the book's APR, and adding 0.03 percent on the rebuild.
 
-It also added `TestWhatThePostQuotes`, which reads one copy of each run
-figure from the post itself, at the precision the post prints, and both of
-its tables whole. Its docstring names the copies it leaves unread.
+It also added `TestWhatThePostQuotes`, which reads from the post itself one
+copy of each run figure the post quotes outside the sketches' alt texts, at
+the precision the post prints, builds each fact of the declared rule the post
+states from the constant the run uses, and reads both of its tables whole.
+Its docstring names the copies it leaves unread.
 
 Its one figure is drawn from the committed strip by
 [src/chan/roll_momentum_figures.py](src/chan/roll_momentum_figures.py), which
