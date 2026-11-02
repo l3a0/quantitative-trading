@@ -11028,7 +11028,8 @@ sketches move too, and `uv run python -m chan.pead_rerun_whiteboard` redraws
 them.
 
 The post also carries two whiteboard sketches, added in the first round of its
-review before publishing. Both read only committed files.
+review before publishing. Both read only committed files, and the second also
+draws two constants from the uncommitted sample of 248 filings.
 
 1. **Where the 56 go**, in Lesson 1. It draws ALL's 497 stocks as a box
    holding CAL's 488 and PX's 446 as two overlapping circles, with U's 441 in

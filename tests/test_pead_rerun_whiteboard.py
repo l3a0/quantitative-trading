@@ -40,13 +40,14 @@ from dataclasses import replace
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
 from chan import pead_rerun
 from chan import pead_rerun_whiteboard as sketches
 from chan import usdcad_tests_whiteboard as whiteboard
-from chan.earnings_filings import read_index
+from chan.earnings_filings import Release, read_index
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.pead_rerun_figures import GROUP_STYLE, RERUN_FIGURE
 from chan.pead_rerun_whiteboard import (
@@ -126,7 +127,7 @@ LATE_LABELS = [
     "nothing counts\nhow many of the\n1,460 read late",
     "Apple, about 4:30 p.m.",
     "same flag, the next morning",
-    "flags the next day, when its\nnews is already in the price",
+    "flags the next day, whose gap\nopens after its news is out",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -499,8 +500,11 @@ class TestThePost:
 # --- Lesson 1: where the 56 go ---------------------------------------------------
 
 
-#: The counts the committed ticker table gives, as ``tests/test_pead_rerun.py``
-#: and ``tests/test_earnings_filings.py`` pin them on their own derivations.
+#: The counts ``research/filings/earnings/tickers.csv`` gives, as committed at
+#: 699a5f7c, read with Chan's flag file through ``read_committed``.
+#: ``tests/test_pead_rerun.py`` pins the four universes, the 47, the 9 and the
+#: 4 / 36 / 7 split of the 47 on its own derivation. The split of the 9 into
+#: 5 in PX alone and 4 outside both is first pinned here.
 PINNED_UNIVERSES = Universes(
     all=497, cal=488, px=446, u=441, cal_only=47, px_only=5, neither=4, reused=4, unpriced=43
 )
@@ -518,13 +522,27 @@ class TestTheUniverses:
         assert f.reused + f.unpriced == f.cal_only
         assert f.px_only + f.neither == f.all - f.cal
 
-    def test_the_split_of_the_47_reads_the_tables_archive_check(self) -> None:
-        """The 4 hold another company's returns, and the 43 lack closes or were never proposed."""
+    def test_from_sources_splits_by_the_tables_two_checks(self) -> None:
+        """On a made-up table of six stocks, each region and each reason for a
+        failed series lands where its row's checks put it."""
+        rows = {
+            "A": ("pass", "pass"),
+            "B": ("pass", "returns"),
+            "C": ("pass", "missing"),
+            "D": ("pass", "none"),
+            "E": ("name", "pass"),
+            "F": ("silent", "none"),
+        }
         sources = pead_rerun.read_committed()
-        rows = {row.ticker: row for row in sources.table}
-        cal_only = set(sources.universe("CAL")) - set(sources.universe("PX"))
-        checks = sorted(rows[s].archive_check for s in cal_only)
-        assert {c: checks.count(c) for c in set(checks)} == {"returns": 4, "missing": 36, "none": 7}
+        template = sources.table[0]
+        table = [
+            replace(template, ticker=t, cik_check=c, archive_check=a) for t, (c, a) in rows.items()
+        ]
+        flags = sources.flags.iloc[:, :0].assign(**dict.fromkeys(rows, 0))
+        made_up = replace(sources, table=table, flags=flags)
+        assert Universes.from_sources(made_up) == Universes(
+            all=6, cal=4, px=2, u=1, cal_only=3, px_only=1, neither=1, reused=1, unpriced=2
+        )
 
 
 class TestTheUniverseSketch:
@@ -582,6 +600,19 @@ class TestTheUniverseSketch:
         four = _label(scene, "4")
         x0, y0, x1, y1 = BOX
         assert x0 < four.x < x1 and y0 < four.y < y1
+
+    def test_each_circle_is_named_on_its_own_side(self, every) -> None:
+        """CAL's name sits over the left circle, PX's over the right, each
+        above its circle and nearer its own centre than the other's."""
+        scene = every[0]
+        cal, px = _label(scene, "CAL 488"), _label(scene, "PX 446")
+        assert CAL_CENTRE[0] < PX_CENTRE[0]
+        assert cal.ha == "left" and px.ha == "right"
+        assert cal.x < CAL_CENTRE[0] and px.x > PX_CENTRE[0]
+        assert _distance((cal.x, cal.y), CAL_CENTRE) < _distance((cal.x, cal.y), PX_CENTRE)
+        assert _distance((px.x, px.y), PX_CENTRE) < _distance((px.x, px.y), CAL_CENTRE)
+        assert min(cal.y, px.y) > CAL_CENTRE[1] + RADIUS / 2
+        assert (_label(scene, "CAL 488").names, _label(scene, "PX 446").names) == ("cal", "px")
 
     def test_the_brass_outline_runs_only_round_cal_outside_px(self, every) -> None:
         scene = every[0]
@@ -655,16 +686,39 @@ class TestTheUniverseSketch:
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
-        assert "not drawn to scale" in alt
-        assert "brass" in alt and "red" in alt
-        assert "overlap" in alt
+        f = PINNED_UNIVERSES
+        for phrase in (
+            "It is not drawn to scale.",
+            "Inside it two black circles overlap, the left labelled “CAL 488” and the right "
+            "“PX 446”, and the overlap is labelled “U 441”.",
+            "A thick brass line then traces the part of the left circle that lies outside the "
+            f"right one, labelled “{f.cal_only}”, and brass words",
+            f"In red, the part of the right circle outside the left is labelled “{f.px_only}”, "
+            f"and the corner of the box outside both circles “{f.neither}”.",
+            "Red words beside the box",
+            "a red brace above them",
+        ):
+            assert phrase in alt, phrase
+
+    def test_its_caption_says_where_the_counts_and_colours_come_from(self) -> None:
+        paragraphs = _paragraphs()
+        (index,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{GIFS[0]})" in p]
+        caption = paragraphs[index + 1]
+        f = PINNED_UNIVERSES
+        assert "so they are not drawn to scale." in caption
+        assert "Every count comes from the committed table of tickers." in caption
+        assert (
+            "The brass and the red are the colours of the chart’s lines for the same "
+            f"{f.cal_only} and {f.no_filer} stocks."
+        ) in caption
 
 
 # --- Lesson 2: four hours late ---------------------------------------------------
 
 
-#: What the committed index gives, as ``tests/test_earnings_filings.py`` pins
-#: it in ``TestTheCommittedIndex`` on the same reader.
+#: What ``research/filings/earnings/index.jsonl`` gives, the EDGAR fetch of
+#: 2026-10-10 as committed at 699a5f7c. ``tests/test_earnings_filings.py``
+#: pins the same figures in ``TestTheCommittedIndex`` on the same reader.
 PINNED_TIMES = FilingTimes(
     earliest="06:00:43",
     before_open=1460,
@@ -683,18 +737,59 @@ class TestTheFilingTimes:
         assert times == FilingTimes.from_index(read_index())
         assert clock_text(times.apple_hours) == "4:30 p.m."
 
-    def test_the_counts_split_the_index_as_its_own_test_does(self) -> None:
-        """Before the open, during the session and from the close add up to the 2,930."""
-        index = read_index()
-        after = sum(release.accepted[11:] >= "16:00:00" for release in index)
-        assert PINNED_TIMES.before_open + PINNED_TIMES.in_session + after == len(index) == 2930
+    def test_from_index_counts_the_open_in_the_session_and_the_close_outside_it(self) -> None:
+        """Made-up filings on each side of 9:30 and 4:00, and Apple's mean
+        rounded to five minutes rather than any coarser step."""
 
-    def test_the_shift_is_the_unpinned_sample_and_noon_is_the_close_less_it(self) -> None:
+        def release(ticker: str, stamp: str) -> Release:
+            return Release(ticker, 1, stamp, "8-K", "2.02", "", stamp[:10], stamp, "")
+
+        index = [
+            release("X", "2011-03-01T09:29:59"),
+            release("X", "2011-03-01T09:30:00"),
+            release("X", "2011-03-01T15:59:59"),
+            release("X", "2011-03-01T16:00:00"),
+            release("AAPL", "2011-03-01T16:40:00"),
+            release("AAPL", "2011-03-02T16:44:00"),
+        ]
+        times = FilingTimes.from_index(index)
+        assert (times.earliest, times.before_open, times.in_session) == ("09:29:59", 1, 2)
+        assert times.apple == ("2011-03-01T16:40:00", "2011-03-02T16:44:00")
+        assert clock_text(times.apple_hours) == "4:40 p.m."
+
+    def test_r1_flags_none_of_the_405_and_none_of_the_1460_read_late(self) -> None:
+        """The labels say R1 flags nothing in the session, which holds only if
+        no filing fell on a day the market was shut, where R1 moves even a
+        session time to the next trading day. Checked against R1 itself."""
+        sources = pead_rerun.read_committed()
+        stamps = [pd.Timestamp(release.accepted) for release in sources.releases]
+        opens, closes = pd.Timedelta(hours=9.5), pd.Timedelta(hours=16)
+        session = [s for s in stamps if opens <= s - s.normalize() < closes]
+        morning = [s for s in stamps if s - s.normalize() < opens]
+        assert (len(session), len(morning)) == (405, 1460)
+        assert all(pead_rerun.r1_day(s, sources.days) is None for s in session)
+        for late in (LATE_HOURS, WINTER_HOURS):
+            shifted = [s + pd.Timedelta(hours=late) for s in morning]
+            assert all(pead_rerun.r1_day(s, sources.days) is None for s in shifted), late
+
+    def test_the_shift_is_a_constant_from_the_unpinned_sample(self) -> None:
         """Constants, since the sample of 248 filings is not committed."""
         assert (LATE_HOURS, WINTER_HOURS) == (4, 5)
         doc = " ".join((sketches.__doc__ or "").split())
         assert "a check of 248 filings made while planning the rerun" in doc
         assert "The repository does not hold that sample" in doc
+
+    @pytest.mark.parametrize("late", [3, 7])
+    def test_a_shift_the_drawing_would_misdescribe_is_refused(self, monkeypatch, late) -> None:
+        """Three hours would leave the earliest morning filing before the
+        open, and seven would carry 9:30 past the close and put noon before
+        the open."""
+        monkeypatch.setattr(sketches, "LATE_HOURS", late)
+        with pytest.raises(ValueError, match="these times do not"):
+            sketches._four_hours_late(PINNED_TIMES)
+
+    def test_noon_on_the_drawing_is_the_close_less_the_shift(self, every) -> None:
+        assert _stroke(every[1], "afternoon").x.min() == pytest.approx(hour_x(16.0 - LATE_HOURS))
 
     @pytest.mark.parametrize(
         ("value", "minutes", "text"),
@@ -845,6 +940,7 @@ class TestTheLateSketch:
             {"apple": ("2011-01-18T15:30:00",)},
             {"apple": ("2011-01-18T17:30:00",)},
             {"in_session": 0},
+            {"before_open": 0},
         ],
         ids=str,
     )
@@ -856,7 +952,32 @@ class TestTheLateSketch:
             sketches._four_hours_late(replace(PINNED_TIMES, **change))
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        """Each time and place the alt text gives is built from the figures,
+        so a changed shift or Apple time leaves it stale and fails here."""
         alt = _alt(POST.read_text(encoding="utf-8"), every[1])
-        assert "4 hours" in alt
-        assert "inside the tint" in alt
-        assert "past the close" in alt
+        f = PINNED_TIMES
+        opens, closes = 9.5, 16.0
+        for phrase in (
+            "It is drawn to one scale of the clock.",
+            f"from {clock_text(HOURS[0], minutes=False)} to {clock_text(HOURS[1], minutes=False)}",
+            f"The session from {clock_text(opens)} to {clock_text(closes)} is tinted red",
+            f"moves a span or a time {LATE_HOURS} hours later",
+            f"its red copy {LATE_HOURS} hours later lies inside the tint, labelled to the right "
+            "of the tint",
+            f"a green dot at about {clock_text(f.apple_hours + LATE_HOURS)}",
+            f"a black span runs inside the tint from noon to the close, and its red copy runs "
+            f"from the close to {clock_text(closes + LATE_HOURS, minutes=False)}, past the close",
+        ):
+            assert phrase in alt, phrase
+        assert clock_text(closes - LATE_HOURS) == "12:00 p.m."
+
+    def test_its_caption_says_where_the_shift_and_the_counts_come_from(self) -> None:
+        paragraphs = _paragraphs()
+        (index,) = [k for k, p in enumerate(paragraphs) if f"(../docs/figures/{GIFS[1]})" in p]
+        caption = paragraphs[index + 1]
+        f = PINNED_TIMES
+        assert caption.startswith(f"*The {LATE_HOURS}-hour shift, and the {WINTER_HOURS} hours")
+        assert (
+            f"The earliest time, the {f.before_open:,}, the {f.in_session} and Apple’s times "
+            "come from the committed index."
+        ) in caption

@@ -8272,7 +8272,9 @@ uv run python -m chan.pead_rerun_whiteboard
 [tests/test_pead_rerun_whiteboard.py](tests/test_pead_rerun_whiteboard.py)
 holds what each draws, which region each count sits in, where each span and
 dot sits on the clock, that every count is read from the committed table and
-index, and that each GIF follows its list in the post.
+index, and that each GIF follows its list in the post. It also reads the two
+alt texts against the labels and the figures, and the two captions against
+the counts they name.
 
 [blog/opening-gap-lessons.md](blog/opening-gap-lessons.md) is a
 fortieth post, about the opening gap strategy on FSTX, the STOXX Europe

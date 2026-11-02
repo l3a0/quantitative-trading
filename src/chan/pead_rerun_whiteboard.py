@@ -31,7 +31,7 @@ post places each right after the list it draws.
    earliest at 06:00:43, into the session. The second moves Apple's releases
    from about 4:30 p.m. to about 8:30 p.m., both after the close. The third
    moves noon to the close, inside the session, to past the close, where R1
-   flags the next day although the news is already in the price. A late copy
+   flags the next day, whose gap opens after the news is out. A late copy
    is red where it changes R1's flag and green where it keeps it. It sits in
    Lesson 2, after the list whose last item opens "**A filer during the
    session gains a wrong flag.**". It is drawn to one scale of the clock.
@@ -58,7 +58,8 @@ start ``pead_sketch_``, do not start with that prefix, so nothing that looks
 for these sketches by prefix finds them.
 
 The sketches are deterministic for the reason that module gives, so a redraw
-with no change is a no-op diff. Both read only committed files. Redraw both
+with no change is a no-op diff. Both read only committed files, and the
+second also draws the two constants from the uncommitted sample. Redraw both
 with::
 
     uv run python -m chan.pead_rerun_whiteboard
@@ -534,7 +535,7 @@ def _four_hours_late(f: FilingTimes) -> Scene:
             frames=6,
         ),
         Label(
-            "flags the next day, when its\nnews is already in the price",
+            "flags the next day, whose gap\nopens after its news is out",
             RIGHT_X,
             row3 - 0.58,
             names="afternoon-late",
