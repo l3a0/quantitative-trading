@@ -702,12 +702,49 @@ class TestTheSwingSketch:
             "a schematic stand-in for TU’s daily returns",
             "It is green where its ticks match the brown ones",
             "it flattens to a grey line in three stretches, the first at the start",
-            "the grey share of the row is the share of window days the rule sits flat",
-            "Grey brackets under the three grey stretches",
-            "green brackets under the three green stretches",
+            "the number and places of the stretches are schematic",
+            "the grey share of the row is about the share of window days the rule sits flat",
+            "Green and grey words beside the row read “the declared rule” and “flat on 341 days”",
+            "Grey brackets under the three grey stretches carry grey words reading",
+            "green brackets under the three green stretches carry green words reading",
+            "Grey words at the bottom left read “average annual return / annual volatility”",
+            "then a green line reads “declared:",
+            "and a brown one “Example 6.1:",
+            "Black words at the bottom right read “nearly the same return,”",
             "the finished drawing holds for twelve seconds.",
         ):
             assert phrase in alt, phrase
+
+    def test_each_rows_words_stack_name_over_claim(self, every) -> None:
+        """The rule's name sits above its row's line and the claim below it,
+        and the declared fraction sits above Example 6.1's."""
+        scene = every[0]
+        for name, claim, y in (
+            (SWING_LABELS[0], SWING_LABELS[1], EXAMPLE_Y),
+            (SWING_LABELS[2], SWING_LABELS[3], DECLARED_Y),
+        ):
+            assert _label(scene, name).y > y > _label(scene, claim).y, name
+        caption, declared, example = (_label(scene, t) for t in SWING_LABELS[6:9])
+        assert caption.y > declared.y > example.y
+        assert caption.x == declared.x == example.x == sketches.ROW_X[0]
+        assert caption.y < sketches.LONG_BRACKET_Y
+
+    def test_each_bracket_has_an_upright_tick_at_each_end(self, every) -> None:
+        scene = every[0]
+        for stroke in scene.strokes:
+            if "bracket" in stroke.gid:
+                middle = np.median(stroke.y)
+                for end in (stroke.x.min(), stroke.x.max()):
+                    ys = stroke.y[np.isclose(stroke.x, end)]
+                    assert ys.max() - middle == pytest.approx(0.1), stroke.gid
+                    assert middle - ys.min() == pytest.approx(0.1), stroke.gid
+
+    def test_the_grey_stretches_are_thicker_than_the_ticks(self, every) -> None:
+        scene = every[0]
+        grey = [s for s in scene.strokes if re.fullmatch(r"flat-\d", s.gid)]
+        green = [s for s in scene.strokes if re.fullmatch(r"long-\d", s.gid)]
+        assert {s.width for s in grey} == {3.0}
+        assert all(s.width < 3.0 for s in green)
 
 
 # --- Lesson 3: where the rebuild and Chan's continuous close switch -----------
@@ -793,6 +830,43 @@ class TestTheSwitch:
         with pytest.raises(ValueError, match="does not roll"):
             Switch.from_data(strip.contracts, save, check)
 
+    def test_a_roll_a_row_earlier_is_refused(self, strip, save, check, monkeypatch) -> None:
+        """A rebuild already on June on the switch day would make "March
+        through 03-21" false, though it still rolls between two contracts."""
+        original = run.held_contracts
+        monkeypatch.setattr(run, "held_contracts", lambda c: original(c, 8))
+        with pytest.raises(ValueError, match="does not roll"):
+            Switch.from_data(strip.contracts, save, check)
+
+
+class TestTheHelpers:
+    @pytest.mark.parametrize(
+        ("n", "word"),
+        [
+            (1, "1st"),
+            (2, "2nd"),
+            (3, "3rd"),
+            (4, "4th"),
+            (7, "7th"),
+            (11, "11th"),
+            (12, "12th"),
+            (13, "13th"),
+            (21, "21st"),
+            (22, "22nd"),
+            (23, "23rd"),
+            (111, "111th"),
+        ],
+    )
+    def test_ordinal(self, n, word) -> None:
+        assert sketches._ordinal(n) == word
+
+    def test_change_signs_every_value(self) -> None:
+        assert [sketches._change(v) for v in (0.0625, 0.0, -0.0123)] == [
+            "+0.0625",
+            "+0.0000",
+            "−0.0123",
+        ]
+
 
 #: A made-up switch, so the words that should follow the run do.
 OTHER_SWITCH = Switch(
@@ -867,6 +941,15 @@ class TestTheSwitchSketch:
             INK,
             INK,
         ]
+
+    def test_the_axis_ticks_once_on_every_trading_day(self, every, switch) -> None:
+        """The alt text says one tick a day."""
+        axis = _stroke(every[1], "axis")
+        tops = np.round(axis.x[axis.y > sketches.AXIS_Y + 1e-9], 9)
+        assert sorted(set(tops)) == pytest.approx([switch_x(switch, d) for d in switch.days])
+        assert axis.y.min() == sketches.AXIS_Y
+        assert axis.y.max() == pytest.approx(sketches.AXIS_Y + 0.08)
+        assert (axis.x.min(), axis.x.max()) == pytest.approx((AXIS_X0, AXIS_X1))
 
     def test_switch_x_is_affine_in_the_count_of_trading_days(self, switch) -> None:
         xs = np.array([switch_x(switch, d) for d in switch.days])
@@ -955,6 +1038,13 @@ class TestTheSwitchSketch:
             "The brown line thickens from 03-20 to 03-21",
             "a second dashed grey guide drops to the June line",
             "each contract’s own change that day",
+            "with grey dates under four ticks",
+            "Grey words under the dates read “days to last price”",
+            "with black words above reading “rebuild:",
+            "with brown words reading “March’s close less 0.1407”",
+            "Brown words beside it read “03-21: switches to June’s close, +0.0625”",
+            "black words under them read “neither March’s +0.0547 nor June’s +0.0546”",
+            "Black words at the bottom read “30 of 1,999 changes differ",
             "The rows say which contract each series reads rather than drawing prices to scale",
             "every mark sits at its own trading day",
             "the finished drawing holds for twelve seconds.",

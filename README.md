@@ -6917,9 +6917,8 @@ Five groups of what it says are not pinned here.
    short in a window where TU fell, that a position on TU's notional value
    would be leveraged, and that Example 6.1's line moves up in some of the
    figure's shaded stretches and down in others.
-4. Arithmetic the post takes between pinned figures in words: the 1.80 and
-   1.20 that average return over volatility gives, the 64 window rows the
-   2012-05-11 save does not cover, a third of γ as three times the month
+4. Arithmetic the post takes between pinned figures in words: the 64 window
+   rows the 2012-05-11 save does not cover, a third of γ as three times the month
    reading, 341 of 913 as the rows outside the 572, and the APR margins of
    0.000304 and 0.000225 over the save's 849 rows, each the difference of two
    pinned APRs.
@@ -6931,8 +6930,9 @@ Every other number in the post traces to an assertion in
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
 for the figure's own numbers, or to
 [tests/test_roll_momentum_whiteboard.py](tests/test_roll_momentum_whiteboard.py)
-for the sketches' dates, price changes and twelve-second hold. Three had no
-pin before the first of those files.
+for the sketches' dates, price changes and twelve-second hold, and for the
+1.80 and 1.20 that average return over volatility gives. Three had no pin
+before the post.
 
 1. Example 6.1 holds all 25 tranches long on every one of the 913 window rows,
    so its returns are the rebuilt series' own.
@@ -6968,14 +6968,16 @@ The post also carries two looping whiteboard sketches, drawn by
 [src/chan/roll_momentum_whiteboard.py](src/chan/roll_momentum_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the text it draws. Both
 build more slowly than the USD.CAD post's sketches and hold their finished
-drawings for twelve seconds. Both draw in the post chart's colours, brown for
-Example 6.1's rule and green for the declared rule.
+drawings for twelve seconds. Both draw in the post chart's colours. The first
+uses brown for Example 6.1's rule and green for the declared rule, and the
+second uses brown for Chan's continuous close, the series Example 6.1 trades.
 
 1. `roll_momentum_sketch_less_swing.gif`, in Lesson 2, draws a row of TU's
    daily returns as ticks for Example 6.1's rule holding TU every day, and the
    same row for the declared rule flattened in the stretches it sits out. Its
-   ticks and the places of its stretches are schematic, and the share of
-   ticks drawn flat is the 341 of 913 window days. It prints TU's compounded
+   ticks and the number and places of its stretches are schematic, and the
+   share of ticks drawn flat is the nearest to the 341 of 913 window days that
+   48 ticks allow. It prints TU's compounded
    −0.001244 over those 341 days and 0.050629 over the 572 long ones, and each
    rule's average annual return over its annual volatility, 0.013661 /
    0.007575 = 1.80 and 0.013351 / 0.011156 = 1.20.

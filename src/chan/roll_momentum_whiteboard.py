@@ -31,13 +31,14 @@ it draws.
    changes that differ, all on the 7th trading day before a last price.
 
 The first sketch is schematic in its ticks and figured in its words. The tick
-heights and the places of the stretches are made up, though the share of
-ticks drawn flat is the share of window days the rule sits flat, and every
-number it prints is read from the run. The second is not schematic in its
+heights and the number and places of the stretches are made up, though the
+share of ticks drawn flat is the nearest :data:`TICKS` allow to the share of
+window days the rule sits flat, and every number it prints is read from the
+run. The second is not schematic in its
 days or its numbers: each mark sits at its own trading day on the axis, and
 every date, price change and count is read from the run. Its rows are not
 prices to scale. They say which contract each series reads, since to scale
-the shifted close would sit within 0.008 of June's.
+the shifted close would sit within 0.008 of June's on 2012-03-20.
 
 Every figure comes from :class:`Swing` and :class:`Switch`, which read
 :func:`chan.roll_returns.load_strip` on the committed TU strip and
