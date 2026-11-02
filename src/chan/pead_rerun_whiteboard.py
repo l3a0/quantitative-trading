@@ -383,11 +383,12 @@ def _four_hours_late(f: FilingTimes) -> Scene:
     opens, closes = _hours(SESSION_OPEN), _hours(SESSION_CLOSE)
     noon = closes - LATE_HOURS
     early, apple = f.earliest_hours, f.apple_hours
+    # The open shifted by the late hours staying before the close is the same
+    # claim as noon, the close less them, falling after the open.
     claims = (
         HOURS[0] <= early < opens,
         all(opens <= early + late and opens + late < closes for late in (LATE_HOURS, WINTER_HOURS)),
         closes <= apple and apple + WINTER_HOURS <= HOURS[1],
-        opens < noon,
         f.before_open > 0 and f.in_session > 0,
     )
     if not all(claims):
