@@ -611,7 +611,8 @@ class TestWhatThePostCounted:
         Issue 275's rule asks for a close at the formation and at the next
         month-end. No column in Chan's file ends before the file's last day, but
         one column is not always one company. Fourteen of the 17 have closes
-        again within a few months. The other three are WYN, DFS and SE, whose
+        again within a few months, which is how the post puts it, and the longest
+        gap is 140 days. The other three are WYN, DFS and SE, whose
         earlier company's prices stop inside the holding month and whose symbol
         resumes more than a year later with a different company.
         """
@@ -910,7 +911,10 @@ class TestWhatThePostMeasured:
 
     The write-up measured every one of them after the run, on the vintages and
     the specification in :data:`SPEC`, so each is exploratory and none carries
-    a verdict. The upper bound reads the registered test's own standard error,
+    a verdict. Four values the run's table of formations prints carry
+    :func:`pin` instead: the high fifth's beta at the peak, the low fifth's
+    0.0818, and k in March 2026 and March 2020. The upper bound reads the
+    registered test's own standard error,
     and the ruin line and the ruinous leverage are the helpers Entry 45's post
     added after its run. A beta or a leverage is named by its formation date,
     and a return or a ruin line by its holding month.
@@ -965,7 +969,7 @@ class TestWhatThePostMeasured:
         p = holdout.portfolios
         peak = pd.Timestamp("2025-04-30")
         assert p.leverage.idxmax() == peak, SPEC
-        after(float(p.high_beta[peak]), 1.573842255950237, "1.5738")
+        pin(float(p.high_beta[peak]), 1.573842255950237, "1.5738")
 
     def test_the_low_fifths_beta_fell_below_0_10_twice_and_never_below_0_05(self, holdout) -> None:
         p = holdout.portfolios
@@ -974,7 +978,7 @@ class TestWhatThePostMeasured:
         assert [str(day.date()) for day in below.index] == ["2025-02-28", "2025-03-31"], (
             f"{SPEC}; {AFTER_THE_RUN}"
         )
-        after(float(below.iloc[0]), 0.0818444983180052, "0.0818")
+        pin(float(below.iloc[0]), 0.0818444983180052, "0.0818")
         assert not (low < 0.05).any(), f"{SPEC}; {AFTER_THE_RUN}"
 
     def test_december_2024_against_its_ruin_line(self, holdout) -> None:
@@ -1055,7 +1059,7 @@ class TestWhatThePostMeasured:
         mar = pd.Timestamp("2026-03-31")
         assert p.levered.sort_values().index[1] == mar, f"{SPEC}; {AFTER_THE_RUN}"
         after(float(p.levered[mar]), -0.7004677356362444, "-0.7005")
-        after(float(p.leverage[mar]), 9.434203067644063, "9.4342")
+        pin(float(p.leverage[mar]), 9.434203067644063, "9.4342")
         after(float(p.low[mar]), -0.07155822665330175, "-0.0716")
         after(float(p.high[mar]), -0.046258414248779016, "-0.0463")
 
@@ -1064,7 +1068,7 @@ class TestWhatThePostMeasured:
         mar = pd.Timestamp("2020-03-31")
         assert p.low.idxmin() == mar, f"{SPEC}; {AFTER_THE_RUN}"
         after(float(p.low[mar]), -0.12504426728454085, "-0.1250")
-        after(float(p.leverage[mar]), 3.4162225462748657, "3.4162")
+        pin(float(p.leverage[mar]), 3.4162225462748657, "3.4162")
         after(float(ruin_line(p.rf, p.leverage)[mar]), -0.29255005082766206, "-0.2926")
         after(float(p.levered[mar]), -0.42776296562855215, "-0.4278")
         after(float(ruinous_leverage(p.low, p.rf)[mar]), 7.983670912779481, "7.9837")
@@ -1108,6 +1112,7 @@ class TestTheReport:
         assert "quite wary of using too much leverage" in out
         assert "skip amendment" in out and "this is a holdout" in out
         assert "as long as that edition prints it" in out
+        assert "apart from the skip rule" in out
 
 
 POST = Path(__file__).resolve().parents[1] / "blog" / "low-beta-holdout-lessons.md"
@@ -1146,8 +1151,8 @@ class TestThePostQuotesTheRun:
     bound, so changing that copy fails a test. The italic summary, the lessons
     list, a figure's later repeats, the alt texts, the caption, the Kindle
     pages, approximate dates such as late 2007 and September 2001's ruin, and
-    figures stated in words other than the counts ``WORDS`` and the rank of
-    seventh are not read here. The title's gap is, because it is the figure a
+    figures stated in words other than the counts ``WORDS`` and the ranks of
+    seventh and second are not read here. The title's gap is, because it is the figure a
     reader sees first.
     """
 
@@ -1290,6 +1295,7 @@ class TestThePostQuotesTheRun:
         p = holdout.portfolios
         d = differences(p)
         dec, mar = pd.Timestamp("2024-12-31"), pd.Timestamp("2026-03-31")
+        worst = list(p.levered.sort_values().index).index(mar) + 1
         assert (
             f"In December 2024, d was {prose(d[dec])}. Without that month, twelve times the mean "
             f"of d over the other {len(d) - 1} months is {d.drop(dec).mean() * 12:+.4f}"
@@ -1300,7 +1306,8 @@ class TestThePostQuotesTheRun:
             f"{d.drop([dec, mar]).mean() * 12:+.4f}. In March 2026 the leverage was "
             f"{p.leverage[mar]:.4f}. The low fifth lost "
             f"{-p.low[mar]:.4f} and the high fifth lost {-p.high[mar]:.4f}. Levered, that was a "
-            f"loss of {-p.levered[mar]:.4f} of the capital"
+            f"loss of {-p.levered[mar]:.4f} of the capital, the "
+            f"{({2: 'second'})[worst]}-worst levered month."
         ) in self.text
         feb = d.idxmax()
         assert (

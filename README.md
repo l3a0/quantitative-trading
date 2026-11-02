@@ -9431,8 +9431,11 @@ Six groups of what it says are not pinned here.
    that the Newey-West t and the bound treat the average monthly gap as
    roughly normal, what the row check compares, and who the monthly rule
    lets be held.
-4. Figures the post states in words, such as a few hundredths a year, and the
-   figure's alt text, which reads its curves approximately.
+4. Figures the post states in words, such as a few hundredths a year. The
+   chart's alt text reads its curves approximately, and it also quotes the
+   chart's labels exactly, such as 69.0762, −0.8014 and 2024-12-31, along with
+   the count of skipped formations and the axis limits. No test reads any of
+   them.
 5. Facts outside the committed data: the first edition's release in November
    2008, and that this repository has read the rule only in the 2021 revised
    edition and has not checked that the first edition prints it.
@@ -9449,11 +9452,13 @@ for the sketches'. `TestThePostQuotesTheRun` reads one copy of each figure
 the run or Chan's file gives from the post itself, so changing that copy fails
 a test. It does not read the italic summary, the lessons list, a figure's
 later repeats, the alt texts, the caption, the Kindle pages, figures stated in
-words or approximate dates such as late 2007, so a change there fails
-nothing. Its first four tests read committed
+words other than five counts and the ranks of seventh and second, or
+approximate dates such as late 2007 and September 2001's ruin, so a change
+there fails nothing. Its first four tests read committed
 files and run everywhere, and the rest need the archive. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
-`TestWhatThePostCounted` item 2.
+`TestWhatThePostCounted` item 2 and four figures the run's table of
+formations prints: 1.5738, 0.0818, 9.4342 and 3.4162.
 `TestWhatThePostCounted` reads committed files and runs everywhere.
 
 1. 5,891 of the 6,816 member-months failing the row check fall in 2009 to

@@ -328,8 +328,8 @@ def make_low_beta_holdout_figure(
         f"{members[0].obtained}, survivors only, and SPY from {spy_entry.path}. Not a holdout.\n"
         f"{_ivv_note()}\nBoth borrow at FRED's TB3MS, downloaded {bill_entry.obtained}. Each "
         "value sits at the month it applied to.\nEach verdict is registered under its "
-        "amendments. The right is a holdout if the first edition prints the rule, and every "
-        "path drawn is exploratory.",
+        "amendments. The right is a holdout if the first edition prints the rule, apart from the "
+        "skip rule, and every path drawn is exploratory.",
     )
     fig.subplots_adjust(left=0.07, right=0.98, top=0.9, bottom=0.14)
     return _save(fig, out, LOW_BETA_HOLDOUT_FIGURE)

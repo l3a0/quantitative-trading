@@ -198,7 +198,8 @@ class TestTheFigure:
             "2026-10-05, and SPY's downloaded 2026-10-11, in a private archive.\n"
             "Both borrow at FRED's TB3MS, downloaded 2026-09-30. Each value sits at the month "
             "it applied to.\nEach verdict is registered under its amendments. The right is a "
-            "holdout if the first edition prints the rule, and every path drawn is exploratory."
+            "holdout if the first edition prints the rule, apart from the skip rule, and every "
+            "path drawn is exploratory."
         ], HOLDOUT_SPEC
 
     def test_each_column_spans_its_holding_months_and_the_skipped_ones(self, axes, ivv) -> None:

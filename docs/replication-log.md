@@ -11601,8 +11601,9 @@ So the skip rule was chosen after one such formation was visible, and N is
 208 rather than 212. Every holding month comes after the first edition's
 release in November 2008, so unlike Entry 45 this is a holdout for the claim,
 as long as that edition prints it, apart from the skip rule, which the owner
-wrote after seeing one formation's low-fifth beta on this panel. This repository has read the rule only in
-the 2021 revised edition. Rows 2 to 11 are **exploratory**.
+wrote after seeing one formation's low-fifth beta on this panel and knowing
+every earlier one was positive. This repository has read the rule only in the
+2021 revised edition. Rows 2 to 11 are **exploratory**.
 The plan declared them, and each is a point estimate that nothing tests.
 
 ### What the book stated

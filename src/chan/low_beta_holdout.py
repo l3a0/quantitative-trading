@@ -574,13 +574,17 @@ def report(holdout: Holdout) -> None:
         "schedules is dated up to two months late, or five around the missing 2013-09-30."
     )
     print(
-        "  Registered on issue 526 before any beta or return was computed on this panel, with "
-        "issue 275's plan, its ruin amendment and issue 526's skip amendment, both of 2026-10-11."
+        "  Registered on issue 526 with issue 275's plan and its ruin amendment of 2026-10-11, "
+        "before any beta or return was computed on this panel. Issue 526's skip amendment, of "
+        "the same day, came after the first skipped formation's low-group mean beta was seen "
+        "and before any return."
     )
     print(
         "  Every holding month comes after the first edition's release in November 2008, "
-        "so this is a holdout for the claim as long as that edition prints it, which this "
-        "repository has not checked. "
+        "so this is a holdout for the claim as long as that edition prints it, apart from "
+        "the skip rule, which the owner wrote after seeing one formation's low-fifth beta "
+        "on this panel and knowing every earlier one was positive. This repository has not "
+        "checked that edition. "
         "docs/replication-log.md Entry 49 carries the verdict."
     )
 
