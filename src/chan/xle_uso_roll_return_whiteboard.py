@@ -67,6 +67,7 @@ from chan import xle_uso_roll_return as trade
 from chan.matlab_helpers import fwdshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, INK, MUTED
+from chan.roll_returns import MONTH_LETTERS
 from chan.usdcad_tests_whiteboard import (
     Frame,
     Label,
@@ -94,13 +95,9 @@ def _day(date: str) -> str:
     return date[5:]
 
 
-#: CL's month codes, January to December, as each contract's last letter.
-MONTH_CODES = "FGHJKMNQUVXZ"
-
-
 def _delivery(symbol: str) -> str:
     """A contract's delivery month, ``February 2007`` for ``CL-2007G``."""
-    month = MONTH_CODES.index(symbol[-1]) + 1
+    month = MONTH_LETTERS.index(symbol[-1]) + 1
     return pd.Timestamp(year=int(symbol[-5:-1]), month=month, day=1).strftime("%B %Y")
 
 

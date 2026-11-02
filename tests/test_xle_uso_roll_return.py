@@ -574,7 +574,8 @@ class TestWhatThePostQuotes:
        cannot say, beside its n − 1 value.
     3. **The backwardation days.** USO's 0.532304 and the roll return's
        0.072380 are read in the summary of results, in Lesson 5's table and
-       in Lesson 5's list.
+       in Lesson 5's list, and the trade's 0.308117 of 0.946538 in the
+       summary of results and in Lesson 5.
     4. **The alt text.** Its exact figures are read there as a second copy:
        the drawdown's 1.272665 and 0.835584 with their dates, the 487 days,
        the ratio's 0.982067 and 1.111489 with their dates, and the nine
@@ -596,10 +597,9 @@ class TestWhatThePostQuotes:
     Summary item 5's and Lesson 5's headings are read for "a third". The
     copies left unread include the title's and the subtitle's "a third", the
     bold headings of the summary's other four groups, the five figures and
-    the book's two named in the summary, the summary's second copy of the
-    0.308117 and 0.946538 that Lesson 5 reads, the 67 funds the fund file
-    holds, which ``tests/test_series.py`` counts, the dates of Chan's span
-    where they repeat, and the alt text's rounded readings of the lines, such
+    the book's two named in the summary, the 67 funds the fund file holds,
+    which ``tests/test_series.py`` counts, the dates of Chan's span where
+    they repeat, and the alt text's rounded readings of the lines, such
     as "about 30 percent by late 2007", "near 141 percent" and "mostly between
     1.00 and 1.03". Words the run decides that are left unread include Lesson
     2's sentence that the script's APR and Sharpe ratio round to the book's
@@ -636,6 +636,7 @@ class TestWhatThePostQuotes:
         held = result.positions
         unset = int(np.isnan(result.ratio).sum())
         backwardation = views["backwardation"]
+        total = result.daily.sum()
         assert int((held == CONTANGO).all(axis=1).sum()) > len(result.days) / 2, "most days"
         fragments = [
             f"and reports {BOOK_APR_PERCENT} percent a year.",
@@ -648,6 +649,8 @@ class TestWhatThePostQuotes:
             f"It is short USO and long XLE on {int((held == CONTANGO).all(axis=1).sum()):,} days, "
             f"the reverse on {int((held == BACKWARDATION).all(axis=1).sum())}, and holds nothing "
             f"for its first {unset} days.",
+            f"The trade’s daily returns sum to {backwardation.summed:.6f} over those days, of "
+            f"{total:.6f} over all of Chan’s dates.",
             f"On those days USO rose {math.log(1 + backwardation.uso):.6f} in log terms, while "
             f"the roll return the signal reads came to {backwardation.roll:.6f}.",
         ]
@@ -660,7 +663,9 @@ class TestWhatThePostQuotes:
         (later_saved,) = {m.obtained for m in later.members}
         assert closes.notna().all().all() and strip.spot is None
         # "One for each month": the contracts' delivery months run without a gap.
-        months = [12 * int(c[3:7]) + "FGHJKMNQUVXZ".index(c[7]) for c in contracts.columns]
+        months = [
+            12 * int(c[3:7]) + roll_returns.MONTH_LETTERS.index(c[7]) for c in contracts.columns
+        ]
         assert months == list(range(months[0], months[0] + len(months)))
         defined = np.isfinite(result.ratio)
         first = result.days[defined][0]
@@ -738,6 +743,9 @@ class TestWhatThePostQuotes:
         assert held_contango > (held_contango + held_backwardation) / 2, "mostly short USO"
         assert later.spot.reindex(result.days).notna().all()
         (later_saved,) = {m.obtained for m in later.members}
+        old, new = module.front_windows(contracts)[:2]
+        overlap = int(contracts.iloc[new.rows, old.column].notna().sum())
+        assert overlap > 0, "the old contract is still priced"
         fragments = [
             f"From {WINDOW_START.date()} to {WINDOW_END.date()} the two funds went opposite ways.",
             "A trade mostly short USO and long XLE gains from both moves,",
@@ -747,7 +755,7 @@ class TestWhatThePostQuotes:
             f"is the nearest contract the file prices that day. On the other {places.count(2)} "
             "it is the second-nearest.",
             f"The script moves to the next contract {FRONT_END} rows before the current one’s "
-            "last price,",
+            f"last price, and for those {overlap} rows the old contract is still priced.",
             f"In Chan’s fund file, USO’s close fell from {first[USO]:.2f} to {last[USO]:.2f}, "
             f"or {-100 * uso:.4f} percent. XLE’s rose from {first[XLE]:.2f} to {last[XLE]:.2f}, or "
             f"{100 * xle:.4f} percent.",

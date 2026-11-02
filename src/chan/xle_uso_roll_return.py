@@ -73,7 +73,7 @@ row both define. It differs in four ways that this strip reaches.
    gives a window whose start equals its end that one row.
 
 The first and fourth differences leave CL-2007F's 31 front rows, 2006-10-20
-to 2006-12-05, unheld, and those sit inside the window. Its pair would start
+to 2006-12-05, unheld, and those sit inside Chan's dates. Its pair would start
 10 rows before its expiry, on 2006-12-05, which is also the row the pair ends,
 so the schedule holds none of them.
 
@@ -130,7 +130,7 @@ transcription names them rather than copying them silently.
 
 The two calendars share 1,498 days. The ETF file holds 2006-07-03 and
 2006-11-24, which the strip lacks. The first front window opens on 2006-10-20,
-so the window's first 123 shared days carry a NaN ratio and hold nothing.
+so the first 123 shared days carry a NaN ratio and hold nothing.
 
 **The scale-break guard.** :func:`read_sources` reads the strip through
 :func:`chan.roll_returns.load_strip`, which guards every contract over its own

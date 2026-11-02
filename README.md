@@ -571,7 +571,7 @@ where they were first built. The other forty-five were built here.
     average annual return of 0.159231, a Sharpe ratio of 1.046596, an APR of
     0.159102, and a maximum drawdown of −0.192321 lasting 487 days. The APR
     and the Sharpe ratio round to the book's 16 percent and "about 1". The
-    strip's first front window opens on 2006-10-20, so the window's first 123
+    strip's first front window opens on 2006-10-20, so the trade's first 123
     days hold nothing. The ETF file subtracts dividends in dollars. If it
     adjusts XLE the way it adjusts SPY and GDX, its XLE returns are not what
     a holder earned. The 244 days earning on backwardation hold 0.308117 of

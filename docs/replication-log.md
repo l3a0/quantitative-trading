@@ -8866,8 +8866,8 @@ here.
 
 The two calendars share 1,498 of the ETF file's 1,500 days. The ETF file
 holds 2006-07-03 and 2006-11-24, which the strip lacks. The strip's first
-contract is CL-2007F, whose front window opens on 2006-10-20, so the window's
-first 123 days carry no ratio and hold nothing. Of the 1,375 days that carry
+contract is CL-2007F, whose front window opens on 2006-10-20, so the first
+123 shared days carry no ratio and hold nothing. Of the 1,375 days that carry
 one, 1,129 are in contango, 244 in backwardation, and 2 carry a ratio of
 exactly 1.
 

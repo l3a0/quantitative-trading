@@ -11,8 +11,8 @@ What is pinned is what a reader takes from each.
    :class:`chan.xle_uso_roll_return_whiteboard.Handover`. The test derives
    them again from :func:`chan.xle_uso_roll_return.front_windows` and, for the
    734 and 641, by comparing each day's ratio with the two nearest priced
-   contracts' as ``tests/test_xle_uso_roll_return.py`` does, rather than
-   trusting the sketch's own count. Every bar sits on the axis at its own
+   contracts' through ``tests/test_xle_uso_roll_return.py``'s helper, rather
+   than trusting the sketch's own count. Every bar sits on the axis at its own
    trading days.
 2. The split sketch reads its values from
    :class:`chan.xle_uso_roll_return_whiteboard.Split`, which the test derives
@@ -72,6 +72,7 @@ from chan.xle_uso_roll_return_whiteboard import (
     scenes,
     sketch_timeline,
 )
+from tests.test_xle_uso_roll_return import _front_places
 
 POST = REPO_ROOT / "blog" / "xle-uso-roll-return-lessons.md"
 
@@ -478,20 +479,12 @@ class TestTheHandover:
     def test_the_front_is_the_nearest_on_734_days_and_the_second_on_641(
         self, sources, handover
     ) -> None:
-        """Derived as ``tests/test_xle_uso_roll_return.py`` does, from which of
-        each day's two nearest priced contracts gives the day's ratio."""
+        """Derived by ``tests/test_xle_uso_roll_return.py``'s helper, from which
+        of each day's two nearest priced contracts gives the day's ratio."""
         _, closes, strip = sources
         contracts = strip.contracts
         result = trade.arbitrage(closes, trade.front_ratio(contracts))
-        places = []
-        for d, value in zip(result.days, result.ratio, strict=True):
-            if not np.isfinite(value):
-                continue
-            row = contracts.loc[d].to_numpy()
-            priced = np.flatnonzero(np.isfinite(row))
-            nearest = [row[priced[k] + 1] / row[priced[k]] for k in (0, 1)]
-            assert (nearest[0] == value) != (nearest[1] == value)
-            places.append(1 if nearest[0] == value else 2)
+        places = _front_places(contracts, result)
         assert (handover.with_ratio, handover.nearest, handover.second) == (
             len(places),
             places.count(1),
