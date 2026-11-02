@@ -8130,9 +8130,9 @@ exploratory, and the runs on the archive's prices cannot be rerun by a reader.
    0.014787 of that, 0.64 of it. The other 43 fail because the archive does
    not hold their prices for the whole window under the ticker. Close to half
    of the 0.023065 comes on 2011-08-04.
-2. EDGAR's submissions file reads some filers' acceptance times 4 or 5 hours
-   late, which would move every before-open release of a filer whose time
-   reads late into the session.
+2. EDGAR's submissions file read some filers' acceptance times 4 or 5 hours
+   late in October 2026 and true UTC on 2026-11-02, and a late reading would
+   move every before-open release of such a filer into the session.
 3. R1 lifts A_CAL's 0.054481 to 0.071050, and the extra trades are 0.75 of the
    gain at A_CAL's mean per trade and 0.79 at R1's own.
 4. The vendor and the price basis move the return by about a ten-thousandth
@@ -8146,18 +8146,23 @@ Five groups of what it says are not pinned here.
    open at 3002, the 4:00 p.m. and 9:30 a.m. times at 3010, and the book's
    6.7 percent and 1.5 at 3024. The figures at 3024 are pinned by
    [tests/test_pead.py](tests/test_pead.py), and the words are not.
-2. The sample of the submissions file's acceptance times taken while
-   planning the rerun, 175 of 248 filings from 38 filers true UTC and 73 a
-   further 4 or 5 hours late, with Apple among them. It is not committed, and
-   `chan.earnings_filings`'s docstring records it. That the extra shift is 4
-   hours under daylight saving time and 5 under standard time, and that a
-   filer read late was read late on every filing, are readings of it.
+2. The readings of the submissions file's acceptance times. The sample
+   taken on 2026-10-10 while planning the rerun found 175 of 248 filings from
+   38 filers true UTC and 73 a further 4 or 5 hours late, with Apple among
+   them, and `chan.earnings_filings`'s docstring records it. The Internet
+   Archive's copies of 2026-10-07, which show the late reading for Apple,
+   Amazon and JPMorgan, and a fetch on 2026-11-02 that found all 2,930
+   filings of the index true UTC, are recorded in
+   [docs/design.md](docs/design.md). None is committed. That the extra shift
+   is 4 hours under daylight saving time and 5 under standard time is read
+   from the archive's copies, and that a filer read late was read late on
+   every filing is a reading of the sample.
 3. Facts about EDGAR, the archive and the code read when the record was
    built rather than computed from committed files: that today's ticker table
    sends CB to Chubb Limited, which was ACE in 2012 and filed its own
    releases in the window, that the archive's CB series holds ACE's history,
    that the archive files UTX under RTX and adjusts only the close, that
-   DuPont's proposed filer was formed after 2015, that R5 matched Chan's
+   DuPont's proposed filer was formed in December 2015, that R5 matched Chan's
    flags best on a sample of 32 stocks, and the check's 3 percent tolerance
    on price, a constant in `chan.earnings_filings`.
 4. Readings and figures the post states in words or rounds from pinned ones,
@@ -8167,8 +8172,9 @@ Five groups of what it says are not pinned here.
    the two in January, about a ten-thousandth, the 54 disagreements on the
    two days, that a filing from 11:00 a.m. in winter or noon in summer
    onward moves past the close when read late, that two vendors defining the
-   open differently explains the two days, and that a release can precede
-   the filing that reports it. The figure's alt text reads its curves
+   open differently explains the two days, that a release can precede the
+   filing that reports it, and that a t of about 2 is the usual bar for
+   ruling out chance. The figure's alt text reads its curves
    approximately too.
 5. Its references, cited rather than computed.
 
@@ -8182,8 +8188,10 @@ before the open and 405 in the session, Apple's times and the earliest and
 latest times of day, to [tests/test_pead_figures.py](tests/test_pead_figures.py)
 for 2011-08-04 as the high A's longest drawdown starts from, or to
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
-figure's own numbers. Eight had no pin before it, and all were measured after
-the runs.
+figure's own numbers. The C, D, E1 and E5 figures, the vendor and basis
+effects, the interaction and every number in Lesson 4 are asserted only where
+the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
+them. Eight had no pin before it, and all were measured after the runs.
 
 1. That A less A_U is exactly the trades of the 56 stocks outside U, and A
    less A_CAL exactly those of the 9 outside CAL, 0.012261 rounded from the
@@ -8213,7 +8221,10 @@ the runs.
    JCI and LSI. 35 of the 36 lack all 330 closes, and the committed manifest
    of the archive dates each of those series' first row after 2012-04-24,
    ALTR's on 2017-11-01, DELL's on 2018-12-21 and DOW's on 2019-03-20. EP's
-   starts on 2011-02-23 and lacks 35, and the 7 have no line in the
+   starts on 2011-02-23 and lacks 35, and where the archive is configured
+   [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds that
+   its returns differ from those of Chan's closes on 181 of the 294 days both
+   hold, so it is another company's series. The 7 have no line in the
    archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
    43 take 95 adding 0.008278, and the 13 that cannot be tied to the right
    company, the 4 and the 9 outside CAL, take 28 adding 0.014787, 0.64 of

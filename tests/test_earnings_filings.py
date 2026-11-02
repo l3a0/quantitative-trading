@@ -562,8 +562,8 @@ class TestTheCommittedTable:
 
         AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule, and
         CPWR and MWW carry another company's CIK besides: TetriDyn's and
-        Verisk's. CVC carries BJ's Wholesale's. DD carries the DuPont formed
-        after 2015, which had no name on the price day. NYX carries its own
+        Verisk's. CVC carries BJ's Wholesale's. DD carries today's DuPont,
+        formed in December 2015, which had no name on the price day. NYX carries its own
         CIK under a name with no legal form, and LUK its own, silent.
         """
         assert {row.ticker: (row.cik, row.edgar_name) for row in table if not row.calendar} == {
@@ -669,9 +669,9 @@ class TestTheCommittedIndex:
         """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
 
         No filing was accepted before 06:00:43 Eastern on any day. So a time
-        read 4 or 5 hours late, as a check made while planning the rerun found
-        the submissions JSON reads some filers, would put every filing accepted before the open
-        inside the session, where R1 flags nothing for it.
+        read 4 or 5 hours late, as a check made on 2026-10-10 found the
+        submissions JSON reading some filers, would put every filing accepted
+        before the open inside the session, where R1 flags nothing for it.
         """
         times = sorted(release.accepted[11:] for release in index)
         assert (times[0], times[-1]) == ("06:00:43", "21:49:59")
@@ -688,8 +688,9 @@ class TestTheCommittedIndex:
     def test_apple_files_at_half_past_four_eastern(self, index) -> None:
         """About 4:30 p.m. Eastern, which a double conversion would read as 8:30 or 9:30 p.m.
 
-        A check made while planning the rerun found the submissions JSON
-        reading some filers' times as if converted from Eastern twice. The
+        A check made on 2026-10-10, while planning the rerun, found the
+        submissions JSON reading some filers' times, Apple's among them, as if
+        converted from Eastern twice, and on 2026-11-02 it read them true. The
         second conversion adds 4 hours under daylight saving time and 5 under
         standard time. So the JSON would read the four filed under daylight
         saving time as about 8:30 p.m., and the two in January, 2011-01-18 and
@@ -755,6 +756,27 @@ class TestTheArchive:
         if reason is not None:
             pytest.skip(reason)
         assert earnings_filings.check() == []
+
+    def test_the_series_under_ep_holds_another_companys_prices(self, closes) -> None:
+        """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
+
+        The check stops EP at its 35 missing days, so it counts among the
+        series that lack closes. On the days both series hold a return, the
+        archive's differs from that of Chan's closes on most of them, far past
+        the 2 days a series of the same company differs on.
+        """
+        reason = archive_skip_reason()
+        if reason is not None:
+            pytest.skip(reason)
+        from chan.archive import read_cross_section
+
+        _, archive = read_cross_section("sp500", symbols=["EP"])
+        window = read_sources()[4].index
+        chan = closes["EP"].loc[window]
+        theirs = archive["EP"].reindex(window)
+        difference = (chan.pct_change() - theirs.pct_change()).abs()
+        held = int(difference.notna().sum())
+        assert (held, int((difference > RETURN_TOLERANCE).sum())) == (294, 181)
 
     def test_which_days_the_passing_series_differ_on(self, table, closes) -> None:
         """88 series differ on 2011-10-27 and 86 on 2011-10-28. Ten differ on other days."""

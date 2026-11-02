@@ -1058,7 +1058,8 @@ class TestTheArchiveOpens:
         Each trade's change in signed return, over 30 and times 252 over the
         330 days, is its share of the move in the arithmetic annual return.
         In E5, PNC on 2011-09-12 turns from long to short. MCO on 2012-02-08
-        and TMK on 2011-10-27 keep their side and earn less from Chan's open.
+        stays short and loses more from Chan's open, and TMK on 2011-10-27
+        stays long and turns a small gain into a loss.
         In E1, CAM on 2011-10-27 turns from long to short and gains.
         """
         runs, prices = archive_runs

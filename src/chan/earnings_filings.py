@@ -27,13 +27,17 @@ was read, and a filing is not a vintage. It has two files.
    :data:`LAST_ACCEPTED`, for each stock whose CIK passed its check.
 
 **Why the acceptance time comes from the header file.** The submissions JSON
-at ``data.sec.gov`` carries an ``acceptanceDateTime`` field marked as UTC. The
-plan audit on issue 251 compared it with ``<ACCEPTANCE-DATETIME>`` in each
-filing's ``.hdr.sgml``, which is Eastern time and matches the filing's index
-page. In 175 of 248 filings from 38 filers the JSON was true UTC. In the other
-73 it sat a further 4 or 5 hours later, consistently within a filer, as if
-converted from Eastern twice, and Apple was one of those. So the time here is
-read from the header, at the price of one request per filing.
+at ``data.sec.gov`` carries an ``acceptanceDateTime`` field marked as UTC,
+and what it serves for one filing has changed between readings. The plan
+audit on issue 251, on 2026-10-10, compared it with ``<ACCEPTANCE-DATETIME>``
+in each filing's ``.hdr.sgml``, which is Eastern time and matches the filing's
+index page. In 175 of 248 filings from 38 filers the JSON was true UTC. In the
+other 73 it sat a further 4 or 5 hours later, consistently within a filer, as
+if converted from Eastern twice, and Apple was one of those. On 2026-11-02 the
+JSON was true UTC on all 2,930 filings in the index.
+[docs/design.md](../../docs/design.md) lists the other readings, and none is
+committed. So the time here is read from the header, at the price of one
+request per filing.
 
 **Why the CIK needs a check of its own.** ``company_tickers.json`` maps
 today's tickers, so it sends CB to Chubb Limited, which was ACE in 2012 and

@@ -114,8 +114,9 @@ Five choices it left open, each of which moves a figure or a count.
       also carry another company's proposed CIK: Compuware carries
       TetriDyn's, 827099, and Monster Worldwide carries Verisk's, 1442145.
    2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
-   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
-      had filed nothing by the price day and so fails on dates.
+   3. DuPont's proposed CIK, 1666700, belongs to today's DuPont, formed in
+      December 2015, which had filed nothing by the price day and so fails on
+      dates.
    4. NYSE Euronext fails on the name, because EDGAR files it with no legal
       form.
    5. Leucadia's CIK filed no Item 2.02 8-K in the window, so the fourth

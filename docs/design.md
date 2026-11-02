@@ -806,11 +806,18 @@ names each accession beside the sha256 of the bytes read. Three things are
 new.
 
 1. **The time comes from each filing's header, not from the JSON.** The
-   submissions JSON's `acceptanceDateTime` is marked UTC, and the plan audit
-   on the issue found it shifted a further four or five hours for 73 of 248
-   filings, Apple's among them. `<ACCEPTANCE-DATETIME>` in the filing's
-   `.hdr.sgml` is Eastern and agrees with EDGAR's index page, so the index
-   records that. The price is one request per filing.
+   submissions JSON's `acceptanceDateTime` is marked UTC, and it has not
+   served the same time for a filing at every reading. The plan audit on the
+   issue, on 2026-10-10, found it shifted a further four or five hours for 73
+   of 248 filings, Apple's among them. Copies of the JSON that the Internet
+   Archive saved on 2026-10-07 show that shift for Apple, Amazon and
+   JPMorgan, four hours under daylight saving time and five under standard
+   time, on their recent filings, and true UTC for AMD, Microsoft and Adobe.
+   Apple's still read late on 2026-10-21. On 2026-11-02 the JSON agreed with
+   the header on all 2,930 filings in the index. None of these readings is
+   committed. `<ACCEPTANCE-DATETIME>` in the filing's `.hdr.sgml` is Eastern
+   and agrees with EDGAR's index page, so the index records that. The price
+   is one request per filing.
 2. **A ticker table maps Chan's 2012 tickers, and a check holds each row.**
    A 2012 ticker is not today's, so `company_tickers.json` sends CB to ACE,
    and EDGAR's full-text search fails on short tickers. The table follows
@@ -856,8 +863,8 @@ carries TetriDyn's, and Monster Worldwide carries Verisk's. Four more leave
 the calendar for reasons of their own.
 
 1. Cablevision's proposed CIK is BJ's Wholesale's.
-2. DuPont's is the DuPont formed after 2015, which had filed nothing by the
-   price day.
+2. DuPont's is today's DuPont, formed in December 2015, which had filed
+   nothing by the price day.
 3. NYSE Euronext fails on the name, because EDGAR files it with no legal
    form.
 4. Leucadia filed no Item 2.02 8-K in the window.

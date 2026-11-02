@@ -10780,8 +10780,9 @@ count.
       them also carry another company's proposed CIK. Compuware's is
       TetriDyn's, 827099, and Monster Worldwide's is Verisk's, 1442145.
    2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
-   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
-      fails on dates because it had filed nothing by 2012-03-30.
+   3. DuPont's proposed CIK, 1666700, belongs to today's DuPont, formed in
+      December 2015, which fails on dates because it had filed nothing by
+      2012-03-30.
    4. NYSE Euronext fails on the name, because EDGAR files it with no legal
       form.
    5. Leucadia's CIK filed no Item 2.02 8-K in the window.
@@ -10902,8 +10903,7 @@ nothing.
    exploratory sample.** On CAL, R1 lifts A_CAL's 0.054481 to 0.071050 and
    its Sharpe ratio from 1.3253 to 1.7045. It does so in two ways.
    1. R1 takes 1,291 trades against 1,052.
-   2. Each trade earns 6 percent more on average, 0.002162 against
-      0.002035.
+   2. The mean per trade is 6 percent higher, 0.002162 against 0.002035.
 
    The rule divides each day by a fixed 30, so more trades at the same mean
    raise the return in proportion. About three quarters of the +0.016568 is
@@ -11002,8 +11002,9 @@ rows 35 and 36. It moves E5 by −0.004566 and −0.1039, in row 37, through
 three trades.
 
 1. PNC on 2011-09-12 turns from long to short, worth −0.002261.
-2. MCO on 2012-02-08 stays short and earns less, worth −0.001751.
-3. TMK on 2011-10-27 stays long and earns less, worth −0.000554.
+2. MCO on 2012-02-08 stays short and loses more, worth −0.001751.
+3. TMK on 2011-10-27 stays long and turns a small gain into a loss, worth
+   −0.000554.
 
 The PNC flip alone moves E5 more than the vendor and basis effects of rows
 20 and 21 together. E1's move is the same MCO and TMK trades and CAM on
