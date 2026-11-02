@@ -8234,19 +8234,19 @@ measured after the runs.
    starts on 2011-02-23 and lacks 35, and where the archive is configured
    [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds that
    its returns differ from those of Chan's closes on 181 of the 294 days both
-   hold, so it is another company's series. The 7 have no line in the
+   hold a return, so it is another company's series. The 7 have no line in the
    archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
    43 take 95 adding 0.008278, and the 13 the checks cannot confirm, the 4
    and the 9 outside CAL, take 28 adding 0.014787, 0.64 of the universe
    effect.
 9. The five of the nine outside CAL that left the fund during the window,
    AKS, CPWR, MWW, TLAB and WFR. Chan's closes for them fell 27 to 69
-   percent over it, A's 13 trades in them include 9 shorts, and they add
-   0.007524 of the nine's 0.012261. Three of the five largest trades outside
-   U are theirs, and
+   percent over it, and A's 13 trades in them, 9 of them shorts, average
+   0.022738, no more than the 0.026587 of the 7 trades in the other four,
+   CVC, DD, LUK and NYX.
    [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds
-   that each was in the fund's schedule of 2011-09-30 and in neither later
-   one.
+   that each of the five was in the fund's schedule of 2011-09-30 and in
+   neither later one.
 
 Its one figure is drawn from committed files only by
 [src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
@@ -8287,9 +8287,9 @@ USD.CAD post's sketch machinery. Each sits after the list it draws.
    before the open, from 06:00:43, land inside the session, Apple's releases
    at about 4:30 p.m. stay after the close, and the span from noon to the
    close lands past it. The tint carries the 405 accepted during the session.
-   The 4 hours, and the 5 a winter time takes, come from the sample of 248
-   filings that is not committed, so the module holds them as constants and
-   the caption says so.
+   The 4 hours, and the 5 a winter time takes, are what the Internet
+   Archive's copies of 2026-10-07 show, which are not committed, so the
+   module holds them as constants and the caption says so.
 
 Both build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds. Redraw both with:

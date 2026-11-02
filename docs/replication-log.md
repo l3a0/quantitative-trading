@@ -11031,7 +11031,8 @@ them.
 
 The post also carries two whiteboard sketches, added in the first round of its
 review before publishing. Both read only committed files, and the second also
-draws two constants from the uncommitted sample of 248 filings.
+draws two constants from the Internet Archive's uncommitted copies of
+2026-10-07.
 
 1. **Where the 56 go**, in Lesson 1. It draws ALL's 497 stocks as a box
    holding CAL's 488 and PX's 446 as two overlapping circles, with U's 441 in
@@ -11043,8 +11044,8 @@ draws two constants from the uncommitted sample of 248 filings.
    moves three spans 4 hours later: the 1,460 filings accepted before the
    open, from 06:00:43, into the session, Apple's releases at about 4:30 p.m.
    to about 8:30 p.m., and noon to the close past the close. The 4 hours and
-   the 5 a winter time takes are the unpinned sample's, so they are constants
-   in the module rather than figures read from a file.
+   the 5 a winter time takes are what those copies show, so they are
+   constants in the module rather than figures read from a file.
 
 ## Entry 47: the VIX filter on buy on gap and the STOXX Europe 50 gap rule, Chan's *Algorithmic Trading*
 

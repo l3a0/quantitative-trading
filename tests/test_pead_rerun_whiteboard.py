@@ -489,7 +489,7 @@ class TestThePost:
         assert "not drawn to scale" in universe
         assert "248 filings" in late
         assert "while planning the rerun" in late
-        assert "does not hold" in late and "nothing pins" in late
+        assert "does not hold" in late
 
     def test_the_module_says_which_is_drawn_to_scale(self) -> None:
         doc = " ".join((sketches.__doc__ or "").split())
@@ -706,10 +706,14 @@ class TestTheUniverseSketch:
         caption = paragraphs[index + 1]
         f = PINNED_UNIVERSES
         assert "so they are not drawn to scale." in caption
-        assert "Every count comes from the committed table of tickers." in caption
+        assert "Every count comes from the table of tickers in the repository." in caption
         assert (
-            "The brass and the red are the colours of the chart’s lines for the same "
-            f"{f.cal_only} and {f.no_filer} stocks."
+            "The brass and the red are the colours of the lines for the same "
+            f"{f.cal_only} and {f.no_filer} stocks in the chart below."
+        ) in caption
+        assert (
+            f"The red {f.px_only} and {f.neither} split the nine that fail the filer check "
+            "by whether the series passes"
         ) in caption
 
 
@@ -958,7 +962,7 @@ class TestTheLateSketch:
         f = PINNED_TIMES
         opens, closes = 9.5, 16.0
         for phrase in (
-            "It is drawn to one scale of the clock.",
+            "The clock is drawn to scale.",
             f"from {clock_text(HOURS[0], minutes=False)} to {clock_text(HOURS[1], minutes=False)}",
             f"The session from {clock_text(opens)} to {clock_text(closes)} is tinted red",
             f"moves a span or a time {LATE_HOURS} hours later",
@@ -979,5 +983,5 @@ class TestTheLateSketch:
         assert caption.startswith(f"*The {LATE_HOURS}-hour shift, and the {WINTER_HOURS} hours")
         assert (
             f"The earliest time, the {f.before_open:,}, the {f.in_session} and Apple’s times "
-            "come from the committed index."
+            "come from the rerun’s list of filings, which is in the repository."
         ) in caption

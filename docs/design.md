@@ -813,7 +813,8 @@ new.
    Archive saved on 2026-10-07 show that shift for Apple, Amazon and
    JPMorgan, four hours under daylight saving time and five under standard
    time, on their recent filings, and true UTC for AMD, Microsoft and Adobe.
-   Apple's still read late on 2026-10-21. On 2026-11-02 the JSON agreed with
+   Apple's copy of 2026-10-21 still read late, and its copies of 2026-10-04 and
+   2026-10-27 read true UTC. On 2026-11-02 the JSON agreed with
    the header on all 2,930 filings in the index. None of these readings is
    committed. `<ACCEPTANCE-DATETIME>` in the filing's `.hdr.sgml` is Eastern
    and agrees with EDGAR's index page, so the index records that. The price

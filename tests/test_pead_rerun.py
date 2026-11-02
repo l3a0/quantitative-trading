@@ -738,13 +738,12 @@ class TestWhatThePostMeasured:
         ``tests/test_earnings_filings.py`` holds that each was in the schedule
         of 2011-09-30 and in neither later one. Chan's closes fell 27 to 69
         percent over the window for all five. Of A's 13 trades in them, 9 are
-        shorts, and they add 0.007524 of the nine outside CAL's 0.012261. Three
-        of the five largest trades outside U are theirs. Exploratory, and it
-        tests no reason why these stocks earn more.
+        shorts, and they average 0.022738, no more than the 0.026587 of the 7
+        trades in the other four of the nine. Exploratory, and it tests no
+        reason why these stocks earn more.
         """
         five = ["AKS", "CPWR", "MWW", "TLAB", "WFR"]
         returns, positions = a_trades(sources, runs)
-        scale = to_annual(runs["A"])
         closes = sources.closes.loc[sources.window, five]
         spans = {s: closes[s].dropna() for s in five}
         fell = {s: round(float(c.iloc[-1] / c.iloc[0] - 1), 3) for s, c in spans.items()}
@@ -753,12 +752,16 @@ class TestWhatThePostMeasured:
         }, AFTER_THE_RUNS  # fmt: skip
         held = positions[five].to_numpy()
         assert (int((held != 0).sum()), int((held < 0).sum())) == (13, 9), AFTER_THE_RUNS
-        assert round(float(returns[five].to_numpy().sum()) * scale, 6) == 0.007524, AFTER_THE_RUNS
         outside_cal = [s for s in returns.columns if s not in set(sources.universe("CAL"))]
-        assert round(float(returns[outside_cal].to_numpy().sum()) * scale, 6) == 0.012261
-        outside_u = [s for s in returns.columns if s not in set(sources.universe("U"))]
-        largest = returns[outside_u].where(positions[outside_u] != 0).stack().nlargest(5)
-        assert sorted(stock for _, stock in largest.index if stock in five) == ["AKS", "MWW", "WFR"]
+        other = [s for s in outside_cal if s not in five]
+        assert other == ["CVC", "DD", "LUK", "NYX"]
+
+        def mean_trade(stocks):
+            trades = returns[stocks].stack()[positions[stocks].stack() != 0]
+            return len(trades), round(float(trades.mean()), 6)
+
+        assert mean_trade(five) == (13, 0.022738), AFTER_THE_RUNS
+        assert mean_trade(other) == (7, 0.026587), AFTER_THE_RUNS
 
     def test_the_contributions_by_why_a_stock_is_outside_u(self, sources, runs) -> None:
         """The 13 the checks cannot confirm as the right company carry 0.64 of the universe effect.
@@ -1482,7 +1485,8 @@ class TestWhatThePostQuotes:
             f"That holding’s price is within {round(100 * earnings_filings.PRICE_TOLERANCE)} "
             "percent of Chan’s close that day.",
             f"It released earnings under Item {earnings_filings.ITEM} in the window.",
-            f"Every series of the same company differs on at most {max(passing)} days. The "
+            f"Every series that holds the same company’s prices differs from Chan’s on at most "
+            f"{max(passing)} days. The "
             f"{spelled(four)} reused tickers that fail, CB among them, differ on "
             f"{min(reused)} to {max(reused)}. Under Chan’s own tickers, "
             f"{routes[('same', 'pass')]} series pass. Searching the archive by returns rather "
@@ -1547,11 +1551,16 @@ class TestWhatThePostQuotes:
         assert top_day == day, "the largest trade falls on the day"
         cal = set(sources.universe("CAL"))
         assert all(positions.at[d, s] == -1.0 and s not in cal for d, s in largest.index)
-        theirs = sum(stock in self.LEFT_THE_FUND for _, stock in largest.index)
         closes = sources.closes.loc[sources.window, list(self.LEFT_THE_FUND)]
         fell = [1 - c.dropna().iloc[-1] / c.dropna().iloc[0] for _, c in closes.items()]
         cal_effects = effects_of(runs)
         top = float(largest.iloc[0])
+        other = [s for s in lesson_1.groups["outside CAL"] if s not in self.LEFT_THE_FUND]
+
+        def mean_trade(stocks: list[str]) -> float:
+            return float(returns[stocks].stack()[positions[stocks].stack() != 0].mean())
+
+        assert mean_trade(list(self.LEFT_THE_FUND)) <= mean_trade(other), "no more per trade"
         fragments = [
             f"The {n_out} stocks outside U take {t_out} of A’s {thousands(a.trades)} trades and "
             f"add {effect:.6f}, which is {effect / a.arithmetic_annual:.2f} of A’s return",
@@ -1571,13 +1580,12 @@ class TestWhatThePostQuotes:
             f"Per trade, the stocks outside U earn {lesson_1.outside.mean():.6f} on average "
             f"against {lesson_1.inside.mean():.6f} inside.",
             f"is {lesson_1.welch:.2f} (Welch, 1947).",
-            f"Chan’s closes for those five fell {round(100 * min(fell))} to "
-            f"{round(100 * max(fell))} percent over it. They add {by['left the fund'][2]:.6f} "
-            f"of the nine’s {nine:.6f}, and {spelled(theirs)} of the five largest trades outside "
-            "U are theirs.",
+            f"Chan’s closes for them fell {round(100 * min(fell))} to "
+            f"{round(100 * max(fell))} percent over it. Per trade, though, they earn no more "
+            f"than the other {spelled(len(other))} of the nine.",
             f"by {-cal_effects['universe'][0]:.6f} against R1’s {cal_effects['calendar'][0]:.6f}",
             f"Dropping the {n_out} stocks moves it by {signed(cal_effects['universe'][1], 4)}, "
-            f"and R1’s calendar moves it by {signed(cal_effects['calendar'][1], 4)}.",
+            f"and R1 moves it by {signed(cal_effects['calendar'][1], 4)}.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1645,8 +1653,8 @@ class TestWhatThePostQuotes:
             f"{late(summer)}, and the {spelled(len(standard))} in January, on "
             f"{standard[0].date()} and {standard[1].date()}, at about {late(winter)} All are "
             "still after the close",
-            f"No filing in that list was accepted earlier than {hour}:{minute:02d}:{second:02d} "
-            "a.m. Eastern on any day.",
+            "No filing in the rerun’s list was accepted earlier than "
+            f"{hour}:{minute:02d}:{second:02d} a.m. Eastern on any day.",
             f"The list holds {thousands(len(releases))} filings, and {thousands(before)} of them "
             "were accepted before the open.",
             f"from {clock(16 - winter)} onward in winter, or from {clock(16 - summer)} onward in "
@@ -1727,8 +1735,8 @@ class TestWhatThePostQuotes:
         held = int(difference.notna().sum())
         over = int((difference > earnings_filings.RETURN_TOLERANCE).sum())
         fragment = (
-            f"on the {held} days both hold, its daily returns differ from those of Chan’s closes "
-            f"on {over}."
+            f"On the {held} days both hold a daily return, its returns differ from those of "
+            f"Chan’s closes on {over}."
         )
         assert self.missing(text, [fragment]) == []
 
@@ -1758,6 +1766,9 @@ class TestWhatThePostQuotes:
         e5, e1 = trade["E5"], trade["E1"]
         assert set(e5) == {"PNC", "MCO", "TMK"} and set(e1) == {"CAM", "MCO", "TMK"}
         interaction = by["interaction, what E1 − A_U leaves"][0]
+        raw = {e.label: e.arithmetic for e in pead_rerun.attribution(runs)}
+        without_basis = raw["all of it, E1 against A_U"] - raw["calendar"] - raw["vendor"]
+        assert without_basis < 0, "less than the calendar and vendor effects together"
         e1_a, e5_a = by["E1 against A"], by["E5 against A"]
         assert interaction < 0, "less than the three effects together"
         assert e1_a[0] < 0 and e5_a[0] < 0 and e1_a[1] > 0 > e5_a[1], "lower, above and below"
@@ -1792,5 +1803,6 @@ class TestWhatThePostQuotes:
             f"ratio, E1 sits {e1_a[1]:.4f} above A and E5 {-e5_a[1]:.4f} below",
             f"E1 against A_U is {signed(by['all of it, E1 against A_U'][0], 6)}, which is "
             f"{-interaction:.6f} less than the calendar, vendor and basis effects together.",
+            f"so without the basis effect the remainder is {-without_basis:.6f}.",
         ]
         assert self.missing(text, fragments) == []

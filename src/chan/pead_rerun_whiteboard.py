@@ -33,13 +33,15 @@ post places each right after the list it draws.
    moves noon to the close, inside the session, to past the close, where R1
    flags the next day, whose gap opens after the news is out. A late copy
    is red where it changes R1's flag and green where it keeps it. It sits in
-   Lesson 2, after the list whose last item opens "**A filer during the
-   session gains a wrong flag.**". It is drawn to one scale of the clock.
+   Lesson 2, after the list whose last item opens "**A filer that files
+   during the session gains a wrong flag.**". It is drawn to one scale of the clock.
    The earliest time, the two counts and Apple's times come from
    :class:`FilingTimes`, which :meth:`FilingTimes.from_index` reads from the
    committed index of filings. The 4 hours, and the 5 a winter time takes,
-   come from a check of 248 filings made while planning the rerun. The
-   repository does not hold that sample, so :data:`LATE_HOURS` and
+   are what the Internet Archive's copies of the submissions file saved on
+   2026-10-07 show, and a check of 248 filings made while planning the rerun
+   found shifts of 4 or 5 hours. The repository does not hold that sample
+   or those copies, so :data:`LATE_HOURS` and
    :data:`WINTER_HOURS` are constants here rather than figures read from a
    file. Noon is the close less those 4 hours. Nothing counts how many of
    the 1,460 come from filers whose time reads late, so the sketch draws
@@ -59,7 +61,7 @@ for these sketches by prefix finds them.
 
 The sketches are deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Both read only committed files, and the
-second also draws the two constants from the uncommitted sample. Redraw both
+second also draws the two constants from the uncommitted copies. Redraw both
 with::
 
     uv run python -m chan.pead_rerun_whiteboard
@@ -295,8 +297,8 @@ def _where_the_56_go(f: Universes) -> Scene:
 # --- Lesson 2: four hours late ---------------------------------------------------
 
 #: How many hours late a late time reads under daylight saving time, and in
-#: winter. Both come from a check of 248 filings made while planning the
-#: rerun, a sample the repository does not hold, so nothing here pins them.
+#: winter. Both are what the Internet Archive's copies of 2026-10-07 show,
+#: which the repository does not hold, so nothing here pins them.
 LATE_HOURS, WINTER_HOURS = 4, 5
 
 
