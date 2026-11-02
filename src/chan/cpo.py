@@ -64,7 +64,7 @@ LOOKBACKS = (30, 60, 90, 120, 180, 240, 360, 720)
 #: ``exit_threshold = −0.6 × entry_threshold``, fixed after Chan's own
 #: optimisation, pp. 140 to 141.
 EXIT_FRACTION = -0.6
-#: The indicators' lookbacks, in minutes, p. 141.
+#: The indicators' lookbacks, in minutes, p. 142.
 FEATURE_LOOKBACKS = (50, 100, 200, 400, 800, 1600, 3200)
 
 #: The first and last regular-session bars, by the minute a bar opens.
