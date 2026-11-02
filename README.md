@@ -254,8 +254,9 @@ where they were first built. The other forty-five were built here.
     only where that archive is. Neither of Chan's columns reproduces. Holding
     the parameters the train years chose earns a test Sharpe ratio of 5.700
     against his 1.947, on a cell that trades 46.7 round trips a day.
-    Re-choosing daily wins on the Calmar ratio alone, so his claim that it
-    improves every metric does not hold. At 1 basis point a round trip both
+    With the model's declared seed, re-choosing daily wins on the Calmar ratio
+    alone, so his claim that it improves every metric does not hold. Two of ten
+    seeds tried afterwards make it hold. At 1 basis point a round trip both
     arms lose money. Every reading the book left open was declared on the issue
     before any return was computed. The first run broke one of them, by keeping
     extended-hours bars on early-close days, and the entry reports both runs.
@@ -4312,9 +4313,10 @@ holding them fixed on every metric he prints. The post draws four lessons from
 Entry 16 of the replication log.
 
 1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
-   Calmar ratio alone, so his claim fails with the model's declared seed. Two
-   of ten seeds tried afterwards reverse it. The re-chosen column is reproduced
-   only in kind, because his rests on PredictNow's model.
+   Calmar ratio alone, so his claim fails for a stand-in model with its
+   declared seed. Two of ten seeds tried afterwards make re-choosing win on all
+   four metrics, so the verdict turns on the seed. The re-chosen column is
+   reproduced only in kind, because his rests on PredictNow's model.
 2. The book's own annual returns do not compound to its cumulative ones, under
    either definition of annual return, which arithmetic alone shows.
 3. The first run broke a declared reading on the 34 early closes. The code was
@@ -4331,7 +4333,8 @@ archive of minute bars is and only when `QT_ARCHIVE_RUN=1` asks, because the
 bars are licensed and the repo commits only their hashes. Chan's arithmetic in
 Lesson 2, the early closes and the 12:59 fix in Lesson 3, and the grid and
 rules run on every clone. Two classes at the end of that file read the post
-itself, one copy of each figure, so a changed number in the post fails a test:
+itself, one copy of each figure their docstrings name, so a changed number
+there fails a test:
 `TestThePostQuotesWhatEveryCloneComputes` on every clone and
 `TestThePostQuotesTheRun` where the archive is.
 
@@ -4359,13 +4362,17 @@ Six groups of its figures are not pinned here.
 4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
    merge of the first run, asserted them, and no test that runs today does.
    `git show cb30336:tests/test_cpo.py` shows them.
-5. Arithmetic no test asserts: the book's 115 features at p. 141, and that
+5. Arithmetic no test asserts: the book's 115 features at p. 142, and that
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
    19 readings.
 6. Its references, cited rather than computed, and facts outside the data:
    that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
    that a basis point is a hundredth of a percent, that GLD holds gold and GDX
-   gold-mining stocks, and that the first edition lacks the method.
+   gold-mining stocks, that the first edition lacks the method, that the
+   Kindle page numbers match the print edition's, that the early-closing dates
+   were copied from a software calendar of NYSE's schedule, and that
+   scikit-learn's seed sets the held-out tenth and the sample the bins are cut
+   from.
 
 Eight of its figures had no pin before it, and each now has one. The first
 and the last two run on every clone, and the other five sit in
@@ -4381,7 +4388,9 @@ and the last two run on every clone, and the other five sit in
 5. Spearman's rank correlation between the 400 cells' round trips a day and
    their test Sharpe ratios, 0.95, added after the result was seen.
 6. That the claim holds for seeds 2 and 7 of 0 to 9, with the re-chosen Sharpe
-   ratio running from 5.166 to 6.353, added after the result was seen.
+   ratio running from 5.166 to 6.353, and that re-choosing beats holding on the
+   Calmar ratio for six of the ten seeds, the Sharpe ratio for three and each
+   return for two, added after the result was seen.
 7. That `ta`'s average true range and average directional index read 0 rather
    than a missing value before their windows fill, in `TestTheWiring`.
 8. That the model reads 101 features a row, three parameters and seven

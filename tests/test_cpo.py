@@ -18,8 +18,9 @@ declared on issue 23 before any number was computed.
 ``blog/conditional-parameter-optimization-lessons.md`` quotes these pins, and
 two classes at the end of this file read the post itself, one copy of each
 figure: ``TestThePostQuotesWhatEveryCloneComputes`` for what needs no bars, and
-``TestThePostQuotesTheRun`` for the run's figures. Its figure's own labels are
-held by ``tests/test_cpo_figures.py``. What the post says that nothing here
+``TestThePostQuotesTheRun`` for the run's figures. The chart's own labels are
+held by ``tests/test_cpo_figures.py``, and the two sketches' by
+``tests/test_cpo_whiteboard.py``. What the post says that nothing here
 asserts is listed in README's ``## The write-up``.
 """
 
@@ -34,6 +35,7 @@ import pytest
 from scipy.stats import spearmanr
 
 from chan import cpo
+from chan.archive import read_archive_manifest
 from chan.cpo import (
     EXIT_FRACTION,
     Cell,
@@ -61,6 +63,8 @@ from tests.conftest import archive_skip_reason
 SEEDS_TRIED = 10
 SEEDS_THE_CLAIM_HOLDS_FOR = (2, 7)
 SEED_SHARPE_RANGE = (5.166, 6.353)
+#: How many of the ten seeds make re-choosing beat holding on each metric.
+SEED_WINS = {"cumulative": 2, "annual": 2, "sharpe": 3, "calmar": 6}
 
 # --- literal readings of the rules, the references the fast code is held to ---
 
@@ -606,7 +610,8 @@ class TestExample71OnTheArchive:
         picks the tenth of the train rows held out to judge it, and the sample
         its bins are cut from. Reading 14 declared seed 0, which row 5 pins.
         Seeds 2 and 7 make re-choosing beat holding on all four metrics. This
-        decides nothing.
+        decides nothing. Like rows 5 to 10, it rests on the model, so a lock update
+        can move it.
         """
         from sklearn.ensemble import HistGradientBoostingRegressor
 
@@ -618,16 +623,20 @@ class TestExample71OnTheArchive:
         unconditional = metrics(result.unconditional_returns)
         rows = np.arange(n_train, n_days)
         held, sharpes = [], []
+        wins = dict.fromkeys(cpo.METRICS, 0)
         for seed in range(SEEDS_TRIED):
             model = HistGradientBoostingRegressor(random_state=seed).fit(x, y)
             chosen = conditional_choices(model, features, n_train, n_days)
             conditional = metrics(returns[rows, chosen])
             sharpes.append(conditional["sharpe"])
+            for name in cpo.METRICS:
+                wins[name] += conditional[name] > unconditional[name]
             if claim_holds(unconditional, conditional):
                 held.append(seed)
         assert tuple(held) == SEEDS_THE_CLAIM_HOLDS_FOR
         assert sharpes[0] == pytest.approx(5.274377985680034, abs=1e-9)
         assert (round(min(sharpes), 3), round(max(sharpes), 3)) == SEED_SHARPE_RANGE
+        assert wins == SEED_WINS
 
     def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
         """Added after the result was seen. Spearman's rank correlation, deciding nothing."""
@@ -866,7 +875,8 @@ POST = (
 )
 
 #: The counts the post spells out in words.
-WORDS = {2: "two", 3: "three", 5: "five", 7: "seven", 8: "eight", 10: "ten"}
+WORDS = {2: "two", 3: "three", 5: "five", 6: "six", 7: "seven", 8: "eight", 10: "ten"}
+ORDINALS = {1: "first", 2: "second", 3: "third"}
 
 _METRIC_ROWS = {
     "cumulative": "Cumulative return",
@@ -915,15 +925,17 @@ def _figure(metric: str, value: float, places: int) -> str:
 
 
 class TestThePostQuotesWhatEveryCloneComputes:
-    """The post's figures that need no bars, one copy of each, read from the post itself.
+    """The post's figures a clone can hold without the run, one copy of each, read from the post.
 
-    The post says Chan's arithmetic in Lesson 2, the early closes and the
-    12:59 fix in Lesson 3, and the grid and rules are checked on every copy of
-    the repository. These tests read each of those figures once, from the
-    sentence or table cell named in each test, and hold it to the module's
-    constants. A second copy of a figure elsewhere in the post is not read.
-    The run's own figures need the archive, so ``TestThePostQuotesTheRun``
-    reads those.
+    Each test reads the sentence or table cell it names: the book columns of
+    Lesson 1's tables, held to ``chan.cpo``'s ``BOOK_*`` constants rather than
+    to the page; Chan's arithmetic in Lesson 2; the early closes and the 12:59
+    fix in Lesson 3; the grid, the rules, the split, the trading year and the
+    cost; the feature count; and the two download dates, held to the archive's
+    manifest. The seeds sentences are held to this file's ``SEED*`` constants,
+    which ``test_the_claim_holds_for_2_of_10_seeds`` derives on the archive. A
+    second copy of a figure elsewhere in the post is not read. The run's own
+    figures need the archive, so ``TestThePostQuotesTheRun`` reads those.
     """
 
     text = POST.read_text("utf-8")
@@ -957,8 +969,9 @@ class TestThePostQuotesWhatEveryCloneComputes:
         fixed, rechosen = cpo.BOOK_UNCONDITIONAL, cpo.BOOK_CONDITIONAL
         _quotes(
             self.text,
-            f"At an arithmetic {_percent(fixed['annual'], 2)} a year that sum is "
-            f"3 × {fixed['annual']:g}, and the cap is a cumulative return of "
+            f"At an arithmetic {_percent(fixed['annual'], 2)} a year, each year’s "
+            f"{cpo.TRADING_DAYS} daily returns sum to {fixed['annual']:g}, so three years’ "
+            f"returns sum to 3 × {fixed['annual']:g}, and the cap is a cumulative return of "
             f"{_percent(math.exp(3 * fixed['annual']) - 1, 1)}, "
             f"still short of {_percent(fixed['cumulative'], 0)}",
         )
@@ -1025,22 +1038,45 @@ class TestThePostQuotesWhatEveryCloneComputes:
         )
 
     def test_the_seeds_sentence_quotes_the_seed_pin(self) -> None:
-        """The figures ``test_the_claim_holds_for_2_of_10_seeds`` holds on the archive."""
+        """The figures ``test_the_claim_holds_for_2_of_10_seeds`` holds on the archive.
+
+        Without the archive it checks only that the post quotes these constants, and
+        that pin is what ties them to the refit.
+        """
         low, high = SEED_SHARPE_RANGE
         held = len(SEEDS_THE_CLAIM_HOLDS_FOR)
         _quotes(
             self.text,
-            f"Refit with seeds 0 to {SEEDS_TRIED - 1}, a check added after the result was seen",
+            f"refit the model with each of seeds 0 to {SEEDS_TRIED - 1}.",
         )
         _quotes(
             self.text,
-            f"re-choosing wins on all four metrics for {WORDS[held]} of them, and its Sharpe "
-            f"ratio runs from {low:.3f} to {high:.3f}.",
+            f"With {WORDS[held]} of those {WORDS[SEEDS_TRIED]} seeds re-choosing wins on all "
+            f"four metrics, and its Sharpe ratio runs from {low:.3f} to {high:.3f} across them",
         )
         _quotes(
             self.text,
-            f"Of {WORDS[SEEDS_TRIED]} seeds tried afterwards, {WORDS[held]} reverse that.",
+            f"Refit with each of {WORDS[SEEDS_TRIED]} seeds after the result was seen, the model "
+            f"makes re-choosing win on all four for {WORDS[held]} of them",
         )
+
+    def test_the_seeds_wins_per_metric(self) -> None:
+        """How many of the ten seeds win on each metric, from ``SEED_WINS``."""
+        w = {name: WORDS[count] for name, count in SEED_WINS.items()}
+        assert SEED_WINS["cumulative"] == SEED_WINS["annual"]
+        _quotes(
+            self.text,
+            f"Across the ten, re-choosing beats the fixed arm on the Calmar ratio for "
+            f"{w['calmar']} seeds, on the Sharpe ratio for {w['sharpe']} and on each return "
+            f"for {w['cumulative']}.",
+        )
+
+    def test_the_download_dates(self) -> None:
+        """The two vintages' download dates, held to the archive's manifest."""
+        by_path = {entry.path: entry for entry in read_archive_manifest()}
+        gld = by_path["gld_intraday_1min.csv.gz"].download_date
+        gdx = by_path["gdx_intraday_1min.csv.gz"].download_date
+        _quotes(self.text, f"GLD was downloaded on {gld} and GDX on {gdx}.")
 
 
 class TestThePostQuotesTheRun:
@@ -1064,6 +1100,19 @@ class TestThePostQuotesTheRun:
             rows = _table(self.text, head)
             for metric, name in _METRIC_ROWS.items():
                 assert rows[name][0] == _figure(metric, got[metric], cpo.BOOK_DECIMALS[metric])
+
+    def test_which_metric_re_choosing_wins(self, result):
+        """The verdict's words: the one metric re-choosing wins with the seed fixed in advance."""
+        fixed = metrics(result.unconditional_returns)
+        rechosen = metrics(result.conditional_returns)
+        (won,) = [name for name in cpo.METRICS if rechosen[name] > fixed[name]]
+        name = {"sharpe": "Sharpe ratio", "calmar": "Calmar ratio"}[won]
+        _quotes(
+            self.text,
+            f"Re-choosing beats holding on the {name}, {rechosen[won]:.3f} against "
+            f"{fixed[won]:.3f}.",
+        )
+        _quotes(self.text, f"In the corrected run it wins on the {name} alone.")
 
     def test_the_gaps_and_the_multiples(self, result):
         got = metrics(result.unconditional_returns)
@@ -1136,7 +1185,14 @@ class TestThePostQuotesTheRun:
             f"and the lowest entry threshold on the grid. On the test days it trades "
             f"{result.unconditional_trips.mean():.1f} round trips a day",
         )
-        _quotes(self.text, f"The re-chosen arm trades {result.conditional_trips.mean():.1f}.")
+        _quotes(
+            self.text,
+            f"The re-chosen arm trades {result.conditional_trips.mean():.1f}, and its figures "
+            "in this lesson come from the seed fixed in advance.",
+        )
+        chosen = cells().index(result.unconditional)
+        rank = 1 + int((result.cell_trips > result.cell_trips[chosen]).sum())
+        _quotes(self.text, f"the {ORDINALS[rank]} most of the {len(cells())} cells")
 
     def test_the_edge_a_round_trip(self, result):
         fixed = result.unconditional_returns.sum() / result.unconditional_trips.sum()

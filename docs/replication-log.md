@@ -4390,7 +4390,9 @@ The setup of Example 7.1 is among the committed highlights in
 [research/book-notes](../research/book-notes/README.md), at Kindle locations
 3428 to 3517. Its results are not, because the book prints them in a table
 beside code and a figure, as `research/book-notes/README.md` records. Those
-rows trace to the pages read on 2026-10-03, recorded on
+rows trace to the pages read in the Kindle Cloud Reader on 2026-11-01, recorded
+on [issue 628](https://github.com/l3a0/quantitative-trading/issues/628#issuecomment-6568000548),
+which replace the page numbers read on 2026-10-03 and recorded on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
 | # | Row | Published | Where |
@@ -4511,7 +4513,9 @@ and the tables above do not, so they are named here.
 4. `test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells`,
    Spearman's rank correlation of 0.95.
 5. `test_the_claim_holds_for_2_of_10_seeds`, the claim holding for seeds 2 and
-   7 of 0 to 9, with the re-chosen Sharpe ratio running from 5.166 to 6.353.
+   7 of 0 to 9, with the re-chosen Sharpe ratio running from 5.166 to 6.353,
+   and re-choosing beating holding on the Calmar ratio for six seeds, the
+   Sharpe ratio for three and each return for two.
 
 The last four were added after the result was seen and decide nothing.
 
