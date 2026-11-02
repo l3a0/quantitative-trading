@@ -1,21 +1,38 @@
 """The pins for XLE against USO signed by crude oil's contango, *Algorithmic Trading* location 2734.
 
-This file is the single authority for every number a prose surface quotes
-about this replication, with one exception, in
-``blog/xle-uso-roll-return-lessons.md``. ``TestWhatThePostMeasures`` holds
-that post's own numbers. It also quotes three kinds of number held elsewhere.
+This file is the single authority for every run figure
+``blog/xle-uso-roll-return-lessons.md`` quotes about this replication.
+``TestWhatThePostMeasures`` holds the figures the post measured beyond the
+script's printout, ``TestWhatThePostQuotes`` reads the post's copies of them,
+and README.md lists what the post states that no test asserts, such as its
+rounded readings. The post also quotes five kinds of number and one finding
+held elsewhere.
 
 1. Its figure's labels, which ``tests/test_xle_uso_roll_return_figures.py``
    holds.
-2. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
-3. SPY's close 14.98 below the price that traded and its 24 dividends, which
-   ``TestTheETFFileSubtractsEachDividend`` in ``tests/test_series.py`` holds.
+2. Its sketches' dates, row counts and twelve-second hold, which
+   ``tests/test_xle_uso_roll_return_whiteboard.py`` holds.
+3. CL's γ changing sign 29 times, which ``tests/test_roll_returns.py`` holds.
+4. SPY's close 14.98 below the price that traded, its zero gap on the file's
+   last day, its 24 dividends and the two dates its Yahoo Finance closes were
+   downloaded, which ``TestTheETFFileSubtractsEachDividend`` in
+   ``tests/test_series.py`` holds.
+5. The 67 funds the fund file holds, which
+   ``TestTheCommittedPanelsAreChansArrays`` in ``tests/test_series.py`` holds.
+6. The finding that two saves a week apart differ on every close of the crude
+   oil reversal post's continuous future, which
+   ``test_the_later_save_sits_0_27_higher_on_every_day`` in
+   ``tests/test_cl_reversal_momentum.py`` holds.
 
 ``docs/replication-log.md`` Entry 39 carries the verdicts and points here row
 by row.
 
-Every pin reads two vintages and one specification, so they are stated once
-here.
+The pins on Chan's files read one or both of two vintages, and those that
+run the script's steps follow one specification, so both are stated once
+here. Some also read a third vintage and a second specification, which
+``TestWhatThePostMeasures`` states. ``TestTheScheduleNotReused`` sets the
+calendar spread's schedule beside the script's ratio, and ``TestTheRules``
+runs the specification on frames built so each answer is known.
 
 - **Vintages.** Two of Chan's book-two files, both chan-mat. Each one's
   identity is its row of ``LIFTED_SOURCES`` in
@@ -54,6 +71,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 from contextlib import redirect_stdout
 
 import numpy as np
@@ -62,22 +80,25 @@ import pytest
 
 from chan import paths, roll_returns
 from chan import xle_uso_roll_return as module
+from chan.archive import read_archive_manifest
 from chan.calendar_spread_reversion import calendar_schedule
 from chan.khandani_lo_book_two import gap, matches
-from chan.matlab_helpers import smartmean
+from chan.matlab_helpers import backshift, drawdown_path, smartmean
 from chan.series import WindowCrossesScaleBreak, load_panel, scale_breaks
 from chan.tu_momentum import figures
-from chan.vintage import VintageUnavailable
+from chan.vintage import VintageUnavailable, read_manifest
 from chan.vx_calendar_spread import held_pair_ratio
 from chan.xle_uso_roll_return import (
     BACKWARDATION,
     BOOK_APR_PERCENT,
     BOOK_SHARPE,
     CONTANGO,
+    DAYS_PER_YEAR,
     ETF_FILE,
     FRONT_END,
     FRONT_START,
     LEGS,
+    MONTHS_PER_YEAR,
     SCRIPT_APR,
     SCRIPT_AVERAGE_ANNUAL_RETURN,
     SCRIPT_MAX_DRAWDOWN,
@@ -100,11 +121,57 @@ from chan.xle_uso_roll_return import (
     read_sources,
     run,
 )
+from chan.xle_uso_roll_return_figures import cumulative_return, held_runs, signed
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import either_way, not_found_once, tables
 
 TIGHT = 1e-12
 
+POST = paths.REPO_ROOT / "blog" / "xle-uso-roll-return-lessons.md"
+
 day = pd.Timestamp
+
+
+def _front_places(contracts: pd.DataFrame, result: Arbitrage) -> list[int]:
+    """Which of each day's priced contracts the script's front is, 1 or 2, by back over front."""
+    places = []
+    for d, value in zip(result.days, result.ratio, strict=True):
+        if not np.isfinite(value):
+            continue
+        row = contracts.loc[d].to_numpy()
+        priced = np.flatnonzero(np.isfinite(row))
+        nearest = [row[priced[k] + 1] / row[priced[k]] for k in (0, 1)]
+        assert (nearest[0] == value) != (nearest[1] == value)
+        places.append(1 if nearest[0] == value else 2)
+    return places
+
+
+def _gamma_against_the_ratio(gamma: pd.Series, result: Arbitrage) -> dict[str, int]:
+    """How often γ, positive in backwardation, calls the view the ratio calls."""
+    defined = np.isfinite(result.ratio)
+    ratio = result.ratio[defined]
+    g = gamma.loc[result.days[defined]].to_numpy()
+    assert np.isfinite(g).all()
+    contango, backwardation = ratio > 1, ratio < 1
+    return {
+        "called": int((contango | backwardation).sum()),
+        "agree": int((contango & (g < 0)).sum() + (backwardation & (g > 0)).sum()),
+        "contango_by_ratio": int((contango & (g > 0)).sum()),
+        "backwardation_by_ratio": int((backwardation & (g < 0)).sum()),
+        "at_one_gamma_positive": int((g[ratio == 1] > 0).sum()),
+    }
+
+
+def _sharpe_dividing_by_n_minus_1(daily: np.ndarray) -> float:
+    return math.sqrt(DAYS_PER_YEAR) * smartmean(daily) / np.std(daily, ddof=1)
+
+
+def _pinned(test_file: str, test: str, pattern: str) -> str:
+    """The one value ``pattern`` finds in the source of ``test``, a test in another file."""
+    source = (paths.REPO_ROOT / "tests" / test_file).read_text(encoding="utf-8")
+    body = source.split(f"def {test}(", 1)[1].split("\n    def ", 1)[0]
+    (found,) = re.findall(pattern, body)
+    return found
 
 
 @pytest.fixture(scope="module")
@@ -136,6 +203,18 @@ def result(closes, ratio) -> Arbitrage:
 def schedule(contracts) -> pd.DataFrame:
     """The calendar spread's schedule with one month between the pair and no minimum hold."""
     return calendar_schedule(contracts, spread_month=1, holddays=0)
+
+
+@pytest.fixture(scope="module")
+def later() -> roll_returns.Strip:
+    """CL's 2012-08-13 save, the one Example 5.3 fits γ on, which holds a spot."""
+    return roll_returns.load_strip("CL")
+
+
+@pytest.fixture(scope="module")
+def gamma(later) -> pd.Series:
+    """Example 5.3's γ on the later save, positive in backwardation."""
+    return roll_returns.roll_returns(later.contracts)
 
 
 @pytest.fixture(scope="module")
@@ -199,7 +278,14 @@ class TestTheVintages:
 
 
 class TestTheSpecification:
-    """The script's rule on both vintages, over the 1,498 days both calendars hold."""
+    """The script's rule on both vintages, over the 1,498 days both calendars hold.
+
+    Every pin built on the run's ratio also reads the CL file's rows after the
+    last of those days, 2012-04-09, because the script finds each expiry as a
+    contract's last priced row. Two also assert over the CL file's rows before
+    the first of them, from 2000-11-20: the first front ratio and CL-2007F's 31
+    front rows, which find no ratio on any row before 2006-10-20.
+    """
 
     def test_the_average_annual_return(self, result) -> None:
         f = result.figures
@@ -253,8 +339,7 @@ class TestTheSpecification:
 
     def test_dividing_by_n_minus_1_also_rounds_to_1_05(self, result) -> None:
         """The printed Sharpe ratio cannot tell ``smartstd``'s n from n − 1."""
-        daily = result.daily
-        sharpe = math.sqrt(252) * smartmean(daily) / np.std(daily, ddof=1)
+        sharpe = _sharpe_dividing_by_n_minus_1(result.daily)
         assert sharpe == pytest.approx(1.0462470218172839, abs=TIGHT)
         assert matches(sharpe, SCRIPT_SHARPE)
         assert result.figures.sharpe != pytest.approx(sharpe, abs=1e-4)
@@ -303,8 +388,20 @@ class TestWhatThePostMeasures:
     """Pins added with ``blog/xle-uso-roll-return-lessons.md``, measured after the run.
 
     Same vintages and specification as the module docstring states, over the
-    1,498 days both calendars hold unless a test names a shorter span. Each
-    describes this sample and tests nothing.
+    1,498 days both calendars hold unless a test names a shorter span. Every
+    pin built on the run's ratio also reads the CL file's rows after the last
+    of those days, 2012-04-09, because the script finds each expiry as a
+    contract's last priced row. Three also assert over the CL file's whole
+    span, its 2,867 rows from 2000-11-20 to 2012-05-02: the 40-row start test,
+    the 30-row test, and the comparison of the later save's prices with the
+    CL file's. Two pins also read a third
+    vintage, ``inputdatadaily_cl_20120813/``, from
+    ``inputDataDaily_CL_20120813.mat``, chan-mat, basis ``raw``, saved
+    2012-08-14, which runs to 2012-08-13 and holds a spot. One of them also
+    reads a second specification, Example 5.3's γ from
+    ``chan.roll_returns.roll_returns``, fitted on each row's five nearest
+    priced contracts when they are adjacent. Each describes this sample and
+    tests nothing.
     """
 
     def test_the_40_row_start_decides_only_cl_2007f_s_window(self, contracts) -> None:
@@ -319,15 +416,41 @@ class TestWhatThePostMeasures:
             end = expiry - FRONT_END
         assert bound == []
 
-    def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(self, result) -> None:
-        strip = roll_returns.load_strip("CL")
+    def test_contracts_expire_fewer_than_30_rows_apart(self, contracts) -> None:
+        """Each later contract's own 40-row start falls before the previous front's 10-row end.
+
+        The post says CL contracts expire fewer than 30 rows apart in the file,
+        the distance from a window's 40-row start to its 10-row end.
+        """
+        windows = module.front_windows(contracts)
+        pairs = list(zip(windows, windows[1:], strict=False))
+        assert max(b.expiry - a.expiry for a, b in pairs) < FRONT_START - FRONT_END == 30
+        assert all(b.expiry - FRONT_START < a.last for a, b in pairs)
+
+    def test_the_2012_08_13_save_gives_the_same_ratio_on_all_1375_days(
+        self, contracts, later, result
+    ) -> None:
         # A different save: it holds a spot and runs to 2012-08-13.
-        assert {m.obtained for m in strip.members} == {"2012-08-14"}
-        assert strip.spot is not None and strip.contracts.index[-1] == day("2012-08-13")
-        later = front_ratio(strip.contracts)
+        assert {m.obtained for m in later.members} == {"2012-08-14"}
+        # The same 89 contracts in the same order, which the post's "the same
+        # set of CL contracts" says.
+        assert list(later.contracts.columns) == list(contracts.columns)
+        assert later.spot is not None and later.contracts.index[-1] == day("2012-08-13")
+        # Its spot is priced on every one of the 1,498 days the fund file and
+        # the CL file share, which the post's Lesson 1 says.
+        assert later.spot.reindex(result.days).notna().all() and len(result.days) == 1498
+        # Every price of the 89 contracts on every row of this file's span is
+        # the same in the later save, NaN where this file has none, and the
+        # later save adds no row inside the span. That is the post's "holds
+        # every price of the CL file unchanged" and its "Chan's single
+        # contracts were not rewritten that way", which the ratio below checks
+        # only on the front windows.
+        span = later.contracts.loc[contracts.index[0] : contracts.index[-1]]
+        assert span.equals(contracts)
+        ratio = front_ratio(later.contracts)
         defined = np.isfinite(result.ratio)
         assert int(defined.sum()) == 1375
-        assert (later.loc[result.days[defined]].to_numpy() == result.ratio[defined]).all()
+        assert (ratio.loc[result.days[defined]].to_numpy() == result.ratio[defined]).all()
 
     def test_each_leg_s_close_at_either_end_of_the_window(self, closes) -> None:
         first, last = closes.loc[WINDOW_START], closes.loc[WINDOW_END]
@@ -338,35 +461,24 @@ class TestWhatThePostMeasures:
     def test_the_front_is_the_nearest_contract_on_734_days_and_the_second_on_641(
         self, contracts, result
     ) -> None:
-        """Which of each day's priced contracts the script's front is, by its back-over-front."""
-        places = []
-        for d, value in zip(result.days, result.ratio, strict=True):
-            if not np.isfinite(value):
-                continue
-            row = contracts.loc[d].to_numpy()
-            priced = np.flatnonzero(np.isfinite(row))
-            nearest = [row[priced[k] + 1] / row[priced[k]] for k in (0, 1)]
-            assert (nearest[0] == value) != (nearest[1] == value)
-            places.append(1 if nearest[0] == value else 2)
+        places = _front_places(contracts, result)
         assert (places.count(1), places.count(2)) == (734, 641)
 
-    def test_the_ratio_and_example_5_3_s_gamma_agree_on_1354_of_1373_days(self, result) -> None:
+    def test_the_ratio_and_example_5_3_s_gamma_agree_on_1354_of_1373_days(
+        self, gamma, result
+    ) -> None:
         """γ on the 2012-08-13 save, positive in backwardation, against the ratio's view.
 
         On the 2 days the ratio is exactly 1 it calls no view, and γ is
         positive on both.
         """
-        gamma = roll_returns.roll_returns(roll_returns.load_strip("CL").contracts)
-        defined = np.isfinite(result.ratio)
-        ratio = result.ratio[defined]
-        g = gamma.loc[result.days[defined]].to_numpy()
-        assert np.isfinite(g).all()
-        contango, backwardation = ratio > 1, ratio < 1
-        assert int((contango | backwardation).sum()) == 1373
-        assert int((contango & (g < 0)).sum() + (backwardation & (g > 0)).sum()) == 1354
-        assert int((contango & (g > 0)).sum()) == 13
-        assert int((backwardation & (g < 0)).sum()) == 6
-        assert (g[ratio == 1] > 0).all()
+        assert _gamma_against_the_ratio(gamma, result) == {
+            "called": 1373,
+            "agree": 1354,
+            "contango_by_ratio": 13,
+            "backwardation_by_ratio": 6,
+            "at_one_gamma_positive": 2,
+        }
 
     def test_from_the_first_ratio_the_apr_and_sharpe_rise_and_the_drawdown_holds(
         self, result
@@ -416,13 +528,527 @@ class TestWhatThePostMeasures:
         assert views["contango"].roll == pytest.approx(-0.7660808253619001, abs=TIGHT)
         assert views["backwardation"].roll == pytest.approx(0.07237958945892248, abs=TIGHT)
         # USO's own log move on the same days, against which the roll return is read.
-        assert f"{math.log(1 + views['contango'].uso):.4f}" == "-0.8388"
-        assert f"{math.log(1 + views['backwardation'].uso):.4f}" == "0.5323"
+        assert f"{math.log(1 + views['contango'].uso):.6f}" == "-0.838762"
+        assert f"{math.log(1 + views['backwardation'].uso):.6f}" == "0.532304"
 
     def test_holding_contango_s_position_on_every_held_day(self, closes, result) -> None:
         f = figures(fixed_view(closes, result))
         assert f.apr == pytest.approx(0.04494895985018821, abs=TIGHT)
         assert f.sharpe == pytest.approx(0.3645242431361169, abs=TIGHT)
+
+
+class TestWhatThePostQuotes:
+    """At least one copy of each run figure ``blog/xle-uso-roll-return-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. Where a word states a fact the run
+    decides, such as "fell", "under a seventh" or "about a third", the run is
+    asserted to bear it out and the sentence holding the word is read. That
+    covers a set of such sentences rather than every one. Some sentences that
+    restate the script's rules, such as that the ratio is the back's price
+    over the front's or that a day earns on the position held the day before,
+    are held against the code by ``TestTheRules`` and ``TestTheSpecification``
+    and are not read here. The post's two tables are each read whole, as the
+    grid of its cells with its row labels and column heads, so a cell's
+    number or label changed, or a cell added, dropped or moved, fails, while
+    the same table turned on its side still passes. A number's unit is not
+    read, so Lesson 5's percent signs could be dropped and pass. Both tables'
+    rows are compared in order rather than by label, which is what lets
+    Lesson 5's table repeat "the trade" under "Compounded" and "Summed".
+
+    The post states several figures more than once. Where a figure repeats,
+    the copies read include these.
+
+    1. **The counts.** The 1,129, 244 and 123 days are read in the summary of
+       results and in Lesson 3, and the 123 again in Lesson 3's heading and
+       the alt text. The 1,375 days with a ratio are read where the files
+       are set out, in Lesson 1 and in Lesson 3.
+    2. **The figures.** The APR and the Sharpe ratio are read in Lesson 2's
+       table and again where Lesson 5 sets the fixed view beside them, and
+       the Sharpe ratio a third time in the section on what this replication
+       cannot say, beside its n − 1 value.
+    3. **The backwardation days.** USO's 0.532304 and the roll return's
+       0.072380 are read in the summary of results, in Lesson 5's table and
+       in Lesson 5's list, and the trade's 0.308117 of 0.946538 in the
+       summary of results and in Lesson 5.
+    4. **The alt text.** Its exact figures are read there as a second copy:
+       the drawdown's 1.272665 and 0.835584 with their dates, the 487 days,
+       the ratio's 0.982067 and 1.111489 with their dates, and the nine
+       bands with the months the widest spans. Lesson 3's prose reads the
+       108-day and 20-day stretches with their dates.
+
+    Six values come from pins in two other files rather than from this run.
+    CL's γ changing sign 29 times is read against
+    ``test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango``
+    in ``tests/test_roll_returns.py``, and SPY's 14.98, its zero gap on the
+    last day, its 24 dividends and both download dates against
+    ``test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day``
+    in ``tests/test_series.py``. Each is read from that test's source. That
+    the only XLE series in the repository is Chan's, as Lesson 4 and the
+    section on what this replication cannot say both state, is read against
+    ``data/vintages.jsonl``, which records one XLE vintage, and
+    ``data/archive_vintages.jsonl``, which records none.
+
+    Summary item 5's and Lesson 5's headings are read for "a third". The
+    copies left unread include the title's and the subtitle's "a third", the
+    bold headings of the summary's other four groups, the five figures and
+    the book's two named in the summary, the 67 funds the fund file holds,
+    which ``tests/test_series.py`` counts, the dates of Chan's span where
+    they repeat, and the alt text's rounded readings of the lines, such
+    as "about 30 percent by late 2007", "near 141 percent" and "mostly between
+    1.00 and 1.03". Words the run decides that are left unread include Lesson
+    2's sentence that the script's APR and Sharpe ratio round to the book's
+    two, Lesson 3's clause that both drawdowns come later, and Habit 5's "on
+    the backwardation days". Lesson 5's sentence that USO's daily log
+    moves sum to the log of one plus its compounded move holds on any data,
+    and its sentence that, under the book's model, the contango days were
+    short the fund that loses the roll return and long the fund that does not
+    follows from that model and the rule, since a ratio above 1 makes every
+    contango day's implied roll return negative. Neither is read, and
+    ``README.md`` lists the second among the readings. The finding that two
+    saves a week apart differ on every close of the crude oil reversal post's
+    continuous future is ``tests/test_cl_reversal_momentum.py``'s.
+    The summary's first group, that this replication tests neither claim the
+    pair rests on, holds no number and is not read. Nothing checks Chan's words
+    against their source, the page numbers, the mirror's commit or the
+    references, and ``README.md`` lists them.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def _long_date(d: pd.Timestamp) -> str:
+        return f"{d:%B} {d.day}, {d.year}"
+
+    def test_the_post_holds_two_tables(self, text) -> None:
+        assert len(tables(text)) == 2
+
+    def test_the_opening_and_the_results(self, closes, result, text) -> None:
+        views = by_view(closes, result)
+        held = result.positions
+        unset = int(np.isnan(result.ratio).sum())
+        backwardation = views["backwardation"]
+        total = result.daily.sum()
+        assert int((held == CONTANGO).all(axis=1).sum()) > len(result.days) / 2, "most days"
+        fragments = [
+            f"and reports {BOOK_APR_PERCENT} percent a year.",
+            "The trade bets on contango on most days,",
+            "“Short USO and long XLE whenever CL is in contango”, meaning later contracts are "
+            "priced above earlier ones.",
+            f"“a very respectable {BOOK_APR_PERCENT} percent” a year from "
+            f"{self._long_date(WINDOW_START)}, to {self._long_date(WINDOW_END)}, “with a Sharpe "
+            f"ratio of about {BOOK_SHARPE}”",
+            f"It is short USO and long XLE on {int((held == CONTANGO).all(axis=1).sum()):,} days, "
+            f"the reverse on {int((held == BACKWARDATION).all(axis=1).sum())}, and holds nothing "
+            f"for its first {unset} days.",
+            f"The trade’s daily returns sum to {backwardation.summed:.6f} over those days, of "
+            f"{total:.6f} over all of Chan’s dates.",
+            f"On those days USO rose {math.log(1 + backwardation.uso):.6f} in log terms, while "
+            f"the roll return the signal reads came to {backwardation.roll:.6f}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_the_setup_and_the_files(self, sources, closes, contracts, later, result, text) -> None:
+        etf, _, strip = sources
+        (etf_saved,) = {m.obtained for m in etf}
+        (strip_saved,) = {m.obtained for m in strip.members}
+        (later_saved,) = {m.obtained for m in later.members}
+        assert closes.notna().all().all() and strip.spot is None
+        # "One for each month": the contracts' delivery months run without a gap.
+        months = [
+            12 * int(c[3:7]) + roll_returns.MONTH_LETTERS.index(c[7]) for c in contracts.columns
+        ]
+        assert months == list(range(months[0], months[0] + len(months)))
+        defined = np.isfinite(result.ratio)
+        first = result.days[defined][0]
+        missing = closes.index.difference(contracts.index)
+        assert len(missing) == 2
+        later_ratio = front_ratio(later.contracts).loc[result.days[defined]].to_numpy()
+        assert (later_ratio == result.ratio[defined]).all()
+        span = later.contracts.loc[contracts.index[0] : contracts.index[-1]]
+        assert span.equals(contracts), "not rewritten"
+        above, below = result.ratio > 1, result.ratio < 1
+        assert (result.positions[above] == CONTANGO).all(), "above 1 is contango"
+        assert (result.positions[below] == BACKWARDATION).all(), "below 1 is backwardation"
+        views = by_view(closes, result)
+        assert views["contango"].roll < 0 < views["backwardation"].roll, "negative and positive"
+        windows = module.front_windows(contracts)
+        gaps = [b.expiry - a.expiry for a, b in zip(windows, windows[1:], strict=False)]
+        assert max(gaps) < FRONT_START - FRONT_END, "fewer than 30 rows"
+        # Each fund's leg is its position on the day before times its move,
+        # and the day's return is their sum over the count of funds.
+        prices = closes.loc[result.days, list(LEGS)].to_numpy(dtype=float)
+        legs = backshift(1, result.positions) * (prices / backshift(1, prices) - 1)
+        assert result.daily == pytest.approx(
+            np.nan_to_num(legs).sum(axis=1) / len(LEGS), abs=TIGHT
+        ), "half the capital each"
+        fragments = [
+            "Above 1 is contango, and below 1 is backwardation.",
+            "A positive roll return therefore puts the back below the front, which is "
+            "backwardation, and a negative one puts it above, which is contango.",
+            "so a ratio above 1 gives a negative roll return.",
+            "That reading assumes the two contracts are a month apart, which on CL they are.",
+            f"CL contracts expire a month apart, which in this file is fewer than "
+            f"{FRONT_START - FRONT_END} rows, the distance from a window’s {FRONT_START}-row start "
+            f"to its {FRONT_END}-row end. So each contract’s {FRONT_START}-row start falls before "
+            f"the previous front’s {FRONT_END}-row end.",
+            f"So the roll return, annualised, is about {MONTHS_PER_YEAR} times the log of the "
+            "front over the back.",
+            f"\\gamma_t \\approx {MONTHS_PER_YEAR} \\ln "
+            "\\frac{F_{\\text{front}}(t)}{F_{\\text{back}}(t)}",
+            "Each fund carries half the capital, so the day’s return is the sum of the two legs "
+            f"divided by {len(LEGS)}.",
+            f"Each contract is the front from {FRONT_START} rows to {FRONT_END} rows before its "
+            "last priced row,",
+            f"The {FRONT_START} decides only the front window of {contracts.columns[0]}, the "
+            "January 2007 contract,",
+            "The APR is the compounded return per year, taking a year as "
+            f"{DAYS_PER_YEAR} trading days.",
+            f"times √{DAYS_PER_YEAR}, with no risk-free rate.",
+            f"**`{ETF_FILE}`**, saved {etf_saved}. USO and XLE hold {len(closes):,} closes each "
+            f"from {closes.index[0].date()} to {closes.index[-1].date()}, with none missing.",
+            f"**`{STRIP_FILE}`**, saved {strip_saved}. It holds {contracts.shape[1]} CL contracts, "
+            f"one for each month from {contracts.columns[0]} to {contracts.columns[-1]}, the May "
+            "2014 contract, over "
+            f"{len(contracts):,} days from {contracts.index[0].date()}. It holds no spot price.",
+            f"A later save of the same set of CL contracts, `{roll_returns.SOURCE_FILES['CL']}`, "
+            f"saved {later_saved}, is the file Chan’s Example 5.3 reads to fit γ",
+            f"The two calendars share {len(result.days):,} days. The fund file holds "
+            f"{missing[0].date()} and {missing[1].date()}, which the CL file lacks. The first "
+            f"front window opens on {first.date()}, so the ratio is defined on "
+            f"{int(defined.sum()):,} of the shared days.",
+            f"The later save of {later_saved} holds every price of the CL file unchanged, and "
+            f"it gives the same ratio on all {int(defined.sum()):,} days.",
+            "Each contract in the CL file holds only that contract’s own prices, so Chan’s "
+            "single contracts were not rewritten that way.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, closes, contracts, later, result, text) -> None:
+        places = _front_places(contracts, result)
+        first, last = closes.loc[WINDOW_START], closes.loc[WINDOW_END]
+        uso, xle = last[USO] / first[USO] - 1, last[XLE] / first[XLE] - 1
+        assert uso < 0 < xle, "fell and rose, opposite ways"
+        held = result.positions
+        held_contango = int((held == CONTANGO).all(axis=1).sum())
+        held_backwardation = int((held == BACKWARDATION).all(axis=1).sum())
+        assert held_contango > (held_contango + held_backwardation) / 2, "mostly short USO"
+        assert later.spot.reindex(result.days).notna().all()
+        (later_saved,) = {m.obtained for m in later.members}
+        old, new = module.front_windows(contracts)[:2]
+        overlap = int(contracts.iloc[new.rows, old.column].notna().sum())
+        assert overlap > 0, "the old contract is still priced"
+        fragments = [
+            f"From {WINDOW_START.date()} to {WINDOW_END.date()} the two funds went opposite ways.",
+            "A trade mostly short USO and long XLE gains from both moves,",
+            f"Chan’s later save of the same CL contracts, on {later_saved}, holds a spot price on "
+            f"every one of the {len(result.days):,} days the fund file and the CL file share,",
+            f"On {places.count(1)} of the {len(places):,} days with a ratio, the script’s front "
+            f"is the nearest contract the file prices that day. On the other {places.count(2)} "
+            "it is the second-nearest.",
+            f"The script moves to the next contract {FRONT_END} rows before the current one’s "
+            f"last price, and for those {overlap} rows the old contract is still priced.",
+            f"In Chan’s fund file, USO’s close fell from {first[USO]:.2f} to {last[USO]:.2f}, "
+            f"or {-100 * uso:.4f} percent. XLE’s rose from {first[XLE]:.2f} to {last[XLE]:.2f}, or "
+            f"{100 * xle:.4f} percent.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_2(self, gamma, later, result, text) -> None:
+        f = result.figures
+        (later_saved,) = {m.obtained for m in later.members}
+        n_minus_1 = _sharpe_dividing_by_n_minus_1(result.daily)
+        assert matches(n_minus_1, SCRIPT_SHARPE)
+        views = _gamma_against_the_ratio(gamma, result)
+        at_one = int((result.ratio == 1).sum())
+        assert views["at_one_gamma_positive"] == at_one, "γ calls backwardation on both"
+        assert views["agree"] > views["called"] / 2, "they mostly agree"
+        words = {5: "five"}
+        # The span the spot and roll returns post counts γ's sign changes over.
+        fitted = gamma.dropna()
+        sign_changes = _pinned(
+            "test_roll_returns.py",
+            "test_cls_gamma_changes_sign_29_times_and_its_longest_run_is_contango",
+            r"len\(runs\) - 1 == (\d+)",
+        )
+        assert f.average_annual_return == pytest.approx(
+            DAYS_PER_YEAR * result.daily.mean(), abs=TIGHT
+        ), "252 times the mean daily return"
+        fragments = [
+            f"The average annual return is {DAYS_PER_YEAR} times the mean daily return, without "
+            "compounding.",
+            f"The book prints two of the five, an APR of {BOOK_APR_PERCENT} percent and a Sharpe "
+            f"ratio of “about {BOOK_SHARPE}”.",
+            f"Using n − 1 instead gives a Sharpe ratio of {n_minus_1:.6f}, which also rounds to "
+            f"{SCRIPT_SHARPE}.",
+            f"as γ fitted across the {words[roll_returns.NEAREST]} nearest contracts each day.",
+            f"shows that from {fitted.index[0].date()} to {fitted.index[-1].date()}, CL’s γ is",
+            f"and changes sign {sign_changes} times. On the later save of {later_saved}, where "
+            "both the ratio and γ can be read, they mostly agree.",
+            f"**Same view on {views['agree']:,} days** of the {views['called']:,} on which the "
+            "ratio is not exactly 1.",
+            f"**Contango by the ratio and backwardation by γ** on {views['contango_by_ratio']}.",
+            "**Backwardation by the ratio and contango by γ** on "
+            f"{views['backwardation_by_ratio']}.",
+            f"On the {at_one} days the ratio is exactly 1 it calls no view, and γ calls "
+            "backwardation on both.",
+        ]
+        assert not_found_once(text, fragments) == []
+        table = [
+            ["Figure", "Computed", "Comment"],
+            [
+                "Average annual return",
+                f"{f.average_annual_return:.6f}",
+                SCRIPT_AVERAGE_ANNUAL_RETURN,
+            ],
+            ["Sharpe ratio", f"{f.sharpe:.6f}", SCRIPT_SHARPE],
+            ["APR", f"{f.apr:.6f}", SCRIPT_APR],
+            ["Maximum drawdown", f"{f.max_drawdown:.6f}", SCRIPT_MAX_DRAWDOWN],
+            ["Longest drawdown", f"{f.max_drawdown_days}", SCRIPT_MAX_DRAWDOWN_DAYS],
+        ]
+        assert tables(text)[0] in either_way(table)
+
+    def test_lesson_3(self, contracts, result, text) -> None:
+        held = result.positions
+        defined = np.isfinite(result.ratio)
+        unset = int((~defined).sum())
+        at_one = list(result.days[result.ratio == 1])
+        assert len(at_one) == 2 and result.flat == unset + len(at_one), "the two days at 1"
+        assert not result.daily[:unset].any(), "earning 0"
+        start = int(np.flatnonzero(defined)[0])
+        assert start == unset
+        from_start = figures(result.daily[start:])
+        f = result.figures
+        assert (from_start.max_drawdown, from_start.max_drawdown_days) == (
+            f.max_drawdown,
+            f.max_drawdown_days,
+        ), "the drawdown figures do not change"
+        runs = held_runs(result.days, (held == BACKWARDATION).all(axis=1))
+        longest = max(runs, key=lambda r: r[2])
+        ratio = pd.Series(result.ratio, index=result.days)
+        low, high = ratio.idxmin(), ratio.idxmax()
+        assert ratio[high] > 1 and (high.year, high.quarter) == (2009, 1), "contango, early 2009"
+        words = {9: "Nine"}
+        assert int((held == CONTANGO).all(axis=1).sum()) > int(defined.sum()) / 2, "mostly"
+        fragments = [
+            f"## Lesson 3: mostly contango, and nothing held for the first {unset} days",
+            "So the trade is mostly short USO and long XLE.",
+            f"Of the {int(defined.sum()):,} days with a ratio, the trade holds contango’s "
+            f"position on {int((held == CONTANGO).all(axis=1).sum()):,} and backwardation’s on "
+            f"{int((held == BACKWARDATION).all(axis=1).sum())}. On {len(at_one)} days, "
+            f"{at_one[0].date()} and {at_one[1].date()}, the ratio is exactly 1 and the trade "
+            "holds nothing.",
+            f"It also holds nothing on its first {unset} days, the days the fund file and the "
+            f"CL file share from {result.days[0].date()} to {result.days[unset - 1].date()}.",
+            f"The CL file’s first contract is {contracts.columns[0]}, and its front window opens "
+            f"on {result.days[start].date()}.",
+            "Counting the 2 days the ratio is exactly 1, the trade holds nothing on "
+            f"{result.flat} days in all.",
+            f"Chan’s figures count those {unset} days as earning 0,",
+            f"Measured from {result.days[start].date()} instead, the APR is "
+            f"{from_start.apr:.6f} and the Sharpe ratio {from_start.sharpe:.6f}.",
+            "The drawdown figures do not change,",
+            f"{words[len(runs)]} stretches hold them. The longest runs from "
+            f"{longest[0].date()} to {longest[1].date()}, {longest[2]} days, and the last from "
+            f"{runs[-1][0].date()} to {runs[-1][1].date()}, {runs[-1][2]} days.",
+            f"The ratio’s lowest value is {ratio[low]:.6f} on {low.date()} and its highest "
+            f"{ratio[high]:.6f} on {high.date()}, in the contango of early 2009.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_the_figures_alt_text(self, result, text) -> None:
+        trade = cumulative_return(result.daily)
+        highs, drawdown, duration = drawdown_path(trade)
+        trough = int(np.argmin(drawdown))
+        high = int(np.argmax(trade[: trough + 1]))
+        last = int(np.argmax(duration))
+        assert duration[last] == result.figures.max_drawdown_days
+        assert highs[last] == trade[high], "regains its high"
+        regained = result.days[last + 1]
+        assert trade[last + 1] >= highs[last]
+        defined = np.isfinite(result.ratio)
+        first = result.days[defined][0]
+        assert first.day > 15, "late October"
+        assert not trade[: int(np.flatnonzero(defined)[0]) + 1].any(), "stays at zero"
+        runs = held_runs(result.days, (result.positions == BACKWARDATION).all(axis=1))
+        longest = max(runs, key=lambda r: r[2])
+        assert longest[0].year == longest[1].year
+        inside = [r for r in runs if day("2007-07-01") <= r[0] and r[1] <= day("2008-10-31")]
+        assert len(inside) == len(runs) - 1 and runs[-1] not in inside, "all but one"
+        assert runs[-1][0].month >= 9, "late in the year"
+        ratio = pd.Series(result.ratio, index=result.days)
+        low, top = ratio.idxmin(), ratio.idxmax()
+        words = {9: "Nine"}
+        fragments = [
+            f"It stays at zero until late {first:%B %Y},",
+            f"to a marked high of {trade[high]:.6f}, or {100 * trade[high]:.0f} percent, on "
+            f"{result.days[high].date()}, falls to a marked trough of {trade[trough]:.6f}, or "
+            f"{100 * trade[trough]:.0f} percent, on {result.days[trough].date()}, regains its "
+            f"high in {regained:%B %Y} after {duration[last]} days below it,",
+            f"{words[len(runs)]} shaded bands mark the days held long USO and short XLE. All but "
+            f"one fall between July 2007 and October 2008, the widest from {longest[0]:%B} to "
+            f"{longest[1]:%B %Y}, and the last sits in late {runs[-1][0].year}.",
+            f"A hatched band marks the first {int((~defined).sum())} days, when no ratio exists "
+            "and nothing is held.",
+            f"plots the ratio of the back contract to the front from {first:%B %Y},",
+            f"to a marked low of {ratio[low]:.6f} on {low.date()}, and spikes to a marked high "
+            f"of {ratio[top]:.6f} on {top.date()}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_4(self, text) -> None:
+        """SPY's figures as ``tests/test_series.py`` pins them, and the one XLE series."""
+        test = "test_spy_moves_off_the_raw_close_by_each_dividend_and_on_no_other_day"
+        downloaded = _pinned("test_series.py", test, r'raw_dated="(\d{4}-\d{2}-\d{2})"')
+        adjusted = _pinned("test_series.py", test, r'adjusted_dated="(\d{4}-\d{2}-\d{2})"')
+        first_gap = _pinned("test_series.py", test, r"== \(([\d.]+), [\d.]+\)")
+        last_gap = _pinned("test_series.py", test, r"== \([\d.]+, ([\d.]+)\)")
+        dividends = _pinned("test_series.py", test, r"len\(dividends\) == (\d+)")
+        words = {"0.0": "zero"}
+        # "The only XLE series in the repository is Chan's": the manifest
+        # records one XLE vintage, lifted from the fund file the run reads,
+        # and the archive manifest records none.
+        (only,) = [e for e in read_manifest() if e.symbol == XLE]
+        assert (only.vendor, only.source_workbook) == ("chan-mat", ETF_FILE)
+        assert [e for e in read_archive_manifest() if e.symbol == XLE] == []
+        fragments = [
+            "The only XLE series in the repository is Chan’s, so nothing measures the gap "
+            "between his XLE and the price that traded.",
+            "The fund file subtracts dividends, and the repository holds no second XLE series "
+            "over Chan’s dates.",
+            f"against SPY’s raw closes from Yahoo Finance, downloaded {downloaded}, found SPY’s "
+            f"close on {WINDOW_START.date()} sitting {first_gap} below the price that traded.",
+            f"The gap shrinks by each of the {dividends} dividends SPY paid over the file’s span "
+            f"and is {words[last_gap]} on its last day.",
+            f"Yahoo Finance’s adjusted closes, downloaded {adjusted}, give those dividends when "
+            "set against the raw closes. Each one comes from the step in the rescaling factor on "
+            "the day it went out.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_5(self, closes, result, text) -> None:
+        views = by_view(closes, result)
+        contango, backwardation = views["contango"], views["backwardation"]
+        held = result.positions
+        held_contango = int((held == CONTANGO).all(axis=1).sum())
+        assert contango.days == held_contango - 1 and (held[-1] == CONTANGO).all()
+        total = result.daily.sum()
+        share = backwardation.summed / total
+        assert abs(share - 1 / 3) < 1 / 30, "about a third"
+        assert backwardation.days / (contango.days + backwardation.days) < 1 / 5
+        uso_contango = math.log(1 + contango.uso)
+        uso_backwardation = math.log(1 + backwardation.uso)
+        assert uso_contango < 0 < contango.xle, "USO fell and XLE rose"
+        assert backwardation.xle < 0 < uso_backwardation, "USO rose and XLE fell"
+        assert backwardation.roll / uso_backwardation < 1 / 7, "under a seventh"
+        f = result.figures
+        fixed = figures(fixed_view(closes, result))
+        fixed_daily = fixed_view(closes, result)
+        fixed_end = cumulative_return(fixed_daily)[-1]
+        assert (CONTANGO, LEGS) == ((-1.0, 1.0), (USO, XLE)), "short USO and long XLE"
+        # "The longer backwardation stretches of 2007 and 2008" are the runs
+        # held more than one day. Each earns from the day after its first to
+        # the day after its last, and over each the fixed view holds the
+        # opposite position, so it earns minus the trade's return.
+        runs = held_runs(result.days, (held == BACKWARDATION).all(axis=1))
+        early = [r for r in runs if r[1].year <= 2008]
+        longer = [r for r in early if r[2] > 1]
+        assert len(longer) == 4 and {r[2] for r in early if r not in longer} == {1}
+        for first, last, _ in longer:
+            on = slice(result.days.get_loc(first) + 1, result.days.get_loc(last) + 2)
+            assert (fixed_daily[on] == -result.daily[on]).all()
+            assert np.prod(1 + result.daily[on]) > 1 > np.prod(1 + fixed_daily[on]), (
+                f"the trade rises and the fixed view falls through {first.date()} to {last.date()}"
+            )
+        # Each leg's share of each group's sum. On the backwardation days the
+        # post says "mostly by being long USO" and "a little by being short
+        # XLE". On the contango days it says the long XLE leg "earned the trade
+        # more than the short USO leg did" and "in large part".
+        prices = closes.loc[result.days, list(LEGS)].to_numpy(dtype=float)
+        moves = prices / backshift(1, prices) - 1
+        earning = (backshift(1, held) == BACKWARDATION).all(axis=1)
+        uso_leg, xle_leg = (BACKWARDATION * moves[earning]).sum(axis=0) / len(LEGS)
+        assert uso_leg + xle_leg == pytest.approx(backwardation.summed, abs=TIGHT)
+        assert 0 < xle_leg < backwardation.summed / 10 < 9 * backwardation.summed / 10 < uso_leg
+        earning = (backshift(1, held) == CONTANGO).all(axis=1)
+        uso_leg, xle_leg = (CONTANGO * moves[earning]).sum(axis=0) / len(LEGS)
+        assert uso_leg + xle_leg == pytest.approx(contango.summed, abs=TIGHT)
+        assert 0 < uso_leg < contango.summed / 2 < xle_leg
+        # "though USO’s fall is larger than XLE’s rise whether compounded, as in
+        # the table, or in logs". The compounded bound implies the log one,
+        # since ln(1 + x) <= x for every x > -1, so the second line can only
+        # fail if the first does. It stays to name the log half the post states.
+        assert 0 < contango.xle < -contango.uso
+        assert -uso_contango > math.log(1 + contango.xle)
+        trade_end = cumulative_return(result.daily)[-1]
+        fragments = [
+            "5. **The few backwardation days earn a third of the return.**",
+            "## Lesson 5: the backwardation days earn a third of the return",
+            "2. **On the backwardation days, USO’s rise far exceeds the implied roll return.**",
+            "Hold contango’s position, short USO and long XLE, on every day the trade holds "
+            "anything,",
+            "It falls through the longer backwardation stretches of 2007 and 2008, where the "
+            "trade’s line rises.",
+            f"1. **The {contango.days:,} days earning on contango.** This is one fewer than the "
+            f"{held_contango:,} days it held contango’s position, because the last day, "
+            f"{result.days[-1].date()}, is one of them and nothing follows it.",
+            f"2. **The {backwardation.days} days earning on backwardation.**",
+            f"The trade’s daily returns sum to {total:.6f} over all of Chan’s dates. The "
+            f"backwardation days hold {backwardation.summed:.6f} of that, about a third, on "
+            "under a fifth of the days earning on either view.",
+            f"That earns an APR of {fixed.apr:.6f} and a Sharpe ratio of {fixed.sharpe:.6f}, "
+            f"against the trade’s {f.apr:.6f} and {f.sharpe:.6f}. The fixed view ends at "
+            f"{signed(100 * fixed_end)} percent where the trade ends at "
+            f"{signed(100 * trade_end)} percent.",
+            f"It takes {MONTHS_PER_YEAR} times the log of the front over the back, on the ratio "
+            f"that set that day’s view, and divides by {DAYS_PER_YEAR}.",
+            f"USO fell by {-uso_contango:.6f} in log terms, and the ratio implies a roll return "
+            f"of {signed(contango.roll, 6)} over the same days.",
+            "Added up day by day, as the trade’s row under “Summed” is, the long XLE leg earned "
+            "the trade more than the short USO leg did, though USO’s fall is larger than XLE’s "
+            "rise whether compounded, as in the table, or in logs.",
+            "So these days too were in large part a bet on XLE’s own move.",
+            f"USO rose by {uso_backwardation:.6f} in log terms, while the ratio implies a roll "
+            f"return of {backwardation.roll:.6f} over the same days, under a seventh of USO’s "
+            "rise.",
+            "Added up the same way, the trade earned these days mostly by being long USO while "
+            "USO rose, and a little by being short XLE while XLE fell.",
+        ]
+        assert not_found_once(text, fragments) == []
+        table = [
+            ["Earning on", "Contango", "Backwardation"],
+            ["Days", f"{contango.days:,}", f"{backwardation.days:,}"],
+            ["Compounded", "", ""],
+            ["the trade", f"{100 * contango.trade:.4f}", f"{100 * backwardation.trade:.4f}"],
+            ["USO", f"{100 * contango.uso:.4f}", f"{100 * backwardation.uso:.4f}"],
+            ["XLE", f"{100 * contango.xle:.4f}", f"{100 * backwardation.xle:.4f}"],
+            ["Summed", "", ""],
+            ["the trade", f"{contango.summed:.6f}", f"{backwardation.summed:.6f}"],
+            ["USO, in logs", f"{uso_contango:.6f}", f"{uso_backwardation:.6f}"],
+            ["implied roll return", f"{contango.roll:.6f}", f"{backwardation.roll:.6f}"],
+        ]
+        assert tables(text)[1] in either_way(table)
+
+    def test_what_this_replication_cannot_say(self, result, text) -> None:
+        f = result.figures
+        first = int(np.flatnonzero(result.positions.any(axis=1))[0])
+        changes = int((np.diff(result.positions[first:], axis=0) != 0).any(axis=1).sum())
+        fragments = [
+            f"With n as the divisor the Sharpe ratio is {f.sharpe:.6f}, with n − 1 it is "
+            f"{_sharpe_dividing_by_n_minus_1(result.daily):.6f}, and both print as "
+            f"{SCRIPT_SHARPE}.",
+            f"After the trade’s first entry on {result.days[first].date()}, the position "
+            f"changes on {changes} days.",
+        ]
+        assert not_found_once(text, fragments) == []
 
 
 class TestTheQuirks:
@@ -775,6 +1401,7 @@ class TestTheReport:
             "a ratio of exactly 1 on 2"
         ) in printed
         assert "first front ratio 2006-10-20" in printed
+        assert "The ETF file subtracts dividends in dollars." in printed
         assert "Exploratory." in printed
 
     def test_a_miss_is_reported_as_one(self) -> None:

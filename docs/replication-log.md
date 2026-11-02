@@ -8808,32 +8808,33 @@ numbers below are that blob's. Every location in this entry is in
 Seven rows, all derivable from
 [tests/test_xle_uso_roll_return.py](../tests/test_xle_uso_roll_return.py).
 Each matches one printed figure to one computation. Rows 6 and 7 are the
-book's rounded forms of what rows 3 and 2 compute.
+book's two figures, matched to what rows 3 and 2 compute, which round to
+them.
 
 No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Location 2385 says a fund of
 oil producers such as XLE "usually cointegrates with the spot price", and
-location 1939 that USO "invests in oil futures contracts", so USO earns the
-roll return on top of the spot and XLE does not. Location 2718 defines
-contango as a negative roll return, with the far contract priced above the
-near one. Location 2734 trades the gap: short USO and long XLE whenever CL is
-in contango, and the reverse in backwardation, for an APR of "a very
-respectable 16 percent" from 2006-04-26 to 2012-04-09 "with a Sharpe ratio of
-about 1".
+location 1939 that USO "invests in oil futures contracts", so by the book's
+argument USO earns the roll return on top of the spot and XLE does not.
+Location 2718 calls a negative roll return contango. Location 2326 says
+backwardation is the near contract priced above the far one, so contango is
+the far contract priced above the near. Location 2734 trades the gap: short
+USO and long XLE whenever CL is in contango, and the reverse in
+backwardation, for an APR of "a very respectable 16 percent" from 2006-04-26
+to 2012-04-09 "with a Sharpe ratio of about 1".
 
 **All five of the script's figures and both of the book's reproduce on
-Chan's own files.** The text and the script describe one run. The book's
-16 percent is the script's APR of 0.1591, and its "about 1" is the script's
-Sharpe ratio of 1.05.
+Chan's own files.** The script's APR of 0.1591 rounds to the book's 16
+percent, and its Sharpe ratio of 1.05 rounds to the book's "about 1".
 
 **A scratch run came before the criterion.** The order was not the one this
 repo asks for. A research pass on the issue ran a scratch transcription and
 saw all five figures before the issue wrote down what a landing figure is.
-The criterion it then fixed is the rule every earlier entry uses: a figure
-lands when the computed value rounds to the printed string at the decimals
-the string carries, which is `chan.khandani_lo_book_two.matches`. Nothing in
-it was chosen to fit the run, and there is one specification with no rows
-beside it.
+The criterion it then fixed is a rule earlier entries had already used: a
+figure lands when the computed value rounds to the printed string at the
+decimals the string carries, which is `chan.khandani_lo_book_two.matches`.
+Nothing in it was chosen to fit the run, and there is one specification with
+no rows beside it.
 
 Every row reads two vintages and one specification, so they are stated once
 here.
@@ -8865,8 +8866,8 @@ here.
 
 The two calendars share 1,498 of the ETF file's 1,500 days. The ETF file
 holds 2006-07-03 and 2006-11-24, which the strip lacks. The strip's first
-contract is CL-2007F, whose front window opens on 2006-10-20, so the window's
-first 123 days carry no ratio and hold nothing. Of the 1,375 days that carry
+contract is CL-2007F, whose front window opens on 2006-10-20, so the first
+123 shared days carry no ratio and hold nothing. Of the 1,375 days that carry
 one, 1,129 are in contango, 244 in backwardation, and 2 carry a ratio of
 exactly 1.
 
@@ -8916,24 +8917,27 @@ Three things.
 1. **The script's rule reproduces on Chan's own files.** Every figure its
    comment prints lands at the decimals printed, and the book's two land at
    the precision Chan printed them.
-2. **The book's text and the script describe one run.** The text gives no
-   rule for deciding contango beyond location 2718's definition, so the rule
-   here is the script's, and its APR and Sharpe ratio are the text's
-   16 percent and "about 1".
+2. **The book's text fits the script's run.** The text gives no rule for
+   deciding contango beyond what locations 2326 and 2718 say contango is,
+   so the rule here is the script's, and its APR and Sharpe ratio round to
+   the text's 16 percent and "about 1".
 3. **The backwardation days earn a third of the return.** Split by the view
    held the day before, the trade earns on contango on 1,128 days and on
    backwardation on 244. Their daily returns sum to 0.638420 and 0.308117 of
    0.946538, and compound to 0.790269 and 0.343539. On the contango days USO
    fell 0.567754 and the ratio implies a roll return of −0.766081 in log
-   terms, against USO's log move of −0.8388. On the backwardation days USO
-   rose 0.702850, or 0.5323 in log terms, and XLE fell 0.097061, while the
-   ratio implies 0.072380 in log terms, reading 12 · ln(front / back) as
-   contracts a month apart. Holding
+   terms, against USO's log move of −0.838762. On the backwardation days USO
+   rose 0.702850, or 0.532304 in log terms, and XLE fell 0.097061, while the
+   ratio implies 0.072380 in log terms, adding 12 · ln(front / back) / 252
+   over the days and reading each ratio as contracts a month apart. Holding
    contango's position on every day the trade holds anything gives an APR of
    0.044949 and a Sharpe ratio of 0.364524. `TestWhatThePostMeasures` pins
    all of it, and the write-up found it. The split comes from the rule's own
-   two views rather than a date picked after the curve was seen, and it
-   describes this sample without testing anything.
+   two views, so it has no parameter to tune, but it came after the run was
+   seen. A split at the end of 2008 was also measured and left out, because
+   its date would have been picked after seeing the curve, and nothing
+   committed keeps its numbers. The split describes this sample without
+   testing anything.
 
 ### What this entry cannot say
 
@@ -8943,8 +8947,9 @@ Four things.
 in dollars from every earlier close, which
 [issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found.
 That leaves the replication untouched, because Chan's script read the same
-bytes. It does change what a holder of XLE earned, and no second XLE
-series over this window is committed to measure by how much.
+bytes. If the file adjusts XLE the way it adjusts SPY and GDX, its XLE
+returns are not what a holder earned, and no second XLE series over this
+window is committed to measure by how much.
 
 **What the trade earned while it held a view.** The first 123 days carry no
 ratio, because the strip's first contract opens its front window on
@@ -8969,6 +8974,13 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/xle-uso-roll-return-lessons.md](../blog/xle-uso-roll-return-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which `uv run python -m chan.xle_uso_roll_return_figures` redraws.
+Its two whiteboard sketches draw none of the table's rows. The one in
+Lesson 1 reads CL-2007F's and CL-2007G's front windows from `front_windows`,
+and the 734 and 641 days on which the front is the nearest and the
+second-nearest contract the file prices. The one in Lesson 5 reads USO's log
+moves of −0.838762 and 0.532304 and the implied roll returns of −0.766081 and
+0.072380 from `by_view`. `uv run python -m chan.xle_uso_roll_return_whiteboard`
+redraws them.
 
 ## Entry 40: the opening gap strategy on STOXX Europe 50 futures, Chan's *Algorithmic Trading*
 

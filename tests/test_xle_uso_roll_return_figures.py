@@ -12,7 +12,9 @@ The figure reads the vintages and the specification that
 ``tests/test_xle_uso_roll_return.py`` states in its module docstring:
 ``data/inputdata_etf/`` USO and XLE, vendor chan-mat, basis adjusted, saved
 2012-04-10, and ``data/inputdatadaily_cl_20120502/``, vendor chan-mat, basis
-raw, saved 2012-05-03, over the 1,498 days from 2006-04-26 to 2012-04-09.
+raw, saved 2012-05-03, over the 1,498 days from 2006-04-26 to 2012-04-09,
+with the ratio also reading the CL file's rows after the last of them, as
+``TestWhatThePostMeasures`` there says.
 
 Exploratory, like everything Entry 39 computes here.
 """
@@ -276,6 +278,16 @@ class TestTheShading:
         assert drawn[-1] == (day("2011-10-24"), day("2011-11-18"), 20), SPEC
         held = (result.positions == BACKWARDATION).all(axis=1)
         assert held_runs(result.days, held) == drawn
+
+    @pytest.mark.parametrize("panel", ["curve", "ratio"])
+    def test_eight_of_the_nine_spans_fall_between_july_2007_and_october_2008(
+        self, axes, result, panel
+    ) -> None:
+        """The alt text's "All but one fall between July 2007 and October 2008"."""
+        drawn = _drawn_spans(axes[panel], "backwardation", result.days)
+        inside = [s for s in drawn if day("2007-07-01") <= s[0] and s[1] <= day("2008-10-31")]
+        assert (len(drawn), len(inside)) == (9, 8), SPEC
+        assert drawn[-1] not in inside
 
     @pytest.mark.parametrize("panel", ["curve", "ratio"])
     def test_the_backwardation_days_are_shaded_in_the_light_accent(self, axes, panel) -> None:

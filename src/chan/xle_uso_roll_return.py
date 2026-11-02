@@ -2,17 +2,19 @@
 
 No ETF holds physical crude oil, so no ETF pair can collect crude's roll
 return the way GLD against a gold future can. Chan's Chapter 6 offers a looser
-version. A fund of oil producers tracks the spot price, and a fund of oil
-futures earns the roll return on top of the spot, so holding one against the
-other in the direction the roll return favours should collect it. Every
-location below is in ``research/book-notes/algorithmic-trading.md``.
+version. Chan argues that a fund of oil producers tracks the spot price,
+while a fund of oil futures earns the roll return on top of the spot, so
+holding one against the other in the direction the roll return favours
+should collect it. Every location below is in
+``research/book-notes/algorithmic-trading.md``.
 
 1. **Location 1939.** USO "doesn't actually own oil. It invests in oil
-   futures contracts", so XLE need not track it the way it tracks the spot.
+   futures contracts", so even if XLE tracks the spot, it need not track USO.
 2. **Location 2385.** A producer ETF such as XLE "usually cointegrates with
    the spot price", and the roll return can break its tie to the futures.
-3. **Location 2718** defines contango as a negative roll return, with the far
-   contract priced above the near one.
+3. **Location 2718** calls a negative roll return contango. Location 2326
+   says backwardation is the near contract priced above the far one, so
+   contango is the far contract priced above the near.
 4. **Location 2734** gives the trade. "Short USO and long XLE whenever CL is
    in contango. Long USO and short XLE whenever CL is in backwardation. The
    APR is a very respectable 16 percent from April 26, 2006, to April 9, 2012,
@@ -25,9 +27,9 @@ under ``public/img/book2/`` in the mirror
 ``inputDataDaily_CL_20120502``, and its closing comment prints five figures:
 an average annual return of 0.1592, a Sharpe ratio of 1.05, an APR of 0.1591,
 a maximum drawdown of −0.192321 and a longest drawdown of 487 days. The text
-gives no rule for deciding contango beyond location 2718's definition, so the
-rule here comes from the script alone. It fits no hedge ratio, no z-score and
-no band, and the two legs are equal and fixed.
+gives no rule for deciding contango beyond what locations 2326 and 2718 say
+contango is, so the rule here comes from the script alone. It fits no hedge
+ratio, no z-score and no band, and the two legs are equal and fixed.
 
 **The transcription.** Seven steps, each mapped to the function that runs it.
 
@@ -60,22 +62,40 @@ no band, and the two legs are equal and fixed.
 :func:`chan.calendar_spread_reversion.calendar_schedule` with
 ``spread_month=1`` and ``holddays=0``, read through
 :func:`chan.vx_calendar_spread.held_pair_ratio`, gives the same ratio on every
-row both define. It differs in three ways.
+row both define. It differs in four ways that this strip reaches.
 
 1. It starts the first pair ``holddays + 10`` rows before expiry, not 40.
-2. It drops a later pair whose end would come fewer than ``holddays`` rows after its start.
+2. It drops a later pair whose end would come fewer than ``holddays`` rows
+   after its start.
 3. ``held_pair_ratio`` fills forward across unheld rows, where this script
    leaves NaN.
+4. It holds a pair only when its end comes after its start, where this script
+   gives a window whose start equals its end that one row.
 
-The first difference leaves CL-2007F's 31 front rows, 2006-10-20 to
-2006-12-05, unheld, and those sit inside the window. Bending the schedule to
-this script would add a fourth branch to code written for Example 5.4, so
-the loop lives in :func:`front_windows`. ``VX_ES_rollreturn.m`` runs the same
-loop on the VX strip, so :mod:`chan.vx_es_roll_return` takes it from here
-rather than carrying a second copy.
+The first and fourth differences leave CL-2007F's 31 front rows, 2006-10-20
+to 2006-12-05, unheld, and those sit inside Chan's dates. Its pair would start
+10 rows before its expiry, on 2006-12-05, which is also the row the pair ends,
+so the schedule holds none of them.
 
-**Two quirks of the loop that do not fire on this strip.** The transcription
-names them rather than copying them silently.
+It differs in three more ways that no contract in this strip reaches.
+
+1. It reads a contract's last expiry mark, where :func:`front_windows` refuses
+   a contract with two.
+2. It moves a first start that falls before the strip's first row up to that
+   row, where :func:`front_windows` refuses it.
+3. It starts every later pair the row after the previous pair ends, where this
+   script starts it no earlier than 40 rows before expiry. The contracts here
+   expire fewer than 30 rows apart, so the row after the previous end always
+   comes later.
+
+Bending the schedule to this script would add another branch to code written
+for Example 5.4, so the loop lives in :func:`front_windows`.
+``VX_ES_rollreturn.m`` runs the same loop on the VX strip, so
+:mod:`chan.vx_es_roll_return` takes it from here rather than carrying a second
+copy.
+
+**Two quirks of the loop that reach no traded day on this strip.** The
+transcription names them rather than copying them silently.
 
 1. **A contract with no expiry, or with two.** In MATLAB, a contract with no
    priced row makes ``endIdx`` empty, and the next contract's
@@ -91,8 +111,8 @@ names them rather than copying them silently.
    there. The front from 2012-04-09 is CL-2012M, the first of them. Its
    window starts on the row after CL-2012K's ends, so its own 40-row start
    does not bind, and its window stops at 2012-04-18. The last 10 rows get no
-   ratio, all after the trade's last day of 2012-04-09. The quirk does fire
-   on the VX strip, where :mod:`chan.vx_es_roll_return` names it.
+   ratio, all after the trade's last day of 2012-04-09. On the VX strip it
+   does reach traded days, and :mod:`chan.vx_es_roll_return` names it there.
 
 **The data.** Two committed vintages, both chan-mat.
 
@@ -101,15 +121,16 @@ names them rather than copying them silently.
    [Issue 299](https://github.com/l3a0/quantitative-trading/issues/299) found
    that this file subtracts each dividend in dollars from every earlier close.
    That leaves the replication untouched, because Chan's script read the same
-   bytes. It does change what a holder of XLE earned, and no second XLE
-   series over this window is committed to measure by how much.
+   bytes. If the file adjusts XLE the way it adjusts SPY and GDX, its XLE
+   returns are not what a holder earned, and no second XLE series over this
+   window is committed to measure by how much.
 2. **The CL strip** from ``inputDataDaily_CL_20120502.mat``, basis ``raw``,
    saved 2012-05-03, 89 contracts from CL-2007F to CL-2014K over 2,867 days
    from 2000-11-20, with no spot column.
 
 The two calendars share 1,498 days. The ETF file holds 2006-07-03 and
 2006-11-24, which the strip lacks. The first front window opens on 2006-10-20,
-so the window's first 123 shared days carry a NaN ratio and hold nothing.
+so the first 123 shared days carry a NaN ratio and hold nothing.
 
 **The scale-break guard.** :func:`read_sources` reads the strip through
 :func:`chan.roll_returns.load_strip`, which guards every contract over its own
@@ -122,8 +143,9 @@ so nothing is refused.
 script's printout, for ``blog/xle-uso-roll-return-lessons.md``.
 :func:`by_view` splits the days the trade earns by the view it held the day
 before, and :func:`fixed_view` holds contango's position on every day the
-trade holds anything. :mod:`chan.xle_uso_roll_return_figures` draws both
-beside Figure 6.3.
+trade holds anything. :mod:`chan.xle_uso_roll_return_figures` draws the
+fixed view beside Figure 6.3, and :mod:`chan.xle_uso_roll_return_whiteboard`
+draws USO's log move and the implied roll return that :func:`by_view` finds.
 
 ``tests/test_xle_uso_roll_return.py`` pins every figure. Every result here is
 exploratory. Reproducing Chan's figures spends his 2006 to 2012 sample on a
@@ -327,8 +349,8 @@ class ViewEarnings:
     daily returns added up. ``roll`` adds ``12 · ln(front / back) / 252``
     over the same days, on the ratio that set the view, so it reads each
     day's ratio as an annual roll return with the two contracts a month
-    apart, which approximates the roll return the view collected in log
-    terms.
+    apart, which approximates, in log terms, the roll return a holder of the
+    futures would collect over those days under the book's model.
     """
 
     days: int
@@ -431,7 +453,7 @@ def report(etf: list[VintageEntry], strip: Strip, result: Arbitrage) -> None:
     )
     print(f"  first front ratio {first}")
     print()
-    print("  Annualised over 252 days with no cost. The ETF closes subtract dividends in dollars.")
+    print("  Annualised over 252 days with no cost. The ETF file subtracts dividends in dollars.")
     print("  Exploratory. docs/replication-log.md carries the verdicts.")
 
 
