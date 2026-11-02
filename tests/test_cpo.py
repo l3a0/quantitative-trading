@@ -1054,12 +1054,12 @@ class TestThePostQuotesWhatEveryCloneComputes:
             def fit(self, x, y):
                 return self
 
-        default = sklearn.ensemble.HistGradientBoostingRegressor().validation_fraction
+        defaults = sklearn.ensemble.HistGradientBoostingRegressor()
         monkeypatch.setattr(sklearn.ensemble, "HistGradientBoostingRegressor", Recorder)
         cpo.fit_model(np.zeros((5, 1), dtype=np.float32), np.zeros((5, 400)), n_train=3)
         _quotes(self.text, f"The run fixed seed {seen['random_state']} before it started.")
-        assert "validation_fraction" not in seen
-        assert default == 0.1
+        assert not {"validation_fraction", "early_stopping"} & seen.keys()
+        assert (defaults.validation_fraction, defaults.early_stopping) == (0.1, "auto")
         _quotes(self.text, "The model’s seed picks which tenth of its training data it holds back")
 
     def test_the_feature_count(self) -> None:
@@ -1133,8 +1133,9 @@ class TestThePostQuotesTheRun:
     post prints. A second copy of a figure elsewhere in the post, such as the
     5.700 in the opening list or the corrected columns of Lesson 3's tables,
     is mostly not read. The verdict's 18.637 against 15.249, Lesson 3's "Calmar
-    ratio alone" and the 2.9 beside the third party are read a second time,
-    because they carry the verdict and the comparison. These run only where the
+    ratio alone", the 5.700 in Lesson 1's seeds sentence and the 2.9 beside the
+    third party are read a second time, because they carry the verdict and the
+    comparison. These run only where the
     archive is, like the pins.
     """
 

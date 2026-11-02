@@ -4373,11 +4373,13 @@ Six groups of its figures are not pinned here.
    gold-mining stocks, that the first edition lacks the method, that the
    Kindle page numbers match the print edition's, that the early-closing dates
    were copied from a software calendar of NYSE's schedule, that
-   scikit-learn's seed also sets the sample the bins are cut from, that the
-   session's last close comes from the last trade before the closing auction,
-   and that the 13:00 bar on an early close still trades at regular-session
-   volume, likely the closing auction. The seed fixed in advance and the
-   held-out tenth are read by
+   scikit-learn's default early stopping holds a tenth back on any fit of
+   more than 10,000 rows, that its seed sets which tenth and the sample the
+   bins are cut from, that the session's last close comes from the last trade
+   before the closing auction, and that the 13:00 bar on an early close still
+   trades at regular-session volume, likely the closing auction. The seed
+   fixed in advance, the early-stopping setting left at its default and the
+   size of the held-out tenth are read by
    `TestThePostQuotesWhatEveryCloneComputes::test_the_seed_and_the_tenth_held_back`.
 
 Eight of its figures had no pin before it, and each now has one. The first

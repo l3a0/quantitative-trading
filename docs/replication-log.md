@@ -4370,7 +4370,8 @@ here.
    - every day both ETFs traded from GDX's first day, 2006-05-22, to
      2020-12-31, split 80% and 20% by trading days
    - the endnote's recursions run continuously over the minutes
-   - exits before entries, flat at each day's open, liquidation at the last close
+   - exits before entries, so a position can flip on one minute
+   - flat at each day's open, liquidation at the last close
    - the label is the sum of the day's round trips, at zero cost
    - the unconditional cell maximises the compounded train return
    - pyfolio's definitions for the four metrics
@@ -4487,10 +4488,10 @@ PredictNow's, its features lack the book's unnamed eighth indicator, and the
 features are read at the day's last bar rather than summarised over it. `ta`'s
 ATR and ADX also return 0 rather than nothing before their window fills, so the
 earliest rows carry zeros the model cannot tell from real values. A better
-model could win where this one did not, and even this model's verdict turns on
-its seed, since seeds 2 and 7 of 0 to 9 make re-choosing win on all four
-metrics. The test is of Chan's printed claim on this
-strategy, not of the method.
+model could win where this one did not. Even this model's verdict depends on
+its seed. Of seeds 0 to 9, tried after the result was seen, 2 and 7 make
+re-choosing win on all four metrics. The test is of Chan's printed claim on
+this strategy, not of the method.
 
 **What would reproduce Chan's numbers.** Row 10 places his Sharpe ratio among
 cells that trade far less, and the cost row shows the chosen cell losing once
