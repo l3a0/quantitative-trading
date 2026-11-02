@@ -44,9 +44,9 @@ post places each right after the list it draws.
    or those copies, so :data:`LATE_HOURS` and
    :data:`WINTER_HOURS` are constants here rather than figures read from a
    file. Noon is the close less those 4 hours. Nothing counts how many of
-   the 1,460 come from filers whose time reads late, so the sketch draws
-   none, and it prints no count for the span from noon on, which nothing
-   pins either.
+   the 1,460 come from filers whose time read late in October 2026, so the
+   sketch draws none, and it prints no count for the span from noon on,
+   which nothing pins either.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours.

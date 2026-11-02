@@ -9,7 +9,7 @@ runs the same rule, :func:`chan.pead.pead`, unchanged, on four things that can
 differ from his: the stocks, the calendar, the vendor and the price basis.
 
 **The registration.** The comparison was registered on issue 251 before any
-number on these sources was seen, in the comment
+of its runs, in the comment
 https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515.
 Every run is **exploratory**, because the plan audit had already spent part of
 the sample measuring how much of the return each vendor could serve. What the

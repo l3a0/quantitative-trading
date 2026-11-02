@@ -903,7 +903,7 @@ def test_no_committed_post_escapes_a_character_inside_text() -> None:
     _assert_no_escape_inside_text({post.name: post.read_text(encoding="utf-8") for post in POSTS})
 
 
-def test_the_post_check_fails_on_the_entry_46_post_as_it_merged() -> None:
+def test_the_post_check_fails_on_the_entry_46_post_with_its_escapes_restored() -> None:
     """The committed-post check catches the kind of cell it was written for.
 
     Putting the underscores back inside ``\\text{}`` rebuilds the escape the

@@ -26,7 +26,7 @@ Each lesson below takes up one of these four findings, in order.
 **Every result here is exploratory.** The rerun wrote down its ten runs, and which pair of runs measures each of the four differences, before any of them ran. That would normally let a result confirm something. Three things stand in the way.
 
 1. Planning had already looked at the sources. It picked R5, one of the rerun’s two calendars from EDGAR, because it matched Chan’s flags best on 32 stocks. It measured how much of Chan’s return the stocks with a matching series at the second vendor, Alpha Vantage, carry. It predicted that the choice of stocks would move the figure most, and the vendor and the adjustment least.
-2. The split of the dropped stocks’ return among their groups in Lesson 1, the share of the calendar’s gain the extra trades carry in Lesson 3 and every comparison of opens in Lesson 4 came after the runs.
+2. Many figures came after the runs, such as the split of the dropped stocks’ return among their groups in Lesson 1, the share of the calendar’s gain the extra trades carry in Lesson 3 and every comparison of opens in Lesson 4.
 3. Chan chose the rule, the window and the divisor of 30, and reported his result on the same days the rerun reads.
 
 So the rerun can say where the figure moves off his files, and nothing about whether the drift pays today.
@@ -46,6 +46,8 @@ Four inputs can differ from Chan’s files, and the rerun changes one at a time.
 2. **CAL**, the 488 whose filer passed its check.
 3. **PX**, the 446 whose price series passed its check.
 4. **U**, the 441 that pass both.
+
+Both checks read data from inside the window, and Chan’s list is closest to the index as it stood in late 2011, so a trader at the window’s start could have picked none of these universes.
 
 **The calendar.** The rerun builds two calendars from EDGAR, R1 and R5. Both read the time each filing was accepted, in Eastern time. Several filings on one day make one flag, and an amended filing is skipped.
 
@@ -171,7 +173,7 @@ The dropped stocks’ return is concentrated. On 2011-08-04, the day A’s cumul
 
 Per trade, the stocks outside U earn 0.007367 on average against 0.001808 inside. Welch’s t, which compares two means without assuming their spreads are equal, is 1.46 (Welch, 1947). A t of about 2 is the usual bar for ruling out chance. Even 1.46 treats every trade as independent, and the trades of one August day are not. The rerun cannot say whether these stocks earn more for a reason or had a few good days.
 
-The filer check drops the five stocks that left the index during the window, and Chan’s closes for them fell 27 to 69 percent over it. Per trade, though, they earn no more than the other four of the nine.
+One candidate reason is that five of the nine left the index during the window, and Chan’s closes for them fell 27 to 69 percent over it. Per trade, though, they earn no more than the other four of the nine.
 
 The universe moves the arithmetic return more than R1 does, by 0.023065 against R1’s 0.016568, a gain Lesson 3 takes apart. On this one window the Sharpe ratio ranks them the other way. Dropping the 56 stocks moves it by −0.2094, and R1 moves it by +0.3792.
 

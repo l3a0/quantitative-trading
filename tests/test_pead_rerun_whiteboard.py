@@ -16,9 +16,9 @@
    dots both lie past the close, each arrow runs exactly 4 hours, and the
    words it prints. The earliest time, the two counts and Apple's times are
    read from the committed index, which ``tests/test_earnings_filings.py``
-   pins on the same reader. The 4 hours and the 5 are constants from a
-   sample the repository does not hold, so the caption says so and nothing
-   here derives them.
+   pins on the same reader. The 4 hours and the 5 are constants from the
+   Internet Archive's copies of 2026-10-07, which the repository does not
+   hold, so the caption says so and nothing here derives them.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
 hand font and the fallback, each GIF's size, frames, loop and timing, both
@@ -477,8 +477,8 @@ class TestThePost:
             assert "twelve seconds" in alt, scene.slug
 
     def test_the_captions_say_what_the_sketches_cannot(self) -> None:
-        """The circles are not to scale, and the 4 and 5 hours come from a
-        sample the repository does not hold."""
+        """The circles are not to scale, and the 4 and 5 hours come from
+        copies the repository does not hold."""
         paragraphs = _paragraphs()
         captions = [
             paragraphs[k + 1]
@@ -487,6 +487,7 @@ class TestThePost:
         ]
         universe, late = captions
         assert "not drawn to scale" in universe
+        assert "Internet Archive’s copies of 2026-10-07" in late
         assert "248 filings" in late
         assert "while planning the rerun" in late
         assert "does not hold" in late
@@ -780,10 +781,12 @@ class TestTheFilingTimes:
             shifted = [s + pd.Timedelta(hours=late) for s in morning]
             assert all(pead_rerun.r1_day(s, sources.days) is None for s in shifted), late
 
-    def test_the_shift_is_a_constant_from_the_unpinned_sample(self) -> None:
-        """Constants, since the sample of 248 filings is not committed."""
+    def test_the_shift_is_a_constant_from_uncommitted_readings(self) -> None:
+        """Constants, since neither the archive's copies nor the sample of 248
+        filings is committed."""
         assert (LATE_HOURS, WINTER_HOURS) == (4, 5)
         doc = " ".join((sketches.__doc__ or "").split())
+        assert "Internet Archive's copies of the submissions file saved on 2026-10-07" in doc
         assert "a check of 248 filings made while planning the rerun" in doc
         assert "The repository does not hold that sample" in doc
 

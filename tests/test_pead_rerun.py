@@ -747,8 +747,8 @@ class TestWhatThePostMeasured:
         of 2011-09-30 and in neither later one. Chan's closes fell 27 to 69
         percent over the window for all five. Of A's 13 trades in them, 9 are
         shorts, and they average 0.022738, no more than the 0.026587 of the 7
-        trades in the other four of the nine. Exploratory, and it tests no
-        reason why these stocks earn more.
+        trades in the other four of the nine. Exploratory, so it settles
+        nothing about why the stocks outside U earn more.
         """
         five = ["AKS", "CPWR", "MWW", "TLAB", "WFR"]
         returns, positions = a_trades(sources, runs)

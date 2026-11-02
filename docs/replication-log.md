@@ -10931,8 +10931,9 @@ nothing.
    rises over Chan's flags by +0.008661 only because it takes 1,477 trades
    against 1,052. Each of its trades earns 0.001679 on average, less than
    the 0.002035 on Chan's flags, and its Sharpe ratio is 0.0265 lower than
-   A_CAL's. E5 falls below A on both figures, in row 27. Its extra flags
-   come from two kinds of filing.
+   A_CAL's. E5 falls below A on both figures, in row 27, and nothing here
+   tests whether either Sharpe gap exceeds chance. Its extra flags come
+   from two kinds of filing.
    1. One was accepted during the session, so the gap at that day's open
       came before the release.
    2. The other was accepted after the date it reports. R5 flags the trading
