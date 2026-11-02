@@ -701,8 +701,8 @@ measurements below and the decision behind the shape.
    returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
    holds two companies under one symbol, 952 trading days apart, closing at
    0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
-   same across 400 days to 2007-07-02. `spx_20071123/se.csv` does it across
-   287 days, closing at 37.47 on 2005-11-09 and then at 28.62 on 2007-01-03.
+   same across 400 trading days to 2007-07-02. `spx_20071123/se.csv` does it across
+   287 trading days, closing at 37.47 on 2005-11-09 and then at 28.62 on 2007-01-03.
    `ijr_20080114/pmc.csv` holds two price
    histories the same way, closing at 6.02 on 2004-03-12 and then at 17.25 on
    2007-08-01, 852 trading days apart.

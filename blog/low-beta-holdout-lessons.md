@@ -11,7 +11,7 @@ That earlier test could not say whether the rule holds. That post’s [sixth les
 1. Chan’s file holds the stocks in the index in late 2007, so it lacks every company that left before then.
 2. Its years were past prices by the time the book printed the claim.
 
-This post runs the same test on data chosen to answer both, and Lesson 4 says how far it answers the first. The stocks are the S&P 500’s members at each month-end from December 2008, including companies that later left the index, and every holding month comes after the first edition’s release in November 2008. This post calls that list of members, with their prices, the panel. A **holdout** is data kept back from every decision about a test, so a result on it is a fresh check. This repository has read the rule only in the 2021 revised edition, and has not checked that the first edition prints it. A separate test caps the leverage on Chan’s file at what a broker would lend, and the [post on the capped rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-low-beta-lessons.md) covers it.
+This post runs the same test on data chosen to answer both, and Lesson 4 says how far it answers the first. The stocks are the S&P 500’s members at each month-end from December 2008, including companies that later left the index, and every holding month comes after the first edition’s release in November 2008. This post calls that list of members, with their prices, the panel. A **holdout** is data whose returns, and every figure computed from them, are kept back from every decision about a test, so a result on it is a fresh check. This repository has read the rule only in the 2021 revised edition, and has not checked that the first edition prints it. A separate test caps the leverage on Chan’s file at what a broker would lend, and the [post on the capped rule](https://github.com/l3a0/quantitative-trading/blob/main/blog/capped-low-beta-lessons.md) covers it.
 
 ### What the test found
 
@@ -75,7 +75,7 @@ The gap plus 1.645 standard errors is the **one-sided 95 percent upper bound**. 
 
 Either of two months sets the sign of the gap on its own. In December 2024, d was −1.5624. Without that month, twelve times the mean of d over the other 207 months is +0.0313, so the levered side would have compounded faster. The other month is March 2026, where d was −1.1582. Without it alone the figure is +0.0079, and without both months it is +0.0989. In March 2026 the leverage was 9.4342. The low fifth lost 0.0716 and the high fifth lost 0.0463. Levered, that was a loss of 0.7005 of the capital, the second-worst levered month. The best months pull the other way, though less far. Without February 2025, where d was +0.6118, the figure is −0.0947, and without both February 2025 and December 2024 it is −0.0042. The three largest gaps on each side all fall between December 2024 and March 2026, inside the only stretch, October 2024 to April 2026, in which the leverage exceeded 7. The write-up measured all of these after the run. Dropping a month is not a test, so they decide nothing.
 
-The Newey-West t and the bound both treat the average of the 208 monthly gaps as roughly normal. A sample that long usually supports that assumption, and one very large month strains it.
+The Newey-West t and the bound both treat the average of the 208 monthly gaps as roughly normal, and one very large month strains that.
 
 ### Growth, Sharpe ratio and beta of each portfolio
 
@@ -132,7 +132,7 @@ k & 58.0262 & 12.3588 & 27.9727 \\
 
 Of the IVV figures in that table, the run’s own tests check December 2024’s k, low-fifth return and levered return, and April 2025’s k. The write-up measured the rest after the run. For Chan’s file, the earlier write-up measured June 2001’s ruin line and its ruinous k after that test’s run.
 
-Two measures say how near a month came to ruin, and they pick different months. The first is the share of its ruinous k that the match asked of a month. On Chan’s file the match asked June 2001 for 2.50 times its ruinous k, a share the earlier write-up also measured after the run. On IVV’s members the match asked December 2024, the worst levered month, for 0.80 of it, the largest share of any month. December 2024 was the seventh-worst of the low fifth’s 208 months, and it sat 0.0161 above its line. The second measure is the distance above the line, and by that April 2025, the month the peak leverage applied to, came closest. That leverage raised the line to −0.0324, and the low fifth lost only 0.0176, so the month stayed 0.0148 above it. The write-up measured the 0.80 share, each ranking and each distance from the line after the run. None of the 208 months fell at or below its own line.
+Two measures say how near a month came to ruin, and they pick different months. The first is the share of its ruinous k that the match asked of a month. On Chan’s file the match asked June 2001 for 2.50 times its ruinous k, a share the earlier write-up also measured after the run. On IVV’s members the match asked December 2024, the worst levered month, for 0.80 of it, the largest share of any month. December 2024 was the seventh-worst of the low fifth’s 208 months, and it sat 0.0161 above its line. The second measure is the distance above the line, and by that April 2025, the month the peak leverage applied to, came closest. That leverage raised the line to −0.0324, and the low fifth lost only 0.0176, so the month stayed 0.0148 above it. The write-up measured the 0.80 share, the two ranks, the month that came closest and both margins after the run. None of the 208 months fell at or below its own line.
 
 Ruin needs a large k and a bad month at the same time. The low fifth’s worst month had only the second. In March 2020 it lost 0.1250, but the leverage then was 3.4162, so the line sat far below at −0.2926. Levered, the month lost 0.4278, and only a leverage of 7.9837 would have ruined it. The write-up measured March 2020’s figures after the run. On Chan’s file a large k and a bad month met in June 2001, and again in September 2001 for a fresh stake levered by the same rule. On IVV’s members the peak leverage met a month in which the low fifth lost only 0.0176, and the worst levered month still stayed above its line.
 
@@ -162,11 +162,11 @@ The order of events decides what the skip rule can claim.
 2. The owner ruled to skip such a formation. The rule drops its holding month from every series, so the criterion, the ruin rule and every figure beside them read the same remaining months.
 3. Only then did the run reach the three later formations. Nobody knew, when the owner wrote the rule, whether any of them was also at or below zero.
 
-So the owner chose the skip rule after one such formation was visible, and the test reads 208 months rather than 212. The verdict keeps its registered label only by naming that amendment. The skips also end the comparison in April 2026 rather than August.
+So the owner chose the skip rule after one such formation was visible, and the test reads 208 months rather than 212. The verdict keeps its registered label only by naming that amendment. Because the four were the last four, ending the run at the first of them and testing the months before it would have read the same 208 months, so the choice between skipping and stopping did not move the verdict. The skips also end the comparison in April 2026 rather than August.
 
 ## Lesson 4: a panel that lists the index as it stood each month moves the survivor problem rather than removing it
 
-Chan’s file holds the companies in the index in late 2007, so it lacks every company that left before then, and its figures are about survivors. The exception is three symbols, WYN, DFS and SE, which also carry a different, earlier company’s prices before a gap of more than a year.
+Chan’s file holds the companies in the index in late 2007, so it lacks every company that left before then. Three of its symbols, WYN, DFS and SE, also carry a different, earlier company’s prices before a gap of more than a year, and nothing here checks whether those companies were ever in the index. Their earlier prices enter the portfolios, but the rule Lesson 5 describes left each of them out of the holding month in which its prices stopped, so no month in which a company stopped trading reaches the figures.
 
 A list of the members at each month-end includes the companies that later left. Each one still needs a price series, and the series has to belong to the company the filing names.
 
@@ -192,7 +192,7 @@ The last schedule is IVV’s of 2026-06-30. A ticker missing from it marks a com
 \end{array}
 ```
 
-Most failures are a missing price rather than a wrong one. Of the 6,816 failing member-months, 3,654 have no close and 933 have no series, against 2,229 whose close the filing disagrees with. The two counts of 697 among the rows match only by chance. One counts rows with a wrong price, and the other counts rows whose ticker is still in the last schedule. The table gives the months not in the last schedule and the rows in it, which are the two counts the run’s report gives.
+A blank cell marks a count the write-up did not make. Most failures are a missing price rather than a wrong one. Of the 6,816 failing member-months, 3,654 have no close and 933 have no series, against 2,229 whose close the filing disagrees with. The two counts of 697 among the rows match only by chance. One counts rows with a wrong price, and the other counts rows whose ticker is still in the last schedule. The table gives the months not in the last schedule and the rows in it, which are the two counts the run’s report gives.
 
 Of all 35,205 member rows, 26,353 carry a ticker still in that schedule, 74.9 percent. Of the 2,187 failing rows, only 697 do, 31.9 percent. So the failures lean toward companies that left, or toward tickers that changed. After the run, the write-up counted the 5,891 failing member-months from 2009 to 2015, the failing rows’ split by outcome and the share of rows still in the last schedule.
 
@@ -225,7 +225,7 @@ The market series changed too. Chan’s SPY column was saved on 2008-01-29 and h
 
 Five questions are beyond it.
 
-1. **Whether a smaller gap exists.** The test finds a gap below 0.2948 a year less than four times in five, and the point estimate of −0.0590 is far below that. The panel holds no months beyond these.
+1. **Whether a smaller gap exists.** The data reject a levered advantage above 0.1360 a year, a figure measured after the run. They cannot tell a smaller advantage, or a deficit of similar size, from zero, and the test finds a gap below 0.2948 a year less than four times in five. The panel holds no months beyond these.
 2. **What survivorship does to either side.** 6,816 member-months fail the row check against the filing, and 4,614 of them carry a ticker absent from the last schedule. Nothing here measures which fifth they would have joined.
 3. **Whether fat tails caused the worst month.** Fat tails mean extreme months come more often than a bell curve allows, which is the reason Chan’s caveat on p. 189 gives for being wary of leverage. In December 2024 a k of 12.3588 turned the low fifth’s −0.0616 into a loss of 0.8014 of the capital. How near the run came to ruin rests on a handful of months.
 4. **What the Fama-French model’s half of the argument says.** The first step of Chan’s argument comes from the Fama-French model, which ties a stock’s expected return to its beta, its market capitalisation and its book-to-price ratio. Under that model the two portfolios earn the same average return once their betas match, provided their stocks have the same average market capitalisation and book value, and this panel holds neither.

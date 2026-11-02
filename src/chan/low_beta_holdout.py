@@ -49,8 +49,8 @@ frame's last row closes the last holding month.
 
 **The second amendment.** Issue 275's plan refuses a formation whose low
 group's mean beta is zero or below, and says nothing of the verdict. The one
-run of this specification refused at 2026-04-30, before anything the criterion
-reads had been computed. The owner ruled on 2026-10-11, in issue 526's
+run of this specification refused at 2026-04-30, before d, its Newey-West t or Y
+had been computed. The owner ruled on 2026-10-11, in issue 526's
 "Amendment, 2026-10-11, after a non-positive low-group beta was seen", that
 such a formation is skipped: its holding month leaves every series, the
 criterion, the ruin rule and every side figure read the months that remain,

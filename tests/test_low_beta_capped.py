@@ -386,7 +386,7 @@ class TestWhatThePostMeasured:
     ) -> None:
         """Each symbol holds two companies, split by more than a year with no close.
 
-        ``data/README.md`` names WYN and DFS. SE's closes stop on 2005-11-09
+        ``data/README.md`` names all three. SE's closes stop on 2005-11-09
         and start again on 2007-01-03, the day Spectra Energy began
         regular-way trading after Duke Energy spun it off, so the closes before
         the gap are another company's. Their ratio across the gap, 0.7638, is

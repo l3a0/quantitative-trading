@@ -1833,18 +1833,33 @@ class TestTheCommittedPanelsAreChansArrays:
             "Volume": 4723058.0,
         }
 
-    def test_the_wyn_column_carries_two_companies_across_a_gap(self) -> None:
-        _, panel = load_panel("SPX_20071123.mat")
-        wyn = panel["WYN"]
-        priced = wyn.dropna()
-        before = priced[priced.index < "2006-08-01"]
+    @pytest.mark.parametrize(
+        ("symbol", "last", "close", "restart", "reopen", "days"),
+        [
+            ("WYN", "2002-10-18", 0.26, "2006-08-01", 31.85, 952),
+            ("DFS", "2005-11-25", 12.36, "2007-07-02", 27.5, 400),
+            ("SE", "2005-11-09", 37.47, "2007-01-03", 28.62, 287),
+        ],
+    )
+    def test_three_columns_carry_two_companies_across_a_gap(
+        self, symbol: str, last: str, close: float, restart: str, reopen: float, days: int
+    ) -> None:
+        """WYN, DFS and SE each hold an earlier company's prices before a long gap.
 
-        assert before.iloc[-1] == 0.26
-        assert wyn.loc["2006-08-01"] == 31.85
-        assert wyn.loc["2006-07-31":"2006-07-31"].isna().all()
+        ``data/README.md`` point 3 quotes each last close, restart and gap in
+        trading days.
+        """
+        _, panel = load_panel("SPX_20071123.mat")
+        column = panel[symbol]
+        priced = column.dropna()
+        before = priced[priced.index < restart]
+
+        assert str(before.index[-1].date()) == last
+        assert before.iloc[-1] == close
+        assert column.loc[restart] == reopen
         assert (
-            panel.index.get_loc(pd.Timestamp("2006-08-01")) - panel.index.get_loc(before.index[-1])
-            == 952
+            panel.index.get_loc(pd.Timestamp(restart)) - panel.index.get_loc(before.index[-1])
+            == days
         )
 
     def test_each_panel_names_itself_in_one_line(self) -> None:

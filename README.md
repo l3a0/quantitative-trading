@@ -9378,8 +9378,9 @@ forty-seventh post, about the same rule at location 4709 tested on IVV's S&P
 first edition's release in November 2008. Its verdict is registered under two
 amendments and every other figure is exploratory. Every figure computed from
 the prices of IVV's members or from SPY's Alpha Vantage series reads the
-owner's archive, so a reader cannot
-rerun it, while the membership and coverage counts read committed files. The
+owner's archive, so a reader cannot rerun it, while every figure from Chan's
+file and every count in Lesson 4 but one, the 6,943 member-months the monthly
+rule leaves out on the series the run reads, come from committed files. The
 post links the levered low-beta post for the rule, the beta match, the ruin
 line and June 2001 rather than repeating them, and draws five lessons from
 Entry 49 of the replication log.
@@ -9414,7 +9415,7 @@ Six groups of what it says are not pinned here.
 2. The plan's history rather than the data: that the plan, the panel's
    changes and the criterion were written before any beta or return was
    computed on this panel, that the run stopped at the 2026-04-30 formation
-   before computing anything the criterion reads, that the loop had computed
+   before computing d, its Newey-West t or Y, that the loop had computed
    each earlier formation's beta, leverage and returns in memory and discarded
    them before anyone printed or read any, that the owner then ruled to skip such
    formations, and that the three later formations were not yet known. Also
@@ -9444,10 +9445,13 @@ figures on Chan's file, to
 [tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
 for the figure's own numbers, or to
 [tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
-for the sketches'. `TestThePostQuotesTheRun` reads one copy of each of
-those figures from the post itself, so a changed number in the post fails a
-test. Its first three tests read committed files and run everywhere, and the
-rest need the archive. Two classes hold the ones that had no pin
+for the sketches'. `TestThePostQuotesTheRun` reads one copy of each figure
+the run or Chan's file gives from the post itself, so changing that copy fails
+a test. It does not read the italic summary, the lessons list, a figure's
+later repeats, the alt texts, the caption, the Kindle pages, figures stated in
+words or approximate dates such as late 2007, so a change there fails
+nothing. Its first four tests read committed
+files and run everywhere, and the rest need the archive. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
 `TestWhatThePostCounted` item 2.
 `TestWhatThePostCounted` reads committed files and runs everywhere.
@@ -9464,7 +9468,7 @@ before the post, all measured after the run except the five months in
    percent.
 5. On Chan's file, the close the earlier test asks for at the next month-end
    left out 17 stocks at six formations. Fourteen have closes again within a
-   few months, and the other three are WYN, DFS and SE, whose earlier
+   few months, the longest after 140 days, and the other three are WYN, DFS and SE, whose earlier
    company's prices stop inside the holding month and whose symbol resumes
    more than a year later with a different company. No column ends before
    the file's last day.

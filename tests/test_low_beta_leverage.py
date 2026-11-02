@@ -804,6 +804,9 @@ class TestTheScaleBreakDecision:
         excess = daily_excess(cut, bills)[symbol]
         assert np.isnan(excess.loc[restart])
         assert np.isnan(cut[symbol].shift(1).loc[restart])
+        assert np.isfinite(cut[symbol].loc[restart])
+        before = cut[symbol].loc[:restart].iloc[:-1].last_valid_index()
+        assert before < pd.Timestamp(restart) - pd.Timedelta(days=365)
 
 
 class TestTheRun:

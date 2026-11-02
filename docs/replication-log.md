@@ -11378,7 +11378,7 @@ Five of the rules carry the result, so they are stated here.
 **Every figure is about survivors.** The panel is the S&P 500 as it stood on
 2007-11-23, carried backwards, as in Entry 45. Three symbols, WYN, DFS and SE,
 also carry an earlier company's prices, which sit in one of the fifths in 36 of
-the 83 holding months. [data/README.md](../data/README.md) names the first two.
+the 83 holding months. [data/README.md](../data/README.md) names all three.
 SE's closes stop on 2005-11-09 and start again on 2007-01-03, the day Spectra
 Energy began regular-way trading after Duke Energy spun it off, by
 [Spectra Energy's release of 2007-01-02](https://www.sec.gov/Archives/edgar/data/0001373835/000134100407000091/spectra_ex99-1.htm).
@@ -11593,7 +11593,7 @@ specification. No month here triggers it. The second is
 plan says a low group whose mean beta is not positive refuses rather than
 levers, and it says nothing of the verdict. The one run of the registered
 specification refused at the 2026-04-30 formation, where that mean was
-−0.0037, before anything the criterion reads had been computed. The owner
+−0.0037, before d, its Newey-West t or Y had been computed. The owner
 then ruled that such a formation is skipped, its holding month leaving every
 series, so the criterion, the ruin rule and every side figure read the same
 remaining months and N counts them. The amendment lists what had been seen.
