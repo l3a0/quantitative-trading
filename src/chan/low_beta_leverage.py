@@ -52,9 +52,10 @@ The first three were worded on the issue before any number:
 
 1. **Holds** when the mean of d is above 0 and t is at least 1.645.
 2. **Contradicted** when the mean is below 0 and t is at most −1.645.
-3. **Not decided** otherwise, with Y, the gap a one-sided 5 percent test finds
-   four times in five, as (1.645 + 0.8416) times the Newey-West standard error
-   of the mean of d, times 12.
+3. **Not decided** otherwise, with Y, how large a true gap would have to be
+   for a one-sided 5 percent test to find it four times in five, as
+   (1.645 + 0.8416) times the Newey-West standard error of the mean of d,
+   times 12.
 4. **Contradicted by ruin** when any holding month's levered return is −1 or
    below. The levered portfolio has then lost more than its capital, its
    compounded growth is unbounded below, and d does not exist for that month,
@@ -116,8 +117,9 @@ claim.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
 issue 275's registered specification on IVV's S&P 500 from 2008 to 2026, with
 the changes that panel forces and under both amendments of 2026-10-11, the
-ruin amendment and its own skip amendment. That run is a holdout, and
-[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
+ruin amendment and its own skip amendment. That run is a holdout for the claim
+as long as the first edition prints it, apart from its skip amendment.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
 rule on this file at leverage a broker would lend, as an exploratory run,
 because the ruin had been seen.
 
@@ -182,8 +184,9 @@ GROUPS = 5
 #: The one-sided 5 percent point of the normal, against which t is read.
 CRITICAL = 1.645
 
-#: The normal's 80th percentile. Added to :data:`CRITICAL`, it gives the gap a
-#: one-sided 5 percent test finds four times in five.
+#: The normal's 80th percentile. Added to :data:`CRITICAL`, it gives how large
+#: a true gap would have to be for a one-sided 5 percent test to find it four
+#: times in five.
 POWER = 0.8416
 
 #: The Kindle locations of the revised edition the report cites: the premise
@@ -329,7 +332,8 @@ class Verdict:
 
     @property
     def detectable(self) -> float:
-        """Y, the yearly gap a one-sided 5 percent test finds four times in five."""
+        """Y, how large a true yearly gap would have to be for a one-sided
+        5 percent test to find it four times in five."""
         return (CRITICAL + POWER) * self.standard_error * MONTHS
 
     @property

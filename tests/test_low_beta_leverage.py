@@ -794,14 +794,19 @@ class TestTheScaleBreakDecision:
     ) -> None:
         assert flagged_stock_months(portfolios, flags) == (36, 186), SPEC
 
-    @pytest.mark.parametrize(("symbol", "restart"), [("WYN", "2006-08-01"), ("DFS", "2007-07-02")])
+    @pytest.mark.parametrize(
+        ("symbol", "restart"), [("WYN", "2006-08-01"), ("DFS", "2007-07-02"), ("SE", "2007-01-03")]
+    )
     def test_no_return_reaches_across_a_restart(self, sources, symbol: str, restart: str) -> None:
-        """The two symbols holding two companies give no return on the day the second starts."""
+        """The three symbols holding two companies give no return on the day the second starts."""
         _, closes, _, spy, _, bills = sources
         cut = closes.loc[closes.index.isin(spy.index), [symbol]]
         excess = daily_excess(cut, bills)[symbol]
         assert np.isnan(excess.loc[restart])
         assert np.isnan(cut[symbol].shift(1).loc[restart])
+        assert np.isfinite(cut[symbol].loc[restart])
+        before = cut[symbol].loc[:restart].iloc[:-1].last_valid_index()
+        assert before < pd.Timestamp(restart) - pd.Timedelta(days=365)
 
 
 class TestTheRun:

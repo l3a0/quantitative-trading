@@ -699,9 +699,12 @@ measurements below and the decision behind the shape.
    arrays by putting every member on the union of their dates, and the
    conversion checked all five, NaN for NaN, before anything was committed. Compute
    returns on that panel rather than on one file's own rows. `spx_20071123/wyn.csv`
-   holds two companies under one symbol, 952 trading days apart, closing at
-   0.26 and then at 31.85 on 2006-08-01, and `spx_20071123/dfs.csv` does the
-   same across 400 days to 2007-07-02. `ijr_20080114/pmc.csv` holds two price
+   holds two companies under one symbol, closing at 0.26 on 2002-10-18 and then
+   at 31.85 on 2006-08-01, 952 trading days apart. `spx_20071123/dfs.csv` does
+   the same, closing at 12.36 on 2005-11-25 and then at 27.50 on 2007-07-02, 400
+   trading days apart, and `spx_20071123/se.csv` closes at 37.47 on 2005-11-09
+   and then at 28.62 on 2007-01-03, 287 trading days apart.
+   `ijr_20080114/pmc.csv` holds two price
    histories the same way, closing at 6.02 on 2004-03-12 and then at 17.25 on
    2007-08-01, 852 trading days apart.
 4. **The date is the save.** It comes from each file's MAT header, which

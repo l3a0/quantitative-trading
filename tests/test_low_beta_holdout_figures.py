@@ -195,10 +195,11 @@ class TestTheFigure:
             "SPX_20071123.mat, "
             "saved 2007-11-24, survivors only, and SPY from spy_chan.csv. Not a holdout.\n"
             "Right: IVV's members at each month-end, Alpha Vantage adjusted closes downloaded "
-            "2026-10-05, and SPY's downloaded 2026-10-11, in a private archive. A holdout.\n"
+            "2026-10-05, and SPY's downloaded 2026-10-11, in a private archive.\n"
             "Both borrow at FRED's TB3MS, downloaded 2026-09-30. Each value sits at the month "
-            "it applied to.\nEach verdict is registered under its amendments, and every path "
-            "drawn is exploratory."
+            "it applied to.\nEach verdict is registered under its amendments. The right is a "
+            "holdout if the first edition prints the rule, apart from the skip rule, and every "
+            "path drawn is exploratory."
         ], HOLDOUT_SPEC
 
     def test_each_column_spans_its_holding_months_and_the_skipped_ones(self, axes, ivv) -> None:

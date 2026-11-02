@@ -6,20 +6,21 @@ portfolio of low-beta stocks should generate higher long-term compounded growth
 than holding an unleveraged portfolio of high-beta stocks", on Chan's own S&P
 500 file from 1999 to 2007. :mod:`chan.low_beta_leverage` runs it, and Entry 45
 of [docs/replication-log.md](../../docs/replication-log.md) records the result.
-That file holds only the stocks still in the index in 2007, and its span sits
-inside the samples the low-beta literature already used.
+That file holds the stocks in the index in 2007, and its years were past
+prices by the time the book printed the claim.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
 issue 275's registered specification, with the changes the panel forces, on a
 panel that has neither problem in the same form: IVV's members at each
 month-end from 2008-12 to 2026-08, read through :mod:`chan.sp500_panel`. Its
-survivor gap is smaller and measured, and every holding month comes after Chan
-published.
+survivor gap is smaller and measured, and every holding month comes after the
+first edition's release in November 2008.
 
 Everything issue 275 registered carries over, its amendment of 2026-10-11
 reading a ruined month as the claim contradicted included, and
 :mod:`chan.low_beta_leverage` computes it. Issue 526's section "What the panel
-forces", registered on 2026-10-11 before any beta or return was computed on
-this panel, states what changes and why. In short:
+forces", registered on 2026-10-11 before any beta, or any return of a portfolio
+sorted on beta, was computed on this panel, states what changes and why. In
+short:
 
 1. **The market** is SPY's ``adjusted_close`` from Alpha Vantage, recorded
    into the archive's ``sp500`` cross-section on 2026-10-11 for this run.
@@ -49,8 +50,8 @@ frame's last row closes the last holding month.
 
 **The second amendment.** Issue 275's plan refuses a formation whose low
 group's mean beta is zero or below, and says nothing of the verdict. The one
-run of this specification refused at 2026-04-30, before anything the criterion
-reads had been computed. The owner ruled on 2026-10-11, in issue 526's
+run of this specification refused at 2026-04-30, before d, its Newey-West t or Y
+had been computed. The owner ruled on 2026-10-11, in issue 526's
 "Amendment, 2026-10-11, after a non-positive low-group beta was seen", that
 such a formation is skipped: its holding month leaves every series, the
 criterion, the ruin rule and every side figure read the months that remain,
@@ -73,10 +74,15 @@ or five around the missing 2013-09-30 schedule.
 
 The result is **registered**, under issue 275's ruin amendment and issue 526's
 skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
-changes were written before any beta or return on this panel was computed.
-The skip rule was chosen after one non-positive formation was visible, and N is
-smaller by however many it skips. Every holding month comes after the book, so it is a
-holdout for the claim.
+changes were written before any beta, or any return of a portfolio sorted on
+beta, was computed on this panel. Issue 336's run of Example 7.7 had already
+computed the same members' monthly returns, ranked on past returns rather than
+beta. Issue 336 fixed that run's rule for a stock whose price stops, which this
+run carries over, before it computed any return. The skip rule was chosen after
+one non-positive formation was visible, and N is smaller by however many it
+skips. Every holding month comes after the first edition's
+release in November 2008, so it is a holdout for the claim as long as that edition
+prints it, apart from the skip rule. This repository has not checked that edition.
 
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
@@ -526,7 +532,8 @@ def report(holdout: Holdout) -> None:
         )
     reading = kelly(p)
     print(
-        f"  Kelly, location {RULE_LOCATION}, look-ahead: the low portfolio's full-sample m / s^2 "
+        f"  Kelly, location {PREMISE_LOCATION}, look-ahead: the low portfolio's full-sample "
+        "m / s^2 "
         f"{reading.leverage:.4f}, Gaussian growth there r + S^2/2 = {reading.bill:.4f} + "
         f"{reading.moments.levered_growth:.4f} = {reading.growth:.4f}, against the high "
         f"portfolio's realised {growth(p.high):.4f}."
@@ -572,11 +579,18 @@ def report(holdout: Holdout) -> None:
         "schedules is dated up to two months late, or five around the missing 2013-09-30."
     )
     print(
-        "  Registered on issue 526 before any beta or return was computed on this panel, with "
-        "issue 275's plan, its ruin amendment and issue 526's skip amendment, both of 2026-10-11."
+        "  Registered on issue 526 with issue 275's plan and its ruin amendment of 2026-10-11, "
+        "before any beta, or any return of a portfolio sorted on beta, was computed on this "
+        "panel. Issue 526's skip amendment, of "
+        "the same day, came after the first skipped formation's low-group mean beta was seen "
+        "and before d, its Newey-West t or Y had been computed."
     )
     print(
-        "  Every holding month comes after the book, so this is a holdout. "
+        "  Every holding month comes after the first edition's release in November 2008, "
+        "so this is a holdout for the claim as long as that edition prints it, apart from "
+        "the skip rule, which the owner wrote after seeing one formation's low-fifth beta "
+        "on this panel and knowing every earlier one was positive. This repository has not "
+        "checked that edition. "
         "docs/replication-log.md Entry 49 carries the verdict."
     )
 

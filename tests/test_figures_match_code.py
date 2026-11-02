@@ -29,7 +29,7 @@ Four figures need more than a call with ``out``, in three ways.
 
 1. One maker takes an input its module's ``main()`` computes, and the draw
    below computes it the way ``main()`` does.
-2. ``low_beta_holdout.png`` reads the owner's archive of minute bars, so its
+2. ``low_beta_holdout.png`` reads the owner's archive of daily prices, so its
    comparison skips where ``archive_skip_reason()`` in ``tests/conftest.py``
    gives a reason, as its other archive pins do.
 3. Two figures are compared in the test file that already builds their run,
