@@ -1285,8 +1285,9 @@ class TestWhatThePostQuotes:
     here. A fragment never matches inside a longer number, so a digit added
     beside a figure fails as well as a digit changed, and the four tables
     are rebuilt whole, the first from the registered runs and the others from
-    the runs' figures. CI rebuilds only the second table's committed rows. Counts the post spells out, such as
-    forty-three, are spelled from the count.
+    the runs' figures. CI rebuilds only the second table's committed rows.
+    Counts the post spells out, such as forty-three, are spelled from the
+    count.
 
     What it reads splits by whether the figure needs the owner's archive.
 
