@@ -254,11 +254,12 @@ where they were first built. The other forty-five were built here.
     only where that archive is. Neither of Chan's columns reproduces. Holding
     the parameters the train years chose earns a test Sharpe ratio of 5.700
     against his 1.947, on a cell that trades 46.7 round trips a day.
-    Re-choosing daily wins on the Calmar ratio alone, so his claim that it
-    improves every metric does not hold. At 1 basis point a round trip both
+    With the model's declared seed, re-choosing daily wins on the Calmar ratio
+    alone, so his claim that it improves every metric does not hold. Two of ten
+    seeds tried afterwards make it hold. At 1 basis point a round trip both
     arms lose money. Every reading the book left open was declared on the issue
     before any return was computed. The first run broke one of them, by keeping
-    extended-hours bars on early-close days, and the entry reports both runs.
+    the bars after 12:59 on early-close days, and the entry reports both runs.
     Every figure is exploratory.
 17. Cross-sectional momentum, Example 6.2 of *Algorithmic Trading*, which buys
     the 50 stocks with the highest 252-day return, shorts the 50 with the
@@ -998,8 +999,9 @@ Optimization. Its mechanics run everywhere. The recursions, the rules and the
 round trips are each held against a literal loop over the book's rules, and the
 rest by worked examples. Its pins run only where the
 owner's archive of minute bars is, and only when `QT_ARCHIVE_RUN=1` asks,
-because the full run takes about five minutes. The blog post about it is the
-exception, and what it says that nothing here asserts is listed below.
+because the full run takes about five minutes. Two of its classes read the
+blog post about it, and what the post says that nothing here asserts is listed
+below.
 [tests/test_archive.py](tests/test_archive.py) holds the archive's own record:
 each standalone line field for field everywhere, and the files' hashes and the
 minute bars' agreement with the committed daily closes wherever an archive is
@@ -4308,11 +4310,13 @@ is a fourteenth post, about Conditional Parameter Optimization, Example 7.1 of
 the revised *Quantitative Trading*. A model re-chooses a GLD/GDX spread
 strategy's three parameters each evening, and Chan reports that this beats
 holding them fixed on every metric he prints. The post draws four lessons from
-Entry 16 of the replication log.
+Entry 16 of the replication log. Every result in it is exploratory.
 
 1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
-   Calmar ratio alone, so his claim fails. The re-chosen column is reproduced
-   only in kind, because his rests on PredictNow's model.
+   Calmar ratio alone, so his claim fails for a stand-in model with its
+   declared seed. Two of ten seeds tried afterwards make re-choosing win on all
+   four metrics, and the claim fails for the other eight. The re-chosen column is
+   reproduced only in kind, because his rests on PredictNow's model.
 2. The book's own annual returns do not compound to its cumulative ones, under
    either definition of annual return, which arithmetic alone shows.
 3. The first run broke a declared reading on the 34 early closes. The code was
@@ -4328,21 +4332,29 @@ computed figures trace to `TestExample71OnTheArchive` in
 archive of minute bars is and only when `QT_ARCHIVE_RUN=1` asks, because the
 bars are licensed and the repo commits only their hashes. Chan's arithmetic in
 Lesson 2, the early closes and the 12:59 fix in Lesson 3, and the grid and
-rules run on every clone.
+rules run on every clone. Two classes at the end of that file read the post
+itself, at least one copy of each figure their docstrings name, so a changed number
+there fails a test:
+`TestThePostQuotesWhatEveryCloneComputes` on every clone and
+`TestThePostQuotesTheRun` where the archive is.
 
-Six groups of its figures are not pinned here.
+Seven groups of its figures are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location. "As frequently as they like" is quoted from location 3414 and
    "but nobody (until they read this book!) is predicting the returns of this
    particular GLD trading strategy" from location 3617, both through
    [its committed notes](research/book-notes/quantitative-trading.md). "May
-   execute multiple round trips per day" is quoted from p. 140 and "random
+   execute multiple round trips per day" is quoted from p. 141 and "random
    forest with boosting" from p. 142, which the notes hold at locations 3444
-   and 3517 and the pages read on 2026-10-03 place on those pages. The
-   eleven tokens of the printed entry grid and the stated start of January 1,
-   2006 are quoted from p. 137.
-2. The book's printed results on p. 145, the eight figures and "all other
+   and 3517. The eleven tokens of the printed entry grid and the stated start
+   of January 1, 2006 are quoted from p. 140. That the strategy trades from
+   9:30 to 15:59 and liquidates at 16:00 is from pp. 140 to 141, location
+   3444. These pages were read in the
+   Kindle Cloud Reader on 2026-11-01, and they replace the screen labels of
+   2026-10-03, which put the grid and the start date on p. 137 and the
+   results on p. 145.
+2. The book's printed results on p. 146, the eight figures and "all other
    metrics" improved, which the committed notes do not hold. The eight figures are `chan.cpo`'s constants `BOOK_UNCONDITIONAL`
    and `BOOK_CONDITIONAL`, but nothing ties those constants to the page.
 3. The third party's figures, a run on Kibot bars from 2009 with a test Sharpe
@@ -4352,18 +4364,31 @@ Six groups of its figures are not pinned here.
 4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
    merge of the first run, asserted them, and no test that runs today does.
    `git show cb30336:tests/test_cpo.py` shows them.
-5. Arithmetic no test asserts: that three parameters and seven indicators on
-   each of two funds at seven lookbacks make 101 features, against the book's
-   115 at p. 140, that
+5. Arithmetic no test asserts: the book's 115 features at p. 142, and that
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
-   19 readings, that a fraction such as 3.40 is the percentage 340%, and that
-   gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.
+   19 readings.
 6. Its references, cited rather than computed, and facts outside the data:
    that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
-   and that a basis point is a hundredth of a percent.
+   that a basis point is a hundredth of a percent, that GLD holds gold and GDX
+   gold-mining stocks, that the first edition lacks the method, that the
+   Kindle page numbers match the print edition's, that the early-closing dates
+   were copied from a software calendar of NYSE's schedule, that
+   scikit-learn's default early stopping holds a tenth back on any fit of
+   more than 10,000 rows, that its seed sets which tenth and the sample the
+   bins are cut from, and that the session's last close comes from the last
+   trade before the closing auction. The seed fixed in advance, the
+   early-stopping setting left at its default and the size of the held-out
+   tenth are read by
+   `TestThePostQuotesWhatEveryCloneComputes::test_the_seed_and_the_tenth_held_back`.
+7. A measurement on the archive's bars that no test asserts. On most of the
+   34 early closes, the 13:00 bar trades more than twice the volume of the
+   median minute in the hour before, in both `gld_intraday_1min.csv.gz`
+   (`3611a8f7…0de7a`) and `gdx_intraday_1min.csv.gz` (`c47f5890…711c`). That
+   is why the post calls it likely the closing auction.
 
-Five of its figures had no pin before it, and each now has one. The first
-runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
+Eight of its figures had no pin before it, and each now has one. The first
+and the last two run on every clone, and the other five sit in
+`TestExample71OnTheArchive`.
 
 1. The cap on what Chan's annual returns, read as arithmetic, can compound to
    over three years: 68.0% and 81.0%, below his 73% and 83%.
@@ -4374,6 +4399,15 @@ runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
    result was seen.
 5. Spearman's rank correlation between the 400 cells' round trips a day and
    their test Sharpe ratios, 0.95, added after the result was seen.
+6. That the claim holds for seeds 2 and 7 of 0 to 9, with the re-chosen Sharpe
+   ratio running from 5.166 to 6.353 across all ten seeds, a range the fixed
+   arm's 5.700 lies inside, and that re-choosing beats holding on the
+   Calmar ratio for six of the ten seeds, the Sharpe ratio for three and each
+   return for two, added after the result was seen.
+7. That `ta`'s average true range and average directional index read 0 rather
+   than a missing value before their windows fill, in `TestTheWiring`.
+8. That the model reads 101 features a row, three parameters and seven
+   indicators on each of two funds at seven lookbacks, in `TestTheWiring`.
 
 Its one figure is drawn by
 [src/chan/cpo_figures.py](src/chan/cpo_figures.py) from one run of
@@ -4393,6 +4427,49 @@ checks on the real run need the archive: that the three labels are the cells
 Entry 16 names, that the run ends on 2020-12-31, and that a fresh draw matches
 the committed file. A public clone can check what the code draws but cannot
 redraw the committed figure.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/cpo_whiteboard.py](src/chan/cpo_whiteboard.py) on the USD.CAD
+post's sketch machinery. Each sits after the text it draws.
+
+1. `cpo_sketch_rule.gif`, after the list of the strategy, the grid and the
+   bars, draws a z-score path against lines at +entry, +0.6 times the entry, 0,
+   −0.6 times the entry and −entry, above a strip of the position held. The
+   path falls below −entry and the rule buys GLD, rises back above −0.6 times
+   the entry and the long exits, rises above +entry and the rule shorts, and
+   falls back below +0.6 times the entry and the short exits, so each exit
+   comes before the z-score reaches 0. It closes on the grid's lowest entry,
+   0.2, and the lines it puts the rule at.
+2. `cpo_sketch_annual_returns.gif`, in Lesson 2, draws one dollar compounding
+   at the fixed arm's 17.29% a year to 61.4% over three years, a dashed
+   ceiling at 68.0%, the most three years at an arithmetic 17.29% a year can
+   compound to, and the
+   book's printed 73% above both. A note gives the re-chosen arm's 71.8%,
+   81.0% and 83%.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, the pace of the equity seasonals post's
+slower sketches.
+
+The first sketch is schematic and carries no figures from the run. Its path is
+made up, its exit lines come from `chan.cpo.EXIT_FRACTION`, its position strip
+is `chan.cpo.positions` run on that path, and its closing line reads the
+grid's lowest entry from `chan.cpo.ENTRY_THRESHOLDS`, constants a clone
+checks. The second is not schematic: it computes every figure from Chan's
+printed figures in `BOOK_UNCONDITIONAL` and `BOOK_CONDITIONAL`, the ones
+[tests/test_cpo.py](tests/test_cpo.py) pins on every clone, and needs no bars.
+[tests/test_cpo_whiteboard.py](tests/test_cpo_whiteboard.py) holds what each
+sketch says, its inks, that the exit fraction is −0.6, that the strip matches a
+literal loop over the rules and changes where the path crosses each line, that
+each exit comes before 0, that every height in the second stands to one scale
+of a dollar's growth, that both build slowly and hold for twelve seconds, where
+each sits in the post, and that each alt text quotes every label in the order
+it is drawn. It compares each committed GIF with a fresh draw byte for byte
+only on macOS arm64 in Comic Sans MS, as the USD.CAD sketches' test does.
+
+```bash
+uv run python -m chan.cpo_whiteboard
+```
 
 [blog/cross-sectional-momentum-lessons.md](blog/cross-sectional-momentum-lessons.md)
 is a fifteenth post, about cross-sectional momentum, Example 6.2 of Chan's

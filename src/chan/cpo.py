@@ -8,7 +8,7 @@ scores every parameter set and trades the best one the next day. What is
 predicted is the strategy's return, not the asset's price.
 
 The strategy underneath trades GLD on one-minute bars against a GLD/GDX spread,
-pp. 137 to 146 of the 2021 revised edition. Chan prints two columns for the
+pp. 140 to 146 of the 2021 revised edition. Chan prints two columns for the
 test years 2018 to 2020: the parameters held fixed, which he calls
 unconditional, and the parameters re-chosen daily, which he calls conditional.
 
@@ -52,19 +52,19 @@ from scipy.signal import lfilter
 from chan import archive
 from chan.archive import ArchiveEntry
 
-# --- what the book prints, pp. 137 and 145 -----------------------------------
+# --- what the book prints, pp. 140 to 146 ------------------------------------
 
-#: The hedge ratio's grid, ``GDX_weight``, p. 137.
+#: The hedge ratio's grid, ``GDX_weight``, p. 140.
 GDX_WEIGHTS = (2.0, 2.5, 3.0, 3.5, 4.0)
 #: The entry grid. The book prints eleven tokens for a stated ten, ending
 #: "2, 2, 5", and reading 7 takes the last three as 2 and 2.5.
 ENTRY_THRESHOLDS = (0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 1.25, 1.5, 2.0, 2.5)
-#: The spread's lookback grid, in minutes, p. 137.
+#: The spread's lookback grid, in minutes, p. 140.
 LOOKBACKS = (30, 60, 90, 120, 180, 240, 360, 720)
 #: ``exit_threshold = −0.6 × entry_threshold``, fixed after Chan's own
-#: optimisation, p. 140.
+#: optimisation, pp. 140 to 141.
 EXIT_FRACTION = -0.6
-#: The indicators' lookbacks, in minutes, p. 140.
+#: The indicators' lookbacks, in minutes, p. 142.
 FEATURE_LOOKBACKS = (50, 100, 200, 400, 800, 1600, 3200)
 
 #: The first and last regular-session bars, by the minute a bar opens.
@@ -74,8 +74,9 @@ SESSION_LAST = "15:59"
 EARLY_CLOSE_LAST = "12:59"
 #: NYSE's early closes from 2006 to 2020, every one at 13:00, from the XNYS
 #: calendar of ``exchange_calendars`` 4.13.2, which encodes the exchange's
-#: published schedule. On these days the bars from 13:00 to 15:59 are
-#: extended-hours bars, and reading 2 drops them.
+#: published schedule. On these days the 13:00 bar usually trades heavily,
+#: likely the closing auction, and the bars from 13:01 to 15:59 are
+#: extended-hours bars. Reading 2 drops them all.
 EARLY_CLOSES = frozenset(
     {
         "2006-07-03", "2006-11-24", "2007-07-03", "2007-11-23", "2007-12-24",
@@ -87,9 +88,9 @@ EARLY_CLOSES = frozenset(
         "2019-11-29", "2019-12-24", "2020-11-27", "2020-12-24",
     }
 )  # fmt: skip
-#: Chan's span ends here, p. 137. It starts at GDX's first day, reading 3.
+#: Chan's span ends here, p. 140. It starts at GDX's first day, reading 3.
 SPAN_END = "2020-12-31"
-#: The share of trading days the train set takes, p. 137 and reading 9.
+#: The share of trading days the train set takes, p. 140 and reading 9.
 TRAIN_FRACTION = 0.8
 TRADING_DAYS = 252
 #: Reported beside the pins and deciding nothing, reading 16.
@@ -98,7 +99,7 @@ COST_PER_ROUND_TRIP = 1e-4
 #: 34 over 5, kept when a single lookback sets the fast window, reading 12.
 AO_SLOW_RATIO = 34 / 5
 
-#: Chan's p. 145 table, at the precision he prints it.
+#: Chan's p. 146 table, at the precision he prints it.
 BOOK_UNCONDITIONAL = {"cumulative": 0.73, "annual": 0.1729, "sharpe": 1.947, "calmar": 0.984}
 BOOK_CONDITIONAL = {"cumulative": 0.83, "annual": 0.1977, "sharpe": 2.325, "calmar": 1.454}
 #: The decimal places Chan prints each figure to.
@@ -133,10 +134,11 @@ def regular_session(bars: pd.DataFrame, end: str = SPAN_END) -> pd.DataFrame:
     """The regular-session bars on or before ``end``, reading 2.
 
     That is the bars opening from 09:30 to 15:59, or to 12:59 on one of
-    :data:`EARLY_CLOSES`. On those days the bars after 12:59 are extended-hours
-    trading, so keeping them would trade, liquidate and read features on
-    after-hours prints. The first run kept them, which broke reading 2, and the
-    review of the pull request found it.
+    :data:`EARLY_CLOSES`. On those days the 13:00 bar usually trades heavily,
+    likely the closing auction, and the bars after it are extended-hours
+    trading, so keeping them would trade, liquidate and read features past the
+    close. The first run kept them, which broke reading 2, and the review of the
+    pull request found it.
     """
     minutes = bars.index.strftime("%H:%M")
     early = bars.index.strftime("%Y-%m-%d").isin(EARLY_CLOSES)
@@ -211,9 +213,10 @@ def zscore(spread: NDArray[np.float64], lookback: int) -> NDArray[np.float64]:
 def positions(z: NDArray[np.float64], entry: float, first: NDArray[np.bool_]) -> NDArray[np.int8]:
     """The position held after each minute's close under rules a to d, reading 6.
 
-    Exits apply before entries, so a long whose z-score rises above the entry
-    threshold exits and goes short on the same close. Every day starts flat,
-    and a minute whose z-score is NaN fires no rule.
+    Exits apply before entries, and an exit does not block an entry, so a long
+    whose z-score rises above the entry threshold exits and goes short on the
+    same close. Applying the entries first gives the same positions. Every day
+    starts flat, and a minute whose z-score is NaN fires no rule.
 
     The rules collapse to events. Below −entry is long and above +entry is
     short. Between −0.6·entry and +0.6·entry both exits fire, so it is flat.
@@ -356,7 +359,7 @@ def indicators(bars: pd.DataFrame, lookback: int) -> pd.DataFrame:
     population standard deviation ``ta``'s Bollinger bands use, because ``ta``
     gives the bands and their width rather than the z-score. ``ta``'s ATR and ADX
     return 0 rather than NaN before their window fills, so the earliest rows
-    carry zeros the model cannot tell from readings. Reading 12 takes ``ta`` as
+    carry zeros the model cannot tell from real values. Reading 12 takes ``ta`` as
     it is, so that is left alone and stated.
     """
     from ta.momentum import AwesomeOscillatorIndicator
@@ -448,6 +451,11 @@ class Result:
     #: among them. It decides nothing.
     cell_sharpes: NDArray[np.float64]
     cell_trips: NDArray[np.float64]
+    #: The model's inputs, every day's features and every cell's daily return,
+    #: kept so a test can refit the model with another seed without rebuilding
+    #: them. Added after the result was seen. They decide nothing.
+    features: NDArray[np.float32] | None = None
+    label_returns: NDArray[np.float64] | None = None
 
     @property
     def test_days(self) -> pd.DatetimeIndex:
@@ -491,6 +499,8 @@ def run(data_dir: Path | None = None, directory: Path | None = None) -> Result:
             [metrics(labels.returns[test, i])["sharpe"] for i in range(len(cells()))]
         ),
         cell_trips=labels.trips[test].mean(axis=0),
+        features=features,
+        label_returns=labels.returns,
     )
 
 

@@ -92,11 +92,11 @@ traces each to the notebook and the repost it was read at.
 
 Example 7.1 splits the same way. Its setup is here, at locations 3428, 3444,
 3479 and 3517: the grid, the rules, the span and split, the features and the
-model. Its results are not. The p. 145 table of Chan's eight figures and his
+model. Its results are not. The p. 146 table of Chan's eight figures and his
 sentence that every other metric improves sit beside code and a figure, and the
 endnote's recursions are rendered as images. The replication log's Entry 16
-traces each to the pages read in the Kindle Cloud Reader on 2026-10-03,
-recorded on
+traces each to the pages read in the Kindle Cloud Reader on 2026-11-01,
+which replace the screen labels of 2026-10-03 recorded on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
 *Algorithmic Trading*'s Example 6.2 splits the same way as its Example 7.2.
