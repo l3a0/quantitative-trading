@@ -4315,7 +4315,7 @@ Entry 16 of the replication log.
 1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
    Calmar ratio alone, so his claim fails for a stand-in model with its
    declared seed. Two of ten seeds tried afterwards make re-choosing win on all
-   four metrics, so the verdict turns on the seed. The re-chosen column is
+   four metrics, and the claim fails for the other eight. The re-chosen column is
    reproduced only in kind, because his rests on PredictNow's model.
 2. The book's own annual returns do not compound to its cumulative ones, under
    either definition of annual return, which arithmetic alone shows.
@@ -4333,7 +4333,7 @@ archive of minute bars is and only when `QT_ARCHIVE_RUN=1` asks, because the
 bars are licensed and the repo commits only their hashes. Chan's arithmetic in
 Lesson 2, the early closes and the 12:59 fix in Lesson 3, and the grid and
 rules run on every clone. Two classes at the end of that file read the post
-itself, one copy of each figure their docstrings name, so a changed number
+itself, at least one copy of each figure their docstrings name, so a changed number
 there fails a test:
 `TestThePostQuotesWhatEveryCloneComputes` on every clone and
 `TestThePostQuotesTheRun` where the archive is.
@@ -4348,7 +4348,9 @@ Six groups of its figures are not pinned here.
    execute multiple round trips per day" is quoted from p. 141 and "random
    forest with boosting" from p. 142, which the notes hold at locations 3444
    and 3517. The eleven tokens of the printed entry grid and the stated start
-   of January 1, 2006 are quoted from p. 140. These pages were read in the
+   of January 1, 2006 are quoted from p. 140. That the strategy trades from
+   9:30 to 15:59 and liquidates at 16:00 is from pp. 140 to 141, location
+   3444. These pages were read in the
    Kindle Cloud Reader on 2026-11-01, and they replace the screen labels of
    2026-10-03, which put the grid and the start date on p. 137 and the
    results on p. 145.
@@ -4370,10 +4372,13 @@ Six groups of its figures are not pinned here.
    that a basis point is a hundredth of a percent, that GLD holds gold and GDX
    gold-mining stocks, that the first edition lacks the method, that the
    Kindle page numbers match the print edition's, that the early-closing dates
-   were copied from a software calendar of NYSE's schedule, and that
-   scikit-learn's seed sets the held-out tenth and the sample the bins are cut
-   from, and that the 13:00 bar on an early close still trades at
-   regular-session volume, likely the closing auction.
+   were copied from a software calendar of NYSE's schedule, that
+   scikit-learn's seed also sets the sample the bins are cut from, that the
+   session's last close comes from the last trade before the closing auction,
+   and that the 13:00 bar on an early close still trades at regular-session
+   volume, likely the closing auction. The seed fixed in advance and the
+   held-out tenth are read by
+   `TestThePostQuotesWhatEveryCloneComputes::test_the_seed_and_the_tenth_held_back`.
 
 Eight of its figures had no pin before it, and each now has one. The first
 and the last two run on every clone, and the other five sit in
@@ -4389,7 +4394,8 @@ and the last two run on every clone, and the other five sit in
 5. Spearman's rank correlation between the 400 cells' round trips a day and
    their test Sharpe ratios, 0.95, added after the result was seen.
 6. That the claim holds for seeds 2 and 7 of 0 to 9, with the re-chosen Sharpe
-   ratio running from 5.166 to 6.353, and that re-choosing beats holding on the
+   ratio running from 5.166 to 6.353 across all ten seeds, a range the fixed
+   arm's 5.700 lies inside, and that re-choosing beats holding on the
    Calmar ratio for six of the ten seeds, the Sharpe ratio for three and each
    return for two, added after the result was seen.
 7. That `ta`'s average true range and average directional index read 0 rather

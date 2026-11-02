@@ -16,8 +16,8 @@ in ``data/archive_vintages.jsonl``, and its specification, the readings
 declared on issue 23 before any number was computed.
 
 ``blog/conditional-parameter-optimization-lessons.md`` quotes these pins, and
-two classes at the end of this file read the post itself, one copy of each
-figure: ``TestThePostQuotesWhatEveryCloneComputes`` for what needs no bars, and
+two classes at the end of this file read the post itself, at least one copy of
+each figure: ``TestThePostQuotesWhatEveryCloneComputes`` for what needs no bars, and
 ``TestThePostQuotesTheRun`` for the run's figures. The chart's own labels are
 held by ``tests/test_cpo_figures.py``, and the two sketches' by
 ``tests/test_cpo_whiteboard.py``. What the post says that nothing here
@@ -58,7 +58,7 @@ from chan.cpo import (
 from tests.conftest import archive_skip_reason
 
 #: The seeds the model was refit with after the result was seen, the ones the
-#: claim holds for, and the range of the re-chosen Sharpe ratio across them.
+#: claim holds for, and the range of the re-chosen Sharpe ratio across all ten.
 #: ``test_the_claim_holds_for_2_of_10_seeds`` pins them, and the post quotes them.
 SEEDS_TRIED = 10
 SEEDS_THE_CLAIM_HOLDS_FOR = (2, 7)
@@ -473,7 +473,8 @@ class TestExample71OnTheArchive:
     sha256 `c47f5890…711c`, downloaded 2026-10-03, both Alpha Vantage at
     `adjusted=false`. The specification is the 19 readings declared on issue 23
     before any return was computed, with scikit-learn 1.9.1 and `ta` 0.11.0 as
-    `uv.lock` fixes them. A lock update that moves either can move rows 5 to 10.
+    `uv.lock` fixes them. A lock update that moves either can move the
+    re-chosen arm's figures in rows 5 to 9.
 
     The first run kept the bars after 12:59 on NYSE's 34 early closes, a 13:00 bar
     still at regular-session volume and extended-hours bars after it, which broke
@@ -489,6 +490,7 @@ class TestExample71OnTheArchive:
         assert result.n_train == 2944
         assert result.test_days[0] == pd.Timestamp("2018-01-31")
         assert len(result.test_days) == 736
+        assert result.features.shape == (3680, 98)
 
     def test_the_unconditional_cell_is_the_smallest_weight_lookback_and_entry(self, result):
         assert result.unconditional == Cell(2.0, 0.2, 30)
@@ -589,7 +591,8 @@ class TestExample71OnTheArchive:
 
         The edge is the sum of an arm's test-day returns over the sum of its
         round trips, in basis points. The re-chosen arm's rests on the model, so
-        a lock update can move it, as it can rows 5 to 10.
+        a lock update can move it, as it can the re-chosen arm's figures in rows
+        5 to 9.
         """
         unconditional = result.unconditional_returns.sum() / result.unconditional_trips.sum()
         conditional = result.conditional_returns.sum() / result.conditional_trips.sum()
@@ -615,8 +618,8 @@ class TestExample71OnTheArchive:
         picks the tenth of the train rows held out to judge it, and the sample
         its bins are cut from. Reading 14 declared seed 0, which row 5 pins.
         Seeds 2 and 7 make re-choosing beat holding on all four metrics. This
-        decides nothing. Like rows 5 to 10, it rests on the model, so a lock update
-        can move it.
+        decides nothing. Like the re-chosen arm's figures in rows 5 to 9, it rests
+        on the model, so a lock update can move it.
         """
         from sklearn.ensemble import HistGradientBoostingRegressor
 
@@ -639,7 +642,8 @@ class TestExample71OnTheArchive:
             if claim_holds(unconditional, conditional):
                 held.append(seed)
         assert tuple(held) == SEEDS_THE_CLAIM_HOLDS_FOR
-        assert sharpes[0] == pytest.approx(5.274377985680034, abs=1e-9)
+        assert sharpes[0] == metrics(result.conditional_returns)["sharpe"]
+        assert SEED_SHARPE_RANGE[0] < round(unconditional["sharpe"], 3) < SEED_SHARPE_RANGE[1]
         assert (round(min(sharpes), 3), round(max(sharpes), 3)) == SEED_SHARPE_RANGE
         assert wins == SEED_WINS
 
@@ -814,14 +818,15 @@ class TestTheWiring:
         assert got["atr"].notna().all() and got["adx"].notna().all()
         assert (got["atr"].iloc[:49] == 0).all() and (got["atr"].iloc[49:] != 0).all()
         assert (got["adx"].iloc[:99] == 0).all() and (got["adx"].iloc[99:] != 0).all()
-        assert got[["bbz", "mfi", "donchian"]].iloc[:49].isna().all().all()
+        assert got[["bbz", "mfi", "force", "donchian", "ao"]].iloc[:49].isna().all().all()
 
     def test_the_model_reads_101_features_a_row(self):
         """Reading 12: three parameters, then seven indicators on each fund at seven lookbacks.
 
         The post's item on the model and README quote 101 against the book's 115.
         This builds the design rows the way :func:`chan.cpo.run` does, so an
-        indicator dropped or added anywhere on that path changes the width.
+        indicator dropped or added in :func:`chan.cpo.daily_features` changes the
+        width. ``test_row_11_the_span_and_the_split`` holds the width ``run`` builds.
         """
         # ``ta``'s ADX needs twice its window of bars, so 17 days of 390 cover 3,200.
         days = pd.date_range("2006-06-01", periods=17, freq="B")
@@ -930,17 +935,20 @@ def _figure(metric: str, value: float, places: int) -> str:
 
 
 class TestThePostQuotesWhatEveryCloneComputes:
-    """The post's figures a clone can hold without the run, one copy of each, read from the post.
+    """The post's figures a clone can hold without the run, at least one copy of each.
 
     Each test reads the sentence or table cell it names: the book columns of
     Lesson 1's tables, held to ``chan.cpo``'s ``BOOK_*`` constants rather than
     to the page; Chan's arithmetic in Lesson 2; the early closes and the 12:59
     fix in Lesson 3; the grid, the rules, the split, the trading year and the
-    cost; the feature count; and the two download dates, held to the archive's
-    manifest. The seeds sentences are held to this file's ``SEED*`` constants,
-    which ``test_the_claim_holds_for_2_of_10_seeds`` derives on the archive. A
-    second copy of a figure elsewhere in the post is not read. The run's own
-    figures need the archive, so ``TestThePostQuotesTheRun`` reads those.
+    cost; the signal's weight; the feature count; the seed ``fit_model`` fixes
+    and the tenth scikit-learn holds back; and the two download dates, held to
+    the archive's manifest. The seeds sentences are held to this file's
+    ``SEED*`` constants, which ``test_the_claim_holds_for_2_of_10_seeds``
+    derives on the archive. Most second copies elsewhere in the post are not
+    read. The seed counts are read in the opening list and in Lesson 1, and the
+    252 trading days in Lessons 1 and 2. The run's own figures need the
+    archive, so ``TestThePostQuotesTheRun`` reads those.
     """
 
     text = POST.read_text("utf-8")
@@ -1023,6 +1031,37 @@ class TestThePostQuotesWhatEveryCloneComputes:
             f"At a cost of {cpo.COST_PER_ROUND_TRIP * 1e4:g} basis point a round trip",
         )
 
+    def test_the_signal_s_weight(self) -> None:
+        """Each new minute's share of the average, read off ``ema_var``'s step response."""
+        lookback = 30
+        ema, _ = cpo.ema_var(np.array([0.0, 1.0]), lookback)
+        _quotes(
+            self.text,
+            f"each new minute’s share of the average is {round(ema[1] * lookback, 6):g} "
+            "divided by the lookback",
+        )
+
+    def test_the_seed_and_the_tenth_held_back(self, monkeypatch) -> None:
+        """The seed ``fit_model`` passes, and scikit-learn's default holdout for early stopping."""
+        import sklearn.ensemble
+
+        seen = {}
+
+        class Recorder:
+            def __init__(self, **kwargs):
+                seen.update(kwargs)
+
+            def fit(self, x, y):
+                return self
+
+        default = sklearn.ensemble.HistGradientBoostingRegressor().validation_fraction
+        monkeypatch.setattr(sklearn.ensemble, "HistGradientBoostingRegressor", Recorder)
+        cpo.fit_model(np.zeros((5, 1), dtype=np.float32), np.zeros((5, 400)), n_train=3)
+        _quotes(self.text, f"The run fixed seed {seen['random_state']} before it started.")
+        assert "validation_fraction" not in seen
+        assert default == 0.1
+        _quotes(self.text, "The model’s seed picks which tenth of its training data it holds back")
+
     def test_the_feature_count(self) -> None:
         """Three parameters, then each indicator of each fund at each window."""
         rng = np.random.default_rng(9)
@@ -1063,7 +1102,8 @@ class TestThePostQuotesWhatEveryCloneComputes:
         _quotes(
             self.text,
             f"Refit with each of {WORDS[SEEDS_TRIED]} seeds after the result was seen, the model "
-            f"makes re-choosing win on all four for {WORDS[held]} of them",
+            f"makes re-choosing win on all four for {WORDS[held]} of them, and the claim fails "
+            f"for the other {WORDS[SEEDS_TRIED - held]}.",
         )
 
     def test_the_seeds_wins_per_metric(self) -> None:
@@ -1086,13 +1126,16 @@ class TestThePostQuotesWhatEveryCloneComputes:
 
 
 class TestThePostQuotesTheRun:
-    """The post's figures from the run, one copy of each, read from the post itself.
+    """The post's figures from the run, at least one copy of each, read from the post.
 
     Each test reads the sentence or table cell it names and holds it to the
     shared run that ``TestExample71OnTheArchive`` pins, at the precision the
     post prints. A second copy of a figure elsewhere in the post, such as the
     5.700 in the opening list or the corrected columns of Lesson 3's tables,
-    is not read. These run only where the archive is, like the pins.
+    is mostly not read. The verdict's 18.637 against 15.249, Lesson 3's "Calmar
+    ratio alone" and the 2.9 beside the third party are read a second time,
+    because they carry the verdict and the comparison. These run only where the
+    archive is, like the pins.
     """
 
     text = POST.read_text("utf-8")
@@ -1119,6 +1162,16 @@ class TestThePostQuotesTheRun:
             f"{fixed[won]:.3f}.",
         )
         _quotes(self.text, f"In the corrected run it wins on the {name} alone.")
+        lost = [name for name in cpo.METRICS if rechosen[name] <= fixed[name]]
+        assert sorted(lost) == ["annual", "cumulative", "sharpe"]
+        _quotes(
+            self.text,
+            "It loses on the Sharpe ratio, on cumulative return and on annual return.",
+        )
+        _quotes(
+            self.text,
+            f"a range the fixed arm’s {fixed['sharpe']:.3f} lies inside.",
+        )
 
     def test_the_gaps_and_the_multiples(self, result):
         got = metrics(result.unconditional_returns)

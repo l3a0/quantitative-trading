@@ -4356,9 +4356,10 @@ here.
    `data/archive_vintages.jsonl` before they are parsed.
    [data/README.md](../data/README.md) says what each holds and how each was
    checked against the committed daily closes.
-2. **The readings.** The book leaves the bar grid, the rule order, the
-   annual-return definition, the features' daily form, the model and the
-   costs unstated, and its entry grid misprints a value. All 19 readings were
+2. **The readings.** The book leaves which minutes and days the bars cover,
+   whether an exit and an entry can fire on one minute, the annual-return
+   definition, the features' daily form, the model's settings and the costs
+   unstated, and its entry grid misprints a value. All 19 readings were
    declared on
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23#issuecomment-5975426355)
    on 2026-10-04, before any return on the minute bars was computed, and
@@ -4503,8 +4504,9 @@ heavily. What a round trip in GLD actually costs is not measured here.
 only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
 
-Five more pins in `TestExample71OnTheArchive` hold figures that post quotes
-and the tables above do not, so they are named here.
+Five more pins in `TestExample71OnTheArchive` hold figures that the
+Conditional Parameter Optimization post quotes and the tables above do not, so
+they are named here.
 
 1. `test_rows_1_to_4_as_multiples_of_chan_s_figures`, the multiples above.
 2. `test_each_arm_earns_less_a_round_trip_than_a_round_trip_costs`, a gross
@@ -4514,7 +4516,8 @@ and the tables above do not, so they are named here.
 4. `test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells`,
    Spearman's rank correlation of 0.95.
 5. `test_the_claim_holds_for_2_of_10_seeds`, the claim holding for seeds 2 and
-   7 of 0 to 9, with the re-chosen Sharpe ratio running from 5.166 to 6.353,
+   7 of 0 to 9, with the re-chosen Sharpe ratio running from 5.166 to 6.353
+   across all ten seeds, a range the fixed arm's 5.700 lies inside,
    and re-choosing beating holding on the Calmar ratio for six seeds, the
    Sharpe ratio for three and each return for two.
 

@@ -213,9 +213,10 @@ def zscore(spread: NDArray[np.float64], lookback: int) -> NDArray[np.float64]:
 def positions(z: NDArray[np.float64], entry: float, first: NDArray[np.bool_]) -> NDArray[np.int8]:
     """The position held after each minute's close under rules a to d, reading 6.
 
-    Exits apply before entries, so a long whose z-score rises above the entry
-    threshold exits and goes short on the same close. Every day starts flat,
-    and a minute whose z-score is NaN fires no rule.
+    Exits apply before entries, and an exit does not block an entry, so a long
+    whose z-score rises above the entry threshold exits and goes short on the
+    same close. Applying the entries first gives the same positions. Every day
+    starts flat, and a minute whose z-score is NaN fires no rule.
 
     The rules collapse to events. Below −entry is long and above +entry is
     short. Between −0.6·entry and +0.6·entry both exits fire, so it is flat.
