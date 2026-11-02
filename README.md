@@ -9382,9 +9382,9 @@ owner's archive, so a reader cannot rerun it, while every figure from Chan's
 file and every count in Lesson 4 except the 6,943 member-months the monthly rule
 leaves out on the series the run reads, and those that cutting each series at
 its last day that traded and moved the price leaves out or lets in, come from
-committed files. The archive produced three of those files once, the check's
-result, each series' span and the holes, so a reader can recount Lesson 4 but
-cannot rerun the check. The post links the levered low-beta post for the rule,
+committed files. The archive once produced three things those files hold, the
+check's result, each series' span and the holes, so a reader can recount Lesson
+4 but cannot rerun the check. The post links the levered low-beta post for the rule,
 the beta match, the ruin line and June 2001 rather than repeating them, and
 draws five lessons from Entry 49 of the replication log.
 
@@ -9423,12 +9423,12 @@ Six groups of what it says are not pinned here.
    them before anyone printed or read any, that the owner then ruled to skip such
    formations, and that the three later formations were not yet known. Also
    that Entry 7 had already computed the members' monthly returns for Example
-   7.7, which ranks on past returns rather than beta, and the post's judgement
-   of what that earlier run leaves standing. Also the sorting of the ten
+   7.7, which ranks on past returns rather than beta, and the repository's
+   judgement of what that earlier run leaves standing. Also the sorting of the ten
    points into five that change the computation, three that restate a rule,
    one that corrects the survivor label and one that gates the tests. Entry 49
-   of the replication log and its plan record the history, and the judgement
-   and the sorting are the post's own reading.
+   of the replication log and its plan record the history, the plan also
+   records the judgement, and the sorting is the post's own reading.
 3. Readings no test asserts: that a negative k would mean selling the low
    fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
    means Chan's June 2001, levered that far, would still have lost the whole
