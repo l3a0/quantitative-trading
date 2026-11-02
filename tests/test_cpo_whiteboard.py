@@ -415,7 +415,7 @@ class TestThePost:
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(FOLLOWS[0])]
         assert "\n8. **The bars.**" in paragraphs[index]
         assert paragraphs[index + 3].startswith(
-            "The book leaves which minutes and days the bars cover"
+            "The book does not say how to line up the two funds’ bars"
         )
 
     def test_each_is_followed_by_a_one_sentence_italic_caption(self) -> None:

@@ -9,7 +9,7 @@ after the passage it draws.
 
 1. The entry and exit rule, under "The strategy, the grid and the bars", after
    the numbered list that ends on the bars and before the paragraph opening
-   "The book leaves which minutes and days the bars cover". A z-score path
+   "The book does not say how to line up the two funds’ bars". A z-score path
    runs against dashed lines at +entry and −entry, dashed brass lines at +0.6
    and −0.6 times the entry, and a grey line at 0. It falls below −entry and
    the rule buys GLD, rises back above −0.6 times the entry and the rule exits the long, rises above
