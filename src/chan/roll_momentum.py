@@ -41,7 +41,7 @@ Two scratch runs read about 90 variants first, across lags, held contracts,
 units, thresholds and roll rules. The declaration therefore rests on prior
 grounds the runs did not choose: Example 6.1's convention for the lag, Example
 6.1's series for what the position earns, and the 2012-05-11 save for the roll
-row. Rows 1 to 3 miss the book under it, and the run tries no second rule.
+row, to within one row. Rows 1 to 3 miss the book under it, and the run tries no second rule.
 
 **The rebuild and its check.** The position earns Example 6.1's series, the
 continuous front-contract close. No committed save of that series covers the
@@ -50,11 +50,12 @@ rebuilds it from the strip. With L a contract's last priced row, row t earns
 ``close(t) / close(t−1) − 1`` of the nearest contract that was priced at t−1
 and has L − t ≥ 7, where a contract still priced on the file's last row counts
 as never expiring. The old contract therefore earns through row L − 7 and the
-new one from row L − 6. That roll row was read from the 2012-05-11 save, which
-follows the old contract through L − 8 and the new one from L − 6. Its change
-on L − 7 matches neither contract's own on 29 of 32 rolls, so the save leaves
-that one row open. :func:`adjusted_level` adds up the same contract's
-price changes, which is what Example 6.1's signal reads.
+new one from row L − 6. The 2012-05-11 save fixes that roll to within one row.
+It follows the old contract through L − 8 and the new one from L − 6. Its
+change on L − 7 matches neither contract's own on 29 of 32 rolls, so the save
+leaves that one row open, and the rebuild gives it to the old contract.
+:func:`adjusted_level` adds up the same contract's price changes, which is what
+Example 6.1's signal reads.
 :func:`check_against_save` sets the rebuild against that save over the 1,999
 changes they share, and ``tests/test_roll_momentum.py`` pins how closely they
 agree and that every change differing by more than the save's rounding falls on
