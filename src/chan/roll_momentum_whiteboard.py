@@ -8,7 +8,7 @@ apart, which is where every change that differs between them falls. This
 module draws the two as scenes, and the post places each right after the text
 it draws.
 
-1. Same return, less swing, in Lesson 2, after the paragraph opening "What
+1. Nearly the same return, less swing, in Lesson 2, after the paragraph opening "What
    differs is the risk." A brown row of TU's daily returns as ticks, for
    Example 6.1's rule holding TU every day, and below it the same row in
    green with grey stretches where the ticks flatten to zero, for the
@@ -18,7 +18,7 @@ it draws.
    each rule's average annual return over its annual volatility: 0.013661 /
    0.007575 = 1.80 for the declared rule and 0.013351 / 0.011156 = 1.20 for
    Example 6.1's.
-2. Where the rebuild and Chan's continuous close switch, in Lesson 3, after
+2. Chan's continuous close switches a day early, in Lesson 3, after
    the two-item list whose first item opens "The returns agree." On a
    trading-day axis from 9 trading days before the March 2012 contract's last
    price to that last price, grey lines for the March and June contracts, a
@@ -118,7 +118,7 @@ def _change(value: float) -> str:
     return ("+" if value >= 0 else "") + _signed(value, 4)
 
 
-# --- Lesson 2: same return, less swing ----------------------------------------
+# --- Lesson 2: nearly the same return, less swing -----------------------------
 
 
 @dataclass(frozen=True)
@@ -337,10 +337,10 @@ def _less_swing(swing: Swing) -> Scene:
         ),
         Label("a smaller swing", 9.6, EXAMPLE_FRACTION_Y, names="example", ha="right", size=12),
     ]
-    return Scene("Same return, less swing", "less_swing", tuple(steps))
+    return Scene("Nearly the same return, less swing", "less_swing", tuple(steps))
 
 
-# --- Lesson 3: where the rebuild and Chan's continuous close switch -----------
+# --- Lesson 3: Chan's continuous close switches a day early -------------------
 
 #: The contract whose roll the sketch draws, the one the post names.
 OLD = "TU-2012H"
@@ -607,7 +607,7 @@ def _switch_day(s: Switch) -> Scene:
             size=12,
         ),
     ]
-    return Scene("The rebuild and Chan’s continuous close switch", "switch_day", tuple(steps))
+    return Scene("Chan’s continuous close switches a day early", "switch_day", tuple(steps))
 
 
 def _ordinal(n: int) -> str:

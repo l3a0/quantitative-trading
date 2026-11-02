@@ -480,7 +480,7 @@ class TestThePost:
         assert "Its rows are not prices to scale." in doc
 
 
-# --- Lesson 2: same return, less swing ----------------------------------------
+# --- Lesson 2: nearly the same return, less swing -----------------------------
 
 
 class TestTheSwing:
@@ -580,7 +580,7 @@ OTHER_SWING = Swing(
 
 class TestTheSwingSketch:
     def test_its_words(self, every) -> None:
-        assert every[0].title == "Same return, less swing"
+        assert every[0].title == "Nearly the same return, less swing"
         assert every[0].labels == SWING_LABELS
 
     def test_its_words_follow_the_run(self, switch) -> None:
@@ -712,8 +712,10 @@ class TestTheSwingSketch:
             "the number and places of the stretches are schematic",
             "the grey share of the row is about the share of window days the rule sits flat",
             "Green and grey words beside the row read “the declared rule” and “flat on 341 days”",
-            "Grey brackets under the three grey stretches carry grey words reading",
-            "green brackets under the three green stretches carry green words reading",
+            "Grey brackets sit under the three grey stretches, with grey words at the right end of "
+            "their row reading",
+            "green brackets sit under the three green stretches, with green words at the right end "
+            "of their row reading",
             "Grey words at the bottom left read “average annual return / annual volatility”",
             "then a green line reads “declared:",
             "and a brown one “Example 6.1:",
@@ -754,7 +756,7 @@ class TestTheSwingSketch:
         assert all(s.width < 3.0 for s in green)
 
 
-# --- Lesson 3: where the rebuild and Chan's continuous close switch -----------
+# --- Lesson 3: Chan's continuous close switches a day early -------------------
 
 
 class TestTheSwitch:
@@ -898,7 +900,7 @@ OTHER_SWITCH = Switch(
 
 class TestTheSwitchSketch:
     def test_its_words(self, every) -> None:
-        assert every[1].title == "The rebuild and Chan’s continuous close switch"
+        assert every[1].title == "Chan’s continuous close switches a day early"
         assert every[1].labels == SWITCH_LABELS
 
     def test_its_words_follow_the_run(self, swing) -> None:
