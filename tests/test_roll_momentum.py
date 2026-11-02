@@ -821,12 +821,23 @@ class TestTheRowsBeside:
             result.gamma_in_months[defined], result.gamma[defined] / 3, rtol=1e-9, atol=1e-13
         )
 
-    def test_the_fifth_contract_reading(self, result) -> None:
+    def test_the_fifth_contract_reading(self, strip, result) -> None:
+        """On six window rows no fifth contract is priced on both days, so those rows earn 0.
+
+        Three of the six fall on a long position, and leaving the six out
+        gives a Sharpe ratio of 1.964416 rather than 1.957852.
+        """
         found = result.fifth_figures
         assert found.apr == pytest.approx(0.024712, abs=5e-7), SPEC
         assert found.sharpe == pytest.approx(2.144165, abs=5e-7), SPEC
         assert found.max_drawdown == pytest.approx(-0.011583, abs=5e-7), SPEC
         assert result.fifth_on_both_days_figures.sharpe == pytest.approx(1.957852, abs=5e-7)
+        both = fifth_contract_returns(strip.contracts, on_both_days=True).to_numpy()[result.window]
+        undefined = np.isnan(both)
+        assert int(undefined.sum()) == 6
+        assert int((result.held_position[undefined] > 0).sum()) == 3
+        kept = result.fifth_on_both_days_daily[result.window][~undefined]
+        assert tu_momentum.figures(kept).sharpe == pytest.approx(1.964416, abs=5e-7), SPEC
 
     def test_a_fit_on_four_contracts_lowers_both_rules(self, strip, result, four) -> None:
         """γ fitted on the four nearest contracts, which leaves the fifth out of the fit.
@@ -859,7 +870,7 @@ def signed(value: float, decimals: int) -> str:
 
 
 #: The counts the post spells out in words.
-WORDS = {2: "two", 3: "three", 5: "five", 6: "six", 7: "seven", 8: "eight"}
+WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 #: The positions the post spells out in words.
 ORDINALS = {6: "sixth", 7: "seventh", 8: "eighth"}
 
@@ -893,7 +904,10 @@ class TestWhatThePostQuotes:
     lookback, hold, number of fitted contracts and days a year cannot drift
     from the code. A count the post spells out, such as "seven trading days",
     is built from its constant through :data:`WORDS`. Where a figure repeats
-    in a later lesson or a habit, that later copy is left unread. Example
+    elsewhere in the post, in the same lesson, another lesson or a habit,
+    that other copy is left unread, and so are the words for how the rebuild
+    and the fifth-contract variant pick a contract, beyond the rebuild's seven
+    trading days. Example
     6.1's figures on the 2012-05-11 save are read against
     ``tests/test_tu_momentum.py``'s pin through
     ``test_example_6_1_on_the_save_is_entry_33_s_pin``. The copies left unread
@@ -997,8 +1011,8 @@ class TestWhatThePostQuotes:
         np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
         save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
-            f"reads γ in column units, so its {100 * THRESHOLD:.0f} percent threshold is "
-            f"{100 * THRESHOLD / 3:.0f} percent a year of TU’s roll return.",
+            f"reads γ in column units. Its {100 * THRESHOLD:.0f} percent threshold then means a "
+            f"roll return of {100 * THRESHOLD / 3:.0f} percent a year on TU.",
             f"buys if TU’s price is above its level {LOOKBACK} trading days earlier and sells if "
             f"it is below, and it holds each of those bets for {HOLD_DAYS} days.",
             f"above {100 * THRESHOLD:.0f} percent a year, short when it is below "
@@ -1239,6 +1253,9 @@ class TestWhatThePostQuotes:
         assert matches(100 * fifth.apr, BOOK_APR_PERCENT), "match"
         assert matches(fifth.sharpe, BOOK_SHARPE), "match"
         assert not matches(-100 * fifth.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT), "misses"
+        assert result.figures.sharpe - four.figures.sharpe > (
+            fifth.sharpe - four.fifth_figures.sharpe
+        ), "further"
         fragments = [
             f"That gives an APR of {100 * fifth.apr:.4f} percent, a Sharpe ratio of "
             f"{fifth.sharpe:.6f} and a drawdown of {-100 * fifth.max_drawdown:.4f} percent.",
@@ -1246,10 +1263,12 @@ class TestWhatThePostQuotes:
             f"book’s precision. The drawdown misses {BOOK_MAX_DRAWDOWN_PERCENT} percent.",
             f"It gives a Sharpe ratio of {result.fifth_on_both_days_figures.sharpe:.6f}, short of "
             f"the book’s {BOOK_SHARPE}.",
-            f"lowers the variant’s Sharpe ratio from {fifth.sharpe:.6f} to "
-            f"{four.fifth_figures.sharpe:.6f}.",
+            f"A fit of γ on the {WORDS[NEAREST - 1]} nearest contracts alone, which leaves the "
+            "held contract out of the fit, lowers the variant’s Sharpe ratio from "
+            f"{fifth.sharpe:.6f} to {four.fifth_figures.sharpe:.6f}.",
             "The same fit lowers the declared rule’s Sharpe ratio further, from "
-            f"{result.figures.sharpe:.6f} to {four.figures.sharpe:.6f},",
+            f"{result.figures.sharpe:.6f} to {four.figures.sharpe:.6f}, though the front contract "
+            "it holds is in both fits.",
         ]
         assert not_found_once(text, fragments) == []
 

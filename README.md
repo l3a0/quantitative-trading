@@ -6924,9 +6924,9 @@ Five groups of what it says are not pinned here.
    farthest prices are equal finds no roll among them, and that the strip
    cannot say whether the exchange or the data vendor set those prices, and
    that the strip is the only TU file in the repository's data that reaches
-   the window's end. The post's words for how the rebuild and the
-   fifth-contract variant pick a contract are not read either, though tests on
-   the code hold both rules.
+   the window's end. Of the post's words for how the rebuild and the
+   fifth-contract variant pick a contract, only the rebuild's seven trading
+   days are read, though tests on the code hold both rules.
 4. Arithmetic the post takes between pinned figures in words: the three
    months between the 2012-05-11 save's last day and the window's end. The
    post reads the APR margins' move from 0.000304 to 0.000225 as about a
@@ -6963,10 +6963,10 @@ pins the figure's lines and labels. The review before publishing pinned seven
 more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
 
 1. The spot's first day, 1995-08-10.
-2. The 185 window days, 2009-01-02 to 2009-09-29, on which the three farthest
-   contracts γ is fitted on share one price, and the 169 flat rows whose
-   position was set on a row where they share one price, 2008-12-31 or one of
-   the 185.
+2. The 185 of the 187 window days from 2009-01-02 to 2009-09-29 on which the
+   three farthest contracts γ is fitted on share one price, and the 169 flat
+   rows whose position was set on a row where they share one price, 2008-12-31
+   or one of the 185.
 3. TU's annual volatility of 0.016727 on those 169 rows, and the Sharpe ratios
    of 1.845682 and 1.428115 from 2009-10-01, once no position rests on those
    prices.
