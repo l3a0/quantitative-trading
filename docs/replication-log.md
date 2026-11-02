@@ -8444,6 +8444,17 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/roll-momentum-lessons.md](../blog/roll-momentum-lessons.md) moves with
 it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.roll_momentum_figures` redraws.
+Its two whiteboard sketches move too, and
+`uv run python -m chan.roll_momentum_whiteboard` redraws them. The one in
+Lesson 2 prints the 341 flat and 572 long rows, TU's compounded −0.001244 and
+0.050629 over them, and each rule's average annual return over its annual
+volatility, 0.013661 / 0.007575 = 1.80 and 0.013351 / 0.011156 = 1.20. Its
+ticks are schematic. The one in Lesson 3 draws the March 2012 roll. The
+rebuild earns March through 2012-03-21 and June from 2012-03-22. The
+2012-05-11 save sits 0.1407 below March's close on 2012-03-20 and equals
+June's close on 2012-03-21, where its change of +0.0625 matches neither
+March's own +0.0547 nor June's own +0.0546. It closes on the 30 of 1,999
+changes that differ, all on the 7th trading day before a last price.
 
 ## Entry 37: three hypothesis tests on TU momentum, Chan's *Algorithmic Trading*
 

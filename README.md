@@ -6922,9 +6922,8 @@ Five groups of what it says are not pinned here.
    cannot say whether the exchange or the data vendor set those prices, and
    that the strip is the only TU file in the repository's data that reaches
    the window's end.
-4. Arithmetic the post takes between pinned figures in words: the 1.80 and
-   1.20 that average return over volatility gives, the 64 window rows the
-   2012-05-11 save does not cover, a third of γ as three times the month
+4. Arithmetic the post takes between pinned figures in words: the 64 window
+   rows the 2012-05-11 save does not cover, a third of γ as three times the month
    reading, 341 of 913 as the rows outside the 572, and the APR margins of
    0.000304 and 0.000225 over the save's 849 rows, each the difference of two
    pinned APRs. The post also reads, in words, the three months between that
@@ -6937,10 +6936,14 @@ Five groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py), to
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-for the figure's own numbers, or to `TestTheWindow::test_its_figures` in
+for the figure's own numbers, to
+[tests/test_roll_momentum_whiteboard.py](tests/test_roll_momentum_whiteboard.py)
+for the sketches' dates, price changes and twelve-second hold, and for the
+1.80 and 1.20 that average return over volatility gives, or to
+`TestTheWindow::test_its_figures` in
 [tests/test_tu_momentum.py](tests/test_tu_momentum.py) for Example 6.1's 1.4069
 percent, 1.187438 and 0.9851 percent on the 2012-05-11 save. Three had no pin
-before it.
+before the post.
 
 1. Example 6.1 holds all 25 tranches long on every one of the 913 window rows,
    so its returns are the rebuilt series' own.
@@ -6985,6 +6988,45 @@ uv run python -m chan.roll_momentum_figures
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/roll_momentum_whiteboard.py](src/chan/roll_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws. Both
+build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds. Both draw in the post chart's colours. The first
+uses brown for Example 6.1's rule and green for the declared rule, and the
+second uses brown for Chan's continuous close, the series Example 6.1 trades.
+
+1. `roll_momentum_sketch_less_swing.gif`, in Lesson 2, draws a row of TU's
+   daily returns as ticks for Example 6.1's rule holding TU every day, and the
+   same row for the declared rule flattened in the stretches it sits out. Its
+   ticks and the number and places of its stretches are schematic, and the
+   share of ticks drawn flat is the nearest to the 341 of 913 window days that
+   48 ticks allow. It prints TU's compounded
+   −0.001244 over those 341 days and 0.050629 over the 572 long ones, and each
+   rule's average annual return over its annual volatility, 0.013661 /
+   0.007575 = 1.80 and 0.013351 / 0.011156 = 1.20.
+2. `roll_momentum_sketch_switch_day.gif`, in Lesson 3, draws the March 2012
+   roll on TU's trading days from 2012-03-19 to the March contract's last
+   price on 2012-03-30. The rebuild reads March through 2012-03-21 and June
+   from 2012-03-22. Chan's continuous close sits 0.1407 below March's close on
+   2012-03-20 and equals June's close on 2012-03-21, where its change of
+   +0.0625 matches neither March's own +0.0547 nor June's own +0.0546. It
+   closes on the 30 of 1,999 changes that differ, all on the 7th trading day
+   before a last price. Its days and numbers come from the run, and its rows
+   say which contract each series reads rather than drawing prices to scale.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.roll_momentum_whiteboard
+```
+
+[tests/test_roll_momentum_whiteboard.py](tests/test_roll_momentum_whiteboard.py)
+holds what each draws, derives every count, date, price change and figure
+again from the run, and holds that each GIF follows its text in the post. Four
+of the second sketch's figures had no pin before it: the 0.1407 and the three
+changes on 2012-03-21.
 
 [blog/vx-calendar-spread-lessons.md](blog/vx-calendar-spread-lessons.md) is a
 thirty-second post, about the VIX futures calendar spread at location 2502 of

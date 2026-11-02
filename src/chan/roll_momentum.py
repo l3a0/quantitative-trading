@@ -11,8 +11,9 @@ from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of
 1.1 percent". No script ships for it, so the rule below is a declaration
 rather than a transcription. It landed here for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353). The book
-prints no chart for it, and :mod:`chan.roll_momentum_figures` draws the post's
-figure from this run.
+prints no chart for it, so :mod:`chan.roll_momentum_figures` draws the post's
+figure from this run, and :mod:`chan.roll_momentum_whiteboard` its two
+whiteboard sketches.
 
 **The declared rule.** Five choices, each from the issue's plan.
 

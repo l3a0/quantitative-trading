@@ -1,12 +1,13 @@
 """The pins for TU momentum traded on the lagged roll return, *Algorithmic Trading*'s location 2690.
 
 This file is the single authority for every number a prose surface quotes
-about this experiment and the rows beside it, with two exceptions.
+about this experiment and the rows beside it, with three exceptions.
 ``blog/roll-momentum-lessons.md`` also quotes its figure's numbers, which
-``tests/test_roll_momentum_figures.py`` holds, and Example 6.1's figures on
-the 2012-05-11 save, which ``TestTheWindow::test_its_figures`` in
-``tests/test_tu_momentum.py`` holds. It also quotes claims no test asserts,
-which README lists. ``docs/replication-log.md``
+``tests/test_roll_momentum_figures.py`` holds, its sketches' dates, price
+changes and twelve-second hold, which ``tests/test_roll_momentum_whiteboard.py``
+holds, and Example 6.1's figures on the 2012-05-11 save, which
+``TestTheWindow::test_its_figures`` in ``tests/test_tu_momentum.py`` holds. It
+also quotes claims no test asserts, which README lists. ``docs/replication-log.md``
 Entry 36 carries the verdicts and points here row by row. The rows are the ones
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353) declared
 under "The pins".
