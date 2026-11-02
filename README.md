@@ -6959,25 +6959,25 @@ before the post.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) pins all three, and
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-pins the figure's lines and labels. The review before publishing pinned more
-in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
+pins the figure's lines and labels. The review before publishing pinned six
+more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
 
-- The spot's first day, 1995-08-10.
-- The 185 window days, 2009-01-02 to 2009-09-29, on which the three farthest
-  contracts γ is fitted on share one price, and the 169 flat rows whose
-  position was set on a row where they share one price, 2008-12-31 or one of
-  the 185.
-- TU's annual volatility of 0.016727 on those 169 rows, and the Sharpe ratios
-  of 1.845682 and 1.428115 from 2009-10-01, once no position rests on those
-  prices.
-- The 29 of 32 rolls on which the save's change on row L − 7 matches neither
-  contract's own, the one on which it matches only the new contract's, and
-  the 1.366491 percent and 1.789044 that a roll on row L − 8 gives the
-  declared rule.
-- The APR margin turning negative at thresholds of 0.029 and 0.032, and all
-  three margins at 0.028.
-- The 64 days the 2012-05-11 save does not cover needing about 4.2 percent to
-  reach the book's APR, and adding 0.03 percent on the rebuild.
+1. The spot's first day, 1995-08-10.
+2. The 185 window days, 2009-01-02 to 2009-09-29, on which the three farthest
+   contracts γ is fitted on share one price, and the 169 flat rows whose
+   position was set on a row where they share one price, 2008-12-31 or one of
+   the 185.
+3. TU's annual volatility of 0.016727 on those 169 rows, and the Sharpe ratios
+   of 1.845682 and 1.428115 from 2009-10-01, once no position rests on those
+   prices.
+4. The 29 of 32 rolls on which the save's change on row L − 7 matches neither
+   contract's own, the one on which it matches only the new contract's, and
+   the 1.366491 percent and 1.789044 that a roll on row L − 8 gives the
+   declared rule.
+5. The APR margin turning negative at thresholds of 0.029 and 0.032, and all
+   three margins at 0.028.
+6. The 64 days the 2012-05-11 save does not cover needing about 4.2 percent to
+   reach the book's APR, and adding 0.03 percent on the rebuild.
 
 It also added `TestWhatThePostQuotes`, which reads from the post itself one
 copy of each run figure the post quotes outside the sketches' alt texts, at
