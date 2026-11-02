@@ -8240,6 +8240,40 @@ uv run python -m chan.pead_rerun_figures
 what it draws rather than its bytes, for the reason given above for the
 regime map.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/pead_rerun_whiteboard.py](src/chan/pead_rerun_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the list it draws.
+
+1. `pead_rerun_sketch_where_the_56_go.gif`, in Lesson 1, after the list of
+   why the 56 stocks outside U fail. A box of ALL's 497 holds CAL's 488 and
+   PX's 446 as two circles overlapping in U's 441. The 47 in CAL alone are
+   brass, the chart's colour for them, split into 4 reused tickers and 43
+   without prices for the whole window. The 5 in PX alone and the 4 outside
+   both are red, the chart's colour for the 9 that fail the filer check. It
+   is not drawn to scale, and every count comes from the committed table of
+   tickers.
+2. `pead_rerun_sketch_four_hours_late.gif`, in Lesson 2, after the list of
+   what a late time does. On one clock from 6 a.m. to 10 p.m., with the
+   session tinted, three rows move 4 hours later: the 1,460 filings accepted
+   before the open, from 06:00:43, land inside the session, Apple's releases
+   at about 4:30 p.m. stay after the close, and the span from noon to the
+   close lands past it. The tint carries the 405 accepted during the session.
+   The 4 hours, and the 5 a winter time takes, come from the sample of 248
+   filings that is not committed, so the module holds them as constants and
+   the caption says so.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds. Redraw both with:
+
+```bash
+uv run python -m chan.pead_rerun_whiteboard
+```
+
+[tests/test_pead_rerun_whiteboard.py](tests/test_pead_rerun_whiteboard.py)
+holds what each draws, which region each count sits in, where each span and
+dot sits on the clock, that every count is read from the committed table and
+index, and that each GIF follows its list in the post.
+
 [blog/opening-gap-lessons.md](blog/opening-gap-lessons.md) is a
 fortieth post, about the opening gap strategy on FSTX, the STOXX Europe
 50 index future, Example 7.1 of Chan's *Algorithmic Trading*. The book
