@@ -11678,12 +11678,12 @@ write-up measured after the run, which `TestWhatThePostCounted` and
    last four formations the match had no leverage to offer at all. The low
    fifth's Sharpe ratio of 0.8607 against the high fifth's 0.6770 is an
    untested point estimate that decides nothing.
-3. **The data reject only a large levered advantage, and one month sets the
-   estimate's sign.** The gap's standard error is 0.1185 a year, so a
+3. **The data reject only a large levered advantage, and either of two
+   months sets the estimate's sign.** The gap's standard error is 0.1185 a year, so a
    one-sided test at 5 percent rejects every levered advantage above 0.1360
    a year. December 2024's d of −1.5624 is the lowest of the 208. Without it,
-   twelve times the mean of d is +0.0313, and without it and March 2026's
-   −1.1582 it is +0.0989. No month reached its own ruin line, and the match
+   twelve times the mean of d is +0.0313, without March 2026's −1.1582 alone
+   it is +0.0079, and without both it is +0.0989. No month reached its own ruin line, and the match
    asked December 2024 for 0.80 of the leverage that ruins it, the largest
    share of any month. The 2,187 member rows failing the row check against
    the filing split 1,186 with no close, 697 with a wrong price and 304 with

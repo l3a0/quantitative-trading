@@ -735,8 +735,8 @@ where they were first built. The other forty-five were built here.
     schedules is dated up to two months late, or five around the missing
     2013-09-30 schedule. Measured after the run, a one-sided test at 5
     percent rejects every levered advantage above 0.1360 a year, and
-    December 2024 alone sets the gap's sign, since without it the gap is
-    +0.0313.
+    dropping either December 2024 or March 2026 alone turns the gap
+    positive, to +0.0313 or +0.0079.
 47. Item 22's Example 2.5 after Chan's sample, on Alpha Vantage's USD/CAD
     daily closes from 2012-03-29 to 2026-10-12, at the lookback of 115 days
     fixed from his closes and never re-estimated. The claim that the P&L ends
@@ -9387,7 +9387,8 @@ Entry 49 of the replication log.
 1. The test is not decided. The levered low fifth trailed by 0.0590 a year at
    a Newey-West t of −0.4974, and Y is 0.2948. Measured after the run, a
    one-sided test at 5 percent rejects every levered advantage above 0.1360 a
-   year, and dropping December 2024 alone turns the gap to +0.0313.
+   year, and dropping December 2024 or March 2026 alone turns the gap to
+   +0.0313 or +0.0079.
 2. The rule ruined a portfolio on Chan's file and not on the new panel. k
    peaked at 27.9727 against 69.0762, the low fifth's beta bottomed at 0.0563
    against 0.0280, and December 2024, the worst levered month, was asked for
@@ -9488,7 +9489,8 @@ before the post, all measured after the run except the five months in
    ruin line at −0.2926, a levered return of −0.4278 and a ruinous leverage of
    7.9837.
 8. December 2024's d of −1.5624 and March 2026's of −1.1582, the two lowest,
-   and the gap of +0.0313 without December 2024 and +0.0989 without both.
+   and the gap of +0.0313 without December 2024, +0.0079 without March 2026
+   and +0.0989 without both.
 9. March 2026, the second-worst levered month at −0.7005, with k at 9.4342,
    the low fifth at −0.0716 and the high fifth at −0.0463.
 10. February 2025's d of +0.6118, the highest, the gap of −0.0947 without it

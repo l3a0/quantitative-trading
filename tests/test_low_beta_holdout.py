@@ -982,11 +982,14 @@ class TestWhatThePostMeasured:
         reached = p.low <= ruin_line(p.rf, p.leverage)
         assert (int(reached.sum()), len(reached)) == (0, 208), f"{SPEC}; {AFTER_THE_RUN}"
 
-    def test_december_2024_alone_sets_the_sign_of_the_gap(self, holdout) -> None:
+    def test_either_december_2024_or_march_2026_alone_sets_the_sign_of_the_gap(
+        self, holdout
+    ) -> None:
         """Twelve times the mean of d over the months left when one or two are dropped.
 
         Dropping a month is not a test. It shows that the point estimate's sign
-        rests on December 2024, the month whose d is furthest below zero.
+        rests on either of December 2024 and March 2026, the two months whose d
+        is furthest below zero, and on no other single month.
         """
         d = differences(holdout.portfolios)
         dec, mar = pd.Timestamp("2024-12-31"), pd.Timestamp("2026-03-31")
@@ -994,6 +997,9 @@ class TestWhatThePostMeasured:
         after(float(d[dec]), -1.562445940052367, "-1.5624")
         after(float(d[mar]), -1.1581706211023435, "-1.1582")
         after(float(d.drop(dec).mean() * 12), 0.03132642815124604, "0.0313")
+        after(float(d.drop(mar).mean() * 12), 0.007890177777331676, "0.0079")
+        flips = [t for t in d.index if d.drop(t).mean() > 0]
+        assert flips == [dec, mar], f"{SPEC}; {AFTER_THE_RUN}"
         after(float(d.drop([dec, mar]).mean() * 12), 0.09894474796376723, "0.0989")
 
     def test_the_best_months_pull_the_other_way_less_far(self, holdout) -> None:
@@ -1225,7 +1231,7 @@ class TestThePostQuotesTheRun:
         ):
             assert row in self.text, row
 
-    def test_one_month_sets_the_sign(self, holdout) -> None:
+    def test_two_months_each_set_the_sign(self, holdout) -> None:
         p = holdout.portfolios
         d = differences(p)
         dec, mar = pd.Timestamp("2024-12-31"), pd.Timestamp("2026-03-31")
@@ -1234,8 +1240,10 @@ class TestThePostQuotesTheRun:
             f"of d over the other {len(d) - 1} months is {d.drop(dec).mean() * 12:+.4f}"
         ) in self.text
         assert (
-            f"where d was {prose(d[mar])}, the figure is {d.drop([dec, mar]).mean() * 12:+.4f}. "
-            f"In March 2026 the leverage was {p.leverage[mar]:.4f}. The low fifth lost "
+            f"The other month is March 2026, where d was {prose(d[mar])}. Without it alone the "
+            f"figure is {d.drop(mar).mean() * 12:+.4f}, and without both months it is "
+            f"{d.drop([dec, mar]).mean() * 12:+.4f}. In March 2026 the leverage was "
+            f"{p.leverage[mar]:.4f}. The low fifth lost "
             f"{-p.low[mar]:.4f} and the high fifth lost {-p.high[mar]:.4f}. Levered, that was a "
             f"loss of {-p.levered[mar]:.4f} of the capital"
         ) in self.text
