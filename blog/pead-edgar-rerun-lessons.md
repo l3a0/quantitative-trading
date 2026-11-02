@@ -16,7 +16,7 @@ A calendar can be rebuilt from public records. A company that releases its earni
 
 ### What the rerun found
 
-Each lesson below takes up one of these four, in order.
+Each lesson below takes up one of these four findings, in order.
 
 1. **A check against EDGAR and a check against a second vendor’s prices drop 56 stocks, and they carry a third of the return.** Chan’s arithmetic annual return of 0.066743, the 6.7 percent he prints, falls to 0.043678 on the 441 of his 497 stocks that pass both. The 13 that the checks cannot confirm as the right company carry about two thirds of the drop.
 2. **EDGAR’s timestamp needs the filing’s own header.** The time EDGAR’s data service gives for a filing has changed from one reading to the next. In October 2026 it read hours late for some filers, the companies as EDGAR registers them. A late time would move a morning filer’s release into the trading session.
