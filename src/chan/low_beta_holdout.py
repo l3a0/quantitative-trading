@@ -6,8 +6,8 @@ portfolio of low-beta stocks should generate higher long-term compounded growth
 than holding an unleveraged portfolio of high-beta stocks", on Chan's own S&P
 500 file from 1999 to 2007. :mod:`chan.low_beta_leverage` runs it, and Entry 45
 of [docs/replication-log.md](../../docs/replication-log.md) records the result.
-That file holds only the stocks still in the index in 2007, and its span sits
-inside the samples the low-beta literature already used.
+That file holds the stocks in the index in 2007, and its years were past
+prices by the time the book printed the claim.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
 issue 275's registered specification, with the changes the panel forces, on a
 panel that has neither problem in the same form: IVV's members at each
@@ -526,7 +526,7 @@ def report(holdout: Holdout) -> None:
         )
     reading = kelly(p)
     print(
-        f"  Kelly, location {RULE_LOCATION}, look-ahead: the low portfolio's full-sample m / s^2 "
+        f"  Kelly, location {PREMISE_LOCATION}, look-ahead: the low portfolio's full-sample m / s^2 "
         f"{reading.leverage:.4f}, Gaussian growth there r + S^2/2 = {reading.bill:.4f} + "
         f"{reading.moments.levered_growth:.4f} = {reading.growth:.4f}, against the high "
         f"portfolio's realised {growth(p.high):.4f}."

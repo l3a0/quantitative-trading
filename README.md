@@ -9451,8 +9451,11 @@ before the post, all measured after the run.
    schedule, 74.9 percent, against 697 of the 2,187 failing rows, 31.9
    percent.
 5. On Chan's file, the close the earlier test asks for at the next month-end
-   left out 17 stocks at six formations, each with closes after the gap, and
-   no series ends before the file's last day.
+   left out 17 stocks at six formations. Fourteen have closes again within a
+   few months, and the other three are WYN, DFS and SE, whose earlier
+   company's prices stop inside the holding month and whose symbol resumes
+   more than a year later with a different company. No column ends before
+   the file's last day.
 
 `TestWhatThePostMeasured` reads the archive.
 
@@ -9470,7 +9473,8 @@ before the post, all measured after the run.
    as the closest of any month.
 6. No month of 208 at or below its own ruin line.
 7. March 2020, the low fifth's worst month at −0.1250, with k at 3.4162, its
-   ruin line at −0.2926 and a levered return of −0.4278.
+   ruin line at −0.2926, a levered return of −0.4278 and a ruinous leverage of
+   7.9837.
 8. December 2024's d of −1.5624 and March 2026's of −1.1582, the two lowest,
    and the gap of +0.0313 without December 2024 and +0.0989 without both.
 9. March 2026, the second-worst levered month at −0.7005, with k at 9.4342,

@@ -11513,8 +11513,9 @@ Algorithmic Trading Business*, revised edition, Kindle locations 4684, 4700
 and 4709, the claim Entry 45 tests on Chan's own file. Shipped under
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526). Entry 45
 cannot say whether the rule held after the book, because Chan's file holds
-only the stocks still in the index in 2007 and its span sits inside the
-samples the low-beta literature used. This entry runs Entry 45's registered
+the stocks in the index in 2007 and lacks every company that left before
+then, and its years were past prices by the time the book printed the claim.
+This entry runs Entry 45's registered
 specification, with the changes the panel forces, on IVV's members at each
 month-end from 2008-12, every holding month after the first edition's
 release in November 2008.
@@ -11624,7 +11625,7 @@ columns have nothing to hold in any row and are dropped, under
 | 3 | realised compounded growth, 12 times the mean monthly log return | levered low 0.1023, low 0.1069, high 0.1613, SPY 0.1378 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` and `::test_spys_growth` |
 | 4 | k over the 208 formations kept, and the low group's mean beta | k mean 3.8247, from 1.8988, formed 2015-12-31, to 27.9727, formed 2025-03-31. Low group 0.0563 to 0.7317 | `TestTheSideFigures::test_the_leverage_path` and `::test_the_low_groups_mean_beta_over_the_formations_kept` |
 | 5 | each series' realised beta, the slope of its monthly return over the bill on SPY's | levered low 1.8316, low 0.5580, high 1.6461, SPY 1 | `TestTheSideFigures::test_growth_sharpe_and_realised_beta` |
-| 6 | location 4709's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 7.3632, Gaussian growth 0.0136 + 0.3704 = 0.3840, against the high portfolio's realised 0.1613 | `TestTheSideFigures::test_the_kelly_reading_labelled_look_ahead` |
+| 6 | location 4684's Kelly reading, look-ahead: the low portfolio's full-sample m / s², and the Gaussian growth r + S²/2 there | leverage 7.3632, Gaussian growth 0.0136 + 0.3704 = 0.3840, against the high portfolio's realised 0.1613 | `TestTheSideFigures::test_the_kelly_reading_labelled_look_ahead` |
 | 7 | member-months, covered members and eligible stocks over the 208 formations, and each portfolio's size. The run prints every formation's row | 104,600 member-months, 97,667 covered, 97,302 eligible with a beta. 389 to 501 eligible per formation, each portfolio 77 to 100, 19,377 stock-months each. The two exclusions that read t + 1 leave out 12 member-months whose last row is t and 4 with a hole at t + 1 | `TestTheSideFigures::test_the_counts` and `::test_the_exclusions_that_read_t_plus_1` |
 | 8 | stock-months with a scale-break flag between the beta window's first return and the holding month's end | 34 low and 321 high. The closes the run reads flag 820 closes in 98 stocks | `TestTheScaleBreakDecision::test_34_low_and_321_high_stock_months_carry_a_flag` and `::test_820_flagged_days_in_98_stocks` |
 | 9 | the calendar | 4,695 days from 2008-01-02 to 2026-08-31, the first formation 252 rows in. 212 formations from 2008-12-31 to 2026-07-31. 121 series stop before their file's last row, and no close falls off the calendar | `TestTheRunsHelpers::test_the_frame_starts_252_rows_before_2008_12_31_and_ends_2026_08_31`, `TestTheWindow::test_212_formations_of_which_4_are_skipped_leave_208_months`, `::test_formed_2008_12_31_to_2026_03_31_held_to_2009_01_30_to_2026_04_30` and `TestTheVintages::test_121_series_stop_before_their_files_last_row_and_none_is_off_the_calendar` |
@@ -11640,7 +11641,7 @@ columns have nothing to hold in any row and are dropped, under
 | 3 | none, not a replication | Unlevered, the high fifth compounded at 0.1613 a year, the low fifth at 0.1069 and SPY at 0.1378. Levered, the low fifth reached 0.1023, below its own unlevered growth. Nothing tests any of these gaps. |
 | 4 | none, not a replication | Over the formations kept, the low fifth's mean beta at formation bottomed at 0.0563 and k peaked at 27.9727, both at the formation of 2025-03-31, against Entry 45's 69.0762. |
 | 5 | none, not a replication | The levered low's realised beta of 1.8316 is above the high fifth's 1.6461, so after the fact the match overshot the beta it aimed at, as on Chan's file. The low fifth's 0.5580 sits inside the range its formations gave. SPY's is 1 by construction. |
-| 6 | none, not a replication | Look-ahead. The Kelly leverage can only be known from the whole sample, and the 0.3840 is the Gaussian growth r + S²/2, a formula on the sample's moments that no portfolio realised. The reading is reported because location 4709 means it, and it decides nothing. |
+| 6 | none, not a replication | Look-ahead. The run computes the Kelly leverage here from the whole sample, and the 0.3840 is the Gaussian growth r + S²/2, a formula on the sample's moments that no portfolio realised. The entry reports the reading because location 4684's growth argument rests on it, and it decides nothing. |
 | 7 | none, not a replication | Every formation kept fills both fifths, so the refusal for an empty portfolio never fires. |
 | 8 | none, not a replication | No window is refused, as `tests/test_scale_breaks.py` records for this panel. The high fifth holds 321 flagged stock-months and the low fifth 34. |
 | 9 | none, not a replication | The first formation is the one the registration named, and the 212 formations are the count the audit took from the calendar before the run. |
@@ -11687,8 +11688,10 @@ write-up measured after the run, which `TestWhatThePostCounted` and
    the filing split 1,186 with no close, 697 with a wrong price and 304 with
    no series. 26,353 of all 35,205 member rows carry a ticker still in the
    2026-06-30 schedule, against 697 of the 2,187 failing rows. On Chan's
-   file the close at t + 1 removed no company that left, only 17 stocks
-   missing a month-end close at six formations. Measured after the run, so
+   file the close at t + 1 removed 17 stocks missing a month-end close at
+   six formations. Fourteen had closes again within a few months, and the
+   other three were the earlier companies under WYN, DFS and SE, whose
+   prices stopped inside the holding month. Measured after the run, so
    exploratory, and it decides nothing.
 
 ### What this entry cannot say

@@ -587,12 +587,14 @@ class TestWhatThePostCounted:
         assert [f"{100 * n / of:.1f}" for n, of in (every, failed)] == ["74.9", "31.9"]
 
     def test_on_chans_file_the_close_at_t_plus_1_left_out_only_missing_closes(self) -> None:
-        """17 stocks at 6 formations, each with closes after the month-end it lacks.
+        """17 stocks at 6 formations, each missing the month-end close it asks for.
 
         Issue 275's rule asks for a close at the formation and at the next
-        month-end. No series in Chan's file ends before the file's last day, so
-        the rule never removed a company that left. It removed only a stock
-        with a hole at the next month-end, which is still a look ahead.
+        month-end. No column in Chan's file ends before the file's last day, but
+        one column is not always one company. Fourteen of the 17 have closes
+        again within a few months. The other three are WYN, DFS and SE, whose
+        earlier company's prices stop inside the holding month and whose symbol
+        resumes more than a year later with a different company.
         """
         _, closes, _, spy, _, bills = read_sources()
         p = build_portfolios(closes, spy, bills)
@@ -601,6 +603,7 @@ class TestWhatThePostCounted:
         stock = daily_excess(cut, bills).to_numpy()
         market = daily_excess(spy.loc[cut.index].to_frame(), bills).to_numpy()[:, 0]
         left_out = {}
+        resumed_late = {}
         for formed, held_to, eligible in zip(p.formed, p.held_to, p.eligible, strict=True):
             end = cut.index.get_loc(formed)
             window = slice(end - BETA_DAYS + 1, end + 1)
@@ -613,6 +616,10 @@ class TestWhatThePostCounted:
                 after_it = cut.iloc[cut.index.get_loc(held_to) + 1 :, gone]
                 assert after_it.notna().any().all(), formed
                 left_out[str(formed.date())] = (eligible + len(gone), eligible)
+                for j in gone:
+                    last = cut.iloc[: cut.index.get_loc(held_to), j].last_valid_index()
+                    if after_it.iloc[:, gone.index(j)].first_valid_index() - last > pd.Timedelta(days=365):
+                        resumed_late[cut.columns[j]] = str(formed.date())
         assert left_out == {
             "2000-11-30": (454, 453),
             "2001-01-31": (455, 444),
@@ -622,6 +629,11 @@ class TestWhatThePostCounted:
             "2005-10-31": (488, 486),
         }, AFTER_THE_RUN
         assert sum(before - kept for before, kept in left_out.values()) == 17, AFTER_THE_RUN
+        assert resumed_late == {
+            "WYN": "2002-09-30",
+            "DFS": "2005-10-31",
+            "SE": "2005-10-31",
+        }, AFTER_THE_RUN
 
 
 # --- the archive pins ------------------------------------------------------------
@@ -961,6 +973,7 @@ class TestWhatThePostMeasured:
         after(float(p.leverage[mar]), 3.4162225462748657, "3.4162")
         after(float(ruin_line(p.rf, p.leverage)[mar]), -0.29255005082766206, "-0.2926")
         after(float(p.levered[mar]), -0.42776296562855215, "-0.4278")
+        after(float(ruinous_leverage(p.low, p.rf)[mar]), 7.983670912779481, "7.9837")
 
 
 class TestTheScaleBreakDecision:
@@ -992,6 +1005,7 @@ class TestTheReport:
         assert "levered low      0.1023   0.5223   1.8316" in out
         assert "low              0.1069   0.8607   0.5580" in out
         assert "high             0.1613   0.6770   1.6461" in out
+        assert "Kelly, location 4684, look-ahead" in out
         assert "7.3632, Gaussian growth there r + S^2/2 = 0.0136 + 0.3704 = 0.3840" in out
         assert "34 low and 321 high stock-months of 38754" in out
         assert "leaves out 6943 of 107115 member-months. 6816 of them fail" in out
