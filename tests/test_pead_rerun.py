@@ -47,6 +47,7 @@ before the registration, and it first ran here on 2026-10-10.
 from __future__ import annotations
 
 import itertools
+import re
 from collections import Counter
 from dataclasses import replace
 from pathlib import Path
@@ -58,7 +59,13 @@ import pytest
 
 from chan import earnings_filings, pead_rerun
 from chan.archive import ArchiveUnavailable, read_archive_manifest
-from chan.earnings_filings import Release, holding_price, read_table, serialize_table
+from chan.earnings_filings import (
+    Release,
+    holding_price,
+    name_keys,
+    read_table,
+    serialize_table,
+)
 from chan.pead import (
     BOOK_APR_PERCENT,
     BOOK_SHARPE,
@@ -80,6 +87,7 @@ from chan.pead_rerun import (
 )
 from chan.vintage import VintageUnavailable
 from tests.conftest import archive_skip_reason
+from tests.test_earnings_filings import OWN_NAMES, ivv_names, meets
 
 #: The trading days around Martin Luther King Day, Monday 2011-01-17.
 DAYS = pd.DatetimeIndex(
@@ -1274,23 +1282,25 @@ class TestWhatThePostQuotes:
     the precision the post prints it, and looked for in one copy: a fragment
     holding the number and the words around it that name one place in the
     post. A typo in that copy, or a re-pin that leaves the post behind, fails
-    here. The three tables are rebuilt from the runs, so a digit added to a
-    cell fails as well as a digit changed. Counts the post spells out, such
-    as forty-three, are spelled from the count.
+    here. A fragment never matches inside a longer number, so a digit added
+    beside a figure fails as well as a digit changed, and the three tables
+    are rebuilt from the runs whole. Counts the post spells out, such as
+    forty-three, are spelled from the count.
 
     What it reads splits by whether the figure needs the owner's archive.
 
     1. Everywhere, the six committed runs and the files they read: Chan's
        prices and flags, the ticker table and the Item 2.02 index under
-       ``research/filings/earnings/``, IVV's schedules, and the archive's
-       committed manifest. That covers the rule's constants and the book's two
-       figures, the universes, the first table, the committed rows of the
-       second, the identity, Lesson 1's checks, table, shares and day, the
-       two figures whose only copy is the chart's alt text, Lesson 2's
-       counts and times, and Lesson 3. ``chan.pead``,
-       ``chan.pead_rerun`` and ``chan.earnings_filings`` supply the
-       constants, and the hours a time read late moves by come from the tz
-       database's offsets for New York.
+       ``research/filings/earnings/``, IVV's schedules, read for the nine's
+       own names that ``tests/test_earnings_filings.py`` lists, and the
+       archive's committed manifest. That covers the rule's constants and the
+       book's two figures, the universes, calendars and runs, the first
+       table, the committed rows of the second, the identity, Lesson 1's
+       checks, table, shares and day, the two figures whose only copy is the
+       chart's alt text, Lesson 2's counts and times, and Lesson 3.
+       ``chan.pead``, ``chan.pead_rerun`` and ``chan.earnings_filings``
+       supply the constants, and the hours a time read late moves by come
+       from the tz database's offsets for New York.
     2. Only where the archive is configured and ``QT_ARCHIVE_RUN=1`` is set,
        C, D, E1 and E5 and the archive's opens. That covers the second table
        whole, EP's 294 and 181 days, and every number in Lesson 4. CI skips
@@ -1301,13 +1311,9 @@ class TestWhatThePostQuotes:
     are not read, so a typo in one of them passes. Neither are the figures
     README lists as unpinned: Chan's words and pages, the readings of the
     submissions file, the facts read when the record was built, the readings
-    in words, the alt text's approximate readings of the curves, and the
-    references.
+    in words and the counts of the post's own lists, the alt text's
+    approximate readings of the curves, and the references.
     """
-
-    #: The five of the nine outside CAL that left the fund during the window,
-    #: which ``TestWhatThePostMeasured`` and ``tests/test_earnings_filings.py`` pin.
-    LEFT_THE_FUND = ("AKS", "CPWR", "MWW", "TLAB", "WFR")
 
     @pytest.fixture(scope="class")
     @classmethod
@@ -1316,11 +1322,38 @@ class TestWhatThePostQuotes:
 
     @staticmethod
     def missing(text: str, fragments: list[str]) -> list[str]:
-        return [fragment for fragment in fragments if fragment not in text]
+        """The fragments not in ``text``, where a digit at either end must not run on."""
+        return [
+            fragment
+            for fragment in fragments
+            if not re.search(r"(?<!\d)" + re.escape(fragment) + r"(?!\d)", text)
+        ]
 
     @pytest.fixture(scope="class")
     @classmethod
-    def lesson_1(cls, sources, runs) -> SimpleNamespace:
+    def outside_cal(cls, sources) -> SimpleNamespace:
+        """The nine outside CAL, split by the fund's schedule and by their EDGAR names.
+
+        ``left`` are those whose own name meets no holding in IVV's schedule
+        of 2012-03-31, and ``own`` those whose EDGAR name meets their own,
+        both through ``name_keys`` as ``tests/test_earnings_filings.py`` pins
+        them. The other four meet exactly one holding that day.
+        """
+        rows = {row.ticker: row for row in sources.table}
+        tickers = [s for s in sources.universe("ALL") if not rows[s].calendar]
+        assert sorted(tickers) == sorted(OWN_NAMES)
+        holdings = ivv_names(earnings_filings.IVV_REPORT_DATE)
+        held = {s: meets(OWN_NAMES[s], holdings) for s in tickers}
+        assert set(held.values()) == {0, 1}, "the rest meet exactly one holding"
+        return SimpleNamespace(
+            all=tickers,
+            left=[s for s in tickers if held[s] == 0],
+            own=[s for s in tickers if name_keys(rows[s].edgar_name) & name_keys(OWN_NAMES[s])],
+        )
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def lesson_1(cls, sources, runs, outside_cal) -> SimpleNamespace:
         """A's trades split by why a stock is outside U, as the classes above split them."""
         returns, positions = a_trades(sources, runs)
         scale = to_annual(runs["A"])
@@ -1334,7 +1367,7 @@ class TestWhatThePostQuotes:
             "unpriced": [s for s in no_series if rows[s].archive_check in ("missing", "none")],
             "outside U": [s for s in returns.columns if s not in u],
             "ALL": list(returns.columns),
-            "left the fund": list(cls.LEFT_THE_FUND),
+            "left the fund": outside_cal.left,
         }
         groups["untied"] = groups["outside CAL"] + groups["reused"]
 
@@ -1408,15 +1441,24 @@ class TestWhatThePostQuotes:
         (downloaded,) = {
             entries[rows[s].archive_ticker].download_date for s in sources.universe("PX")
         }
+        edgar = sorted({s.flags for s in pead_rerun.SPECS} - {"Chan"})
+        archive = pead_rerun.ARCHIVE_RUNS
+        assert [s.name for s in pead_rerun.SPECS if s.name not in archive] == list(COMMITTED)
         fragments = [
+            f"That gives {spelled(len(pead_rerun.UNIVERSES))} universes, the sets of stocks",
             f"**ALL**, Chan’s {sizes['ALL']} stocks.",
             f"**CAL**, the {sizes['CAL']} whose filer passed its check.",
             f"**PX**, the {sizes['PX']} whose price series passed its check.",
             f"**U**, the {sizes['U']} that pass both.",
+            f"The rerun builds {spelled(len(edgar))} calendars from EDGAR, {' and '.join(edgar)}.",
             f"A filing accepted before {clock(9, 30)} on a trading day flags that day. One "
             f"accepted at {clock(16)} or later",
             f"sit in a private archive, downloaded on {downloaded}.",
             f"{spelled(len(pead_rerun.SPECS)).capitalize()} runs cover the four differences.",
+            f"**The {spelled(len(archive))} on Alpha Vantage prices, {', '.join(archive[:-1])} "
+            f"and {archive[-1]}, need the private archive, so a reader cannot rerun them.** The "
+            f"other {spelled(len(pead_rerun.SPECS) - len(archive))} read only files in the "
+            "repository.",
         ]
         assert self.missing(text, fragments) == []
 
@@ -1449,7 +1491,7 @@ class TestWhatThePostQuotes:
         ]
         assert self.missing(text, fragments) == []
 
-    def test_lesson_1_s_checks(self, sources, text) -> None:
+    def test_lesson_1_s_checks(self, sources, outside_cal, text) -> None:
         rows = {row.ticker: row for row in sources.table}
         routes = Counter((row.archive_source, row.archive_check) for row in sources.table)
         passing = [int(row.days_over) for row in sources.table if row.priced]
@@ -1477,7 +1519,12 @@ class TestWhatThePostQuotes:
         assert inside == "EP"
         lacks = int((sources.window < first[inside]).sum())
         unproposed = [s for s in no_series if rows[s].archive_check == "none"]
-        nine = len([s for s in sources.universe("ALL") if not rows[s].calendar])
+        nine, left, own = len(outside_cal.all), outside_cal.left, outside_cal.own
+        five = spelled(len(left))
+        # NYX carries its own CIK under a name that misses the schedule's only by
+        # the legal form, so the keys leave it out of ``own`` and the post counts it
+        # beside LUK, a reading README names among what is not pinned.
+        assert "NYX" not in own and [s for s in own if s not in left] == ["LUK"]
         four = len(reused)
         fragments = [
             f"It was filing on {earnings_filings.PRICE_DAY}.",
@@ -1494,12 +1541,17 @@ class TestWhatThePostQuotes:
             f"later ticker, which makes PX’s {len(sources.universe('PX'))}.",
             f"Its holding sits {100 * ace_gap:.2f} percent above the old Chubb’s close",
             f"{spelled(nine).capitalize()} stocks fail the filer check",
-            f"{spelled(len(self.LEFT_THE_FUND)).capitalize()} are missing from the fund’s "
-            f"schedule of {report_date}",
-            f"All five were in its schedule of {earlier[-2]} and gone from that of {earlier[-1]}",
+            f"{five.capitalize()} are missing from the fund’s schedule of {report_date}",
+            f"All {five} were in its schedule of {earlier[-2]} and gone from that of "
+            f"{earlier[-1]}, so they left the index inside the window. "
+            f"{spelled(len([s for s in left if s not in own])).capitalize()} of those {five} "
+            "also carry another company’s filer.",
             f"**{spelled(nine + four).capitalize()} cannot be confirmed as the right company.** "
             f"They are the {spelled(nine)} that fail the filer check",
-            f"and the {spelled(four)} reused tickers whose series holds another company’s history.",
+            f"and the {spelled(four)} reused tickers whose series holds another company’s "
+            f"history. {spelled(len(own) + 1).capitalize()} of the {spelled(nine)} carry their "
+            f"own company’s filer: {spelled(len([s for s in own if s in left]))} of the {five} "
+            "that left the index, NYSE Euronext and Leucadia.",
             f"**{spelled(len(no_series) - four).capitalize()} lack the prices to check.**",
             f"{spelled(len(unproposed)).capitalize()} have no series there at all. For "
             f"{len(after)} the series under that ticker starts after the window ends on "
@@ -1551,16 +1603,17 @@ class TestWhatThePostQuotes:
         assert top_day == day, "the largest trade falls on the day"
         cal = set(sources.universe("CAL"))
         assert all(positions.at[d, s] == -1.0 and s not in cal for d, s in largest.index)
-        closes = sources.closes.loc[sources.window, list(self.LEFT_THE_FUND)]
+        left = lesson_1.groups["left the fund"]
+        closes = sources.closes.loc[sources.window, left]
         fell = [1 - c.dropna().iloc[-1] / c.dropna().iloc[0] for _, c in closes.items()]
         cal_effects = effects_of(runs)
         top = float(largest.iloc[0])
-        other = [s for s in lesson_1.groups["outside CAL"] if s not in self.LEFT_THE_FUND]
+        other = [s for s in lesson_1.groups["outside CAL"] if s not in left]
 
         def mean_trade(stocks: list[str]) -> float:
             return float(returns[stocks].stack()[positions[stocks].stack() != 0].mean())
 
-        assert mean_trade(list(self.LEFT_THE_FUND)) <= mean_trade(other), "no more per trade"
+        assert mean_trade(left) <= mean_trade(other), "no more per trade"
         fragments = [
             f"The {n_out} stocks outside U take {t_out} of A’s {thousands(a.trades)} trades and "
             f"add {effect:.6f}, which is {effect / a.arithmetic_annual:.2f} of A’s return",
@@ -1575,8 +1628,10 @@ class TestWhatThePostQuotes:
             f"their {effect:.6f}, through {int((positions.loc[day, outside] != 0).sum())} trades.",
             f"Chan’s {top_stock}, a single trade that returned {top:.4f}, or {100 * top:.2f} "
             "percent,",
-            f"and they carry {float(largest.sum() / lesson_1.outside.sum()):.2f} of the "
-            f"{effect:.6f} the stocks outside U add.",
+            f"The {spelled(len(largest))} largest trades outside U are all shorts, all in the "
+            f"{spelled(by['outside CAL'][0])} stocks that fail the filer check, and they carry "
+            f"{float(largest.sum() / lesson_1.outside.sum()):.2f} of the {effect:.6f} the stocks "
+            "outside U add.",
             f"Per trade, the stocks outside U earn {lesson_1.outside.mean():.6f} on average "
             f"against {lesson_1.inside.mean():.6f} inside.",
             f"is {lesson_1.welch:.2f} (Welch, 1947).",
@@ -1663,8 +1718,10 @@ class TestWhatThePostQuotes:
         ]
         assert self.missing(text, fragments) == []
 
-    def test_lesson_3(self, runs, text) -> None:
+    def test_lesson_3(self, sources, runs, text) -> None:
         names = ("A_CAL", "B1", "B5")
+        r1 = sources.calendar_flags("R1")["AAPL"]
+        missed = int(((r1 == 1) & (sources.flags["AAPL"] == 0)).sum())
         flags = {s.name: ("Chan's" if s.flags == "Chan" else s.flags) for s in pead_rerun.SPECS}
         per = {name: pead_rerun.per_trade(runs[name]) for name in names}
 
@@ -1694,6 +1751,7 @@ class TestWhatThePostQuotes:
         }
         assert per["B5"] < per["A_CAL"] and b5.sharpe <= a_cal.sharpe, "gains only by trading more"
         fragments = [
+            f"including {spelled(missed)} of Apple’s releases that his file misses.",
             table,
             f"R1 lifts the return by {gain:.6f} in two ways. It takes {thousands(b1.trades)} "
             f"trades against {thousands(a_cal.trades)}, and its mean per trade is "

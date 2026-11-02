@@ -624,6 +624,10 @@ class TestTheUniverseSketch:
         assert (to_px >= RADIUS - 1e-9).all()
         on_a_circle = np.isclose(to_cal, RADIUS) | np.isclose(to_px, RADIUS)
         assert on_a_circle.all()
+        # Some of it runs off CAL's circle, so on PX's, which is the inner edge,
+        # and it ends where it began, so the outline closes round the crescent.
+        assert not np.isclose(to_cal, RADIUS).all()
+        assert np.hypot(*(points[-1] - points[0])) < 1e-9
         assert crescent.x.min() == pytest.approx(CAL_CENTRE[0] - RADIUS, abs=1e-3)
         assert crescent.width > _stroke(scene, "cal").width
 

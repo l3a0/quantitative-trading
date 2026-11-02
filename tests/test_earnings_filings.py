@@ -517,6 +517,33 @@ def schedule() -> list[tuple[str, float]]:
     return [(row["name"], holding_price(row["value"], row["shares"])) for _, row in ivv.iterrows()]
 
 
+#: The nine stocks outside CAL under their own companies' names, as IVV's
+#: schedule of 2011-09-30 prints them. ``tests/test_pead_rerun.py`` reads them
+#: too, to split the nine the way the post does.
+OWN_NAMES = {
+    "AKS": "AK Steel Holding Corp.",
+    "CPWR": "Compuware Corp.",
+    "CVC": "Cablevision NY Group Class A",
+    "DD": "E.I. du Pont de Nemours and Co.",
+    "LUK": "Leucadia National Corp.",
+    "MWW": "Monster Worldwide Inc.",
+    "NYX": "NYSE Euronext Inc.",
+    "TLAB": "Tellabs Inc.",
+    "WFR": "MEMC Electronic Materials Inc.",
+}
+
+
+def ivv_names(report_date: str) -> list[str]:
+    """Every holding's name in IVV's committed schedule of ``report_date``."""
+    path = earnings_filings.FILINGS_DIR / "ivv" / f"{report_date}.csv"
+    return list(pd.read_csv(path, dtype=str, keep_default_na=False)["name"])
+
+
+def meets(name: str, names: list[str]) -> int:
+    """How many of ``names`` share a key with ``name``, as the filer check matches them."""
+    return sum(bool(name_keys(name) & name_keys(other)) for other in names)
+
+
 class TestTheCommittedTable:
     """``tickers.csv`` as the build session wrote it on 2026-10-10."""
 
@@ -638,37 +665,39 @@ class TestTheCommittedTable:
         assert (max(passing), min(failing)) == (2, 72)
         assert max(passing) <= DAYS_ALLOWED < min(failing)
 
-    def test_five_left_out_left_the_fund_during_the_window(self, schedule) -> None:
+    def test_five_left_out_left_the_fund_during_the_window(self, table, schedule) -> None:
         """AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule of 2012-03-31.
 
         Each company's own name, as the schedule of 2011-09-30 prints it, meets
         exactly one holding there and none at 2011-12-31 or 2012-03-31, so all
-        five left the fund inside the window. ``check_cik`` returns "name" both
-        for a missing holding and for a name that matches none, so the outcome
-        codes alone cannot say which.
+        five left the fund inside the window. The other four of the nine, CVC,
+        DD, LUK and NYX, meet exactly one holding in all three, so they fail
+        for another reason. ``check_cik`` returns "name" both for a missing
+        holding and for a name that matches none, so the outcome codes alone
+        cannot say which.
         """
-        own = {
-            "AKS": "AK Steel Holding Corp.",
-            "CPWR": "Compuware Corp.",
-            "MWW": "Monster Worldwide Inc.",
-            "TLAB": "Tellabs Inc.",
-            "WFR": "MEMC Electronic Materials Inc.",
-        }
-
-        def holdings(report_date: str) -> list[str]:
-            path = earnings_filings.FILINGS_DIR / "ivv" / f"{report_date}.csv"
-            ivv = pd.read_csv(path, dtype=str, keep_default_na=False)
-            return list(ivv["name"])
-
-        def meets(name: str, names: list[str]) -> int:
-            return sum(bool(name_keys(name) & name_keys(other)) for other in names)
-
-        before, after = holdings("2011-09-30"), holdings("2011-12-31")
+        assert set(OWN_NAMES) == {row.ticker for row in table if not row.calendar}
+        before, after = ivv_names("2011-09-30"), ivv_names("2011-12-31")
         on_the_day = [name for name, _ in schedule]
         counts = {
-            t: (meets(n, before), meets(n, after), meets(n, on_the_day)) for t, n in own.items()
+            t: (meets(n, before), meets(n, after), meets(n, on_the_day))
+            for t, n in OWN_NAMES.items()
         }
-        assert counts == {t: (1, 0, 0) for t in own}
+        left = {"AKS", "CPWR", "MWW", "TLAB", "WFR"}
+        assert counts == {t: (1, 0, 0) if t in left else (1, 1, 1) for t in OWN_NAMES}
+
+    def test_which_of_the_nine_carry_a_name_that_misses_their_own(self, table) -> None:
+        """CPWR, CVC, DD, MWW and NYX, read through ``name_keys``.
+
+        CPWR's EDGAR name is TetriDyn's, MWW's Verisk's and CVC's BJ's
+        Wholesale's, and DD's CIK had no name on the price day. NYX carries
+        its own CIK, and its name misses the schedule's only by the legal form
+        ``name_keys`` keeps, so that NYSE Euronext's filer is its own company's
+        is a reading of the two names rather than something the keys decide.
+        """
+        edgar = {row.ticker: row.edgar_name for row in table if not row.calendar}
+        misses = {t for t, own in OWN_NAMES.items() if not name_keys(edgar[t]) & name_keys(own)}
+        assert misses == {"CPWR", "CVC", "DD", "MWW", "NYX"}
 
 
 class TestTheCommittedIndex:

@@ -8166,13 +8166,18 @@ Five groups of what it says are not pinned here.
    DuPont's proposed filer was formed in December 2015, that R5 matched Chan's
    flags best on a sample of 32 stocks, and that the vendor's terms grant
    personal, non-commercial use, which keeps the archive's prices out of the
-   repository.
+   repository. That NYSE Euronext's proposed filer is its own company's is a
+   reading of the names too, since its EDGAR name misses the fund's by the
+   legal form. The post's five of the nine that carry their own company's
+   filer, and its five ways the nine fail, rest on that reading.
 4. Readings and figures the post states in words or rounds from pinned ones,
    such as a third, about two thirds, three quarters and nearer four fifths,
    about a ten-thousandth, that two vendors defining the open differently
    explains the two days, that a release can precede the filing that reports
    it, and that a t of about 2 is the usual bar for ruling out chance. The
-   figure's alt text reads its curves approximately too.
+   figure's alt text reads its curves approximately too. The counts of the
+   post's own lists, such as the four things a filer must pass and the five
+   questions it leaves open, are words of the same kind.
 5. Its references, cited rather than computed.
 
 `TestWhatThePostQuotes` in
@@ -8185,18 +8190,20 @@ another lesson, the alt text, the caption or the closing lists, is not read.
 Each value it checks is pinned in
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py), in
 [tests/test_earnings_filings.py](tests/test_earnings_filings.py) for the
-universes' tickers and filers, the 398 series that pass under Chan's own
+universes' tickers and filers, the own names of the nine outside CAL and which
+of them left the fund, the 398 series that pass under Chan's own
 tickers and the 48 companies under a later ticker, the 2 and 72 to 194 days a
 series differs on, ACE's 5.92 percent, and the index's 2,930 filings, 1,460
 before the open and 405 in the session, Apple's times and the earliest and
 latest times of day, in [tests/test_pead_figures.py](tests/test_pead_figures.py)
 for 2011-08-04 as the high A's longest drawdown starts from, or in
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
-figure's own numbers. The rule's constants, the 3 percent tolerance and the
-archive's download date come from `chan.pead`, `chan.pead_rerun`,
-`chan.earnings_filings` and the archive's committed manifest, and the hours a
-time read late moves by come from the tz database's offsets for New York. The
-C, D, E1 and E5 figures, the vendor and basis effects, the interaction, EP's
+figure's own numbers. The rule's constants, the counts of universes, calendars
+and runs, the 3 percent tolerance and the archive's download date come from
+`chan.pead`, `chan.pead_rerun`, `chan.earnings_filings` and the archive's
+committed manifest, and the hours a time read late moves by come from the tz
+database's offsets for New York.
+The C, D, E1 and E5 figures, the vendor and basis effects, the interaction, EP's
 294 and 181 days and every number in Lesson 4 are asserted and read only where
 the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
 them. `TestTheWiring` holds in CI that each of those runs reads its
@@ -8246,7 +8253,8 @@ measured after the runs.
    CVC, DD, LUK and NYX.
    [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds
    that each of the five was in the fund's schedule of 2011-09-30 and in
-   neither later one.
+   neither later one, that each of the other four was in all three, and
+   which of the nine carry an EDGAR name that misses their own.
 
 Its one figure is drawn from committed files only by
 [src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
