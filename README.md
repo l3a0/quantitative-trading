@@ -8164,33 +8164,40 @@ Five groups of what it says are not pinned here.
    releases in the window, that the archive's CB series holds ACE's history,
    that the archive files UTX under RTX and adjusts only the close, that
    DuPont's proposed filer was formed in December 2015, that R5 matched Chan's
-   flags best on a sample of 32 stocks, and the check's 3 percent tolerance
-   on price, a constant in `chan.earnings_filings`.
+   flags best on a sample of 32 stocks, and that the vendor's terms grant
+   personal, non-commercial use, which keeps the archive's prices out of the
+   repository.
 4. Readings and figures the post states in words or rounds from pinned ones,
-   such as a third, about two thirds, close to half, three quarters and
-   nearer four fifths, Apple's times read after a double conversion as about
-   8:30 p.m. for the four filed under daylight saving time and 9:30 p.m. for
-   the two in January, about a ten-thousandth, the 54 disagreements on the
-   two days, that a filing from 11:00 a.m. in winter or noon in summer
-   onward moves past the close when read late, that two vendors defining the
-   open differently explains the two days, that a release can precede the
-   filing that reports it, and that a t of about 2 is the usual bar for
-   ruling out chance. The figure's alt text reads its curves
-   approximately too.
+   such as a third, about two thirds, three quarters and nearer four fifths,
+   about a ten-thousandth, that two vendors defining the open differently
+   explains the two days, that a release can precede the filing that reports
+   it, and that a t of about 2 is the usual bar for ruling out chance. The
+   figure's alt text reads its curves approximately too.
 5. Its references, cited rather than computed.
 
-Every other number in the post traces to an assertion in
-[tests/test_pead_rerun.py](tests/test_pead_rerun.py), to
+`TestWhatThePostQuotes` in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py) reads the post itself. It
+checks one copy of every other number the post quotes against the value the
+suite derives, at the precision the post prints it, and rebuilds the post's
+three tables whole, so a typo in that copy or a re-pin that leaves the post
+behind fails. Its docstring names what it reads. A second copy of a figure, in
+another lesson, the alt text, the caption or the closing lists, is not read.
+Each value it checks is pinned in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py), in
 [tests/test_earnings_filings.py](tests/test_earnings_filings.py) for the
 universes' tickers and filers, the 398 series that pass under Chan's own
 tickers and the 48 companies under a later ticker, the 2 and 72 to 194 days a
 series differs on, ACE's 5.92 percent, and the index's 2,930 filings, 1,460
 before the open and 405 in the session, Apple's times and the earliest and
-latest times of day, to [tests/test_pead_figures.py](tests/test_pead_figures.py)
-for 2011-08-04 as the high A's longest drawdown starts from, or to
+latest times of day, in [tests/test_pead_figures.py](tests/test_pead_figures.py)
+for 2011-08-04 as the high A's longest drawdown starts from, or in
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
-figure's own numbers. The C, D, E1 and E5 figures, the vendor and basis
-effects, the interaction and every number in Lesson 4 are asserted only where
+figure's own numbers. The rule's constants, the 3 percent tolerance and the
+archive's download date come from `chan.pead`, `chan.pead_rerun`,
+`chan.earnings_filings` and the archive's committed manifest, and the hours a
+time read late moves by come from the tz database's offsets for New York. The
+C, D, E1 and E5 figures, the vendor and basis effects, the interaction, EP's
+294 and 181 days and every number in Lesson 4 are asserted and read only where
 the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
 them. `TestTheWiring` holds in CI that each of those runs reads its
 registered prices, flags and stocks. Nine had no pin before it, and all were

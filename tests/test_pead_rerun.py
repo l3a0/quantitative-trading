@@ -35,6 +35,8 @@ Example 7.1. Every other pin reads committed files and runs everywhere.
 to any of them moves that post too. ``TestWhatThePostMeasured`` holds the
 numbers the post added, all measured after the runs, and
 ``TestTheTradeReturns`` holds the one helper they come through, on toy prices.
+``TestWhatThePostQuotes`` reads the post itself, and checks one copy of each
+figure it quotes against the runs, its docstring naming what it reads.
 ``tests/test_pead_rerun_figures.py`` holds what the post's figure draws, and
 ``tests/test_pead_rerun_whiteboard.py`` what its two sketches draw.
 
@@ -47,16 +49,27 @@ from __future__ import annotations
 import itertools
 from collections import Counter
 from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from chan import pead_rerun
+from chan import earnings_filings, pead_rerun
 from chan.archive import ArchiveUnavailable, read_archive_manifest
-from chan.earnings_filings import Release, read_table, serialize_table
-from chan.pead import DENOMINATOR, TRADING_DAYS, Drift, pead
+from chan.earnings_filings import Release, holding_price, read_table, serialize_table
+from chan.pead import (
+    BOOK_APR_PERCENT,
+    BOOK_SHARPE,
+    DENOMINATOR,
+    ENTRY,
+    LOOKBACK,
+    TRADING_DAYS,
+    Drift,
+    pead,
+)
+from chan.pead_figures import cumulative_return, longest_spell
 from chan.pead_rerun import (
     Agreement,
     agreement,
@@ -507,6 +520,25 @@ def runs_on_chans_opens(sources, prices) -> dict[str, Drift]:
         chosen = sources.universe(universe)
         runs[name] = pead(opens[chosen], prices.adjusted_close[chosen], flags[chosen])
     return runs
+
+
+def trades_moved_by_chans_opens(sources, prices, runs, fixed) -> dict[str, pd.Series]:
+    """In E1 and E5, each stock-day whose share of the run's return Chan's opens change.
+
+    A trade's change in signed return, over 30 and times 252 over the 330
+    days, is its share of the move in the arithmetic annual return.
+    """
+    opens = opens_with_chans(sources, prices)
+    u = sources.universe("U")
+    closes = prices.adjusted_close[u]
+    moved = {}
+    for name in ("E1", "E5"):
+        before = pead_rerun.trade_returns(runs[name], prices.adjusted_open[u], closes)
+        after = pead_rerun.trade_returns(fixed[name], opens[u], closes)
+        share = (after - before) * TRADING_DAYS / (DENOMINATOR * len(runs[name].days))
+        changed = share.stack()
+        moved[name] = changed[changed.abs() > 1e-12]
+    return moved
 
 
 class TestTheCommittedRuns:
@@ -1138,16 +1170,9 @@ class TestTheArchiveOpens:
         """
         runs, prices = archive_runs
         fixed = runs_on_chans_opens(sources, prices)
-        opens = opens_with_chans(sources, prices)
         u = sources.universe("U")
-        closes = prices.adjusted_close[u]
         moved = {}
-        for name in ("E1", "E5"):
-            before = pead_rerun.trade_returns(runs[name], prices.adjusted_open[u], closes)
-            after = pead_rerun.trade_returns(fixed[name], opens[u], closes)
-            share = (after - before) * TRADING_DAYS / (DENOMINATOR * len(runs[name].days))
-            changed = share.stack()
-            changed = changed[changed.abs() > 1e-12]
+        for name, changed in trades_moved_by_chans_opens(sources, prices, runs, fixed).items():
             moved[name] = {
                 (str(day.date()), stock): round(float(value), 6)
                 for (day, stock), value in changed.items()
@@ -1175,3 +1200,597 @@ class TestTheArchiveOpens:
         assert abs(moved["E5"][("2011-09-12", "PNC")]) > abs(
             EFFECTS["vendor"][0] + EFFECTS["basis"][0]
         )
+
+
+POST = Path(__file__).parents[1] / "blog" / "pead-edgar-rerun-lessons.md"
+
+_ONES = (
+    "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen",
+    "nineteen",
+)  # fmt: skip
+_TENS = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety")
+
+
+def spelled(count: int) -> str:
+    """A count below 100 in words, as the post writes it, such as forty-three."""
+    if count < 20:
+        return _ONES[count]
+    tens, ones = divmod(count, 10)
+    return _TENS[tens] + (f"-{_ONES[ones]}" if ones else "")
+
+
+def thousands(count: int) -> str:
+    """A count with its thousands comma, as the post's prose writes it."""
+    return f"{count:,}"
+
+
+def tex_count(count: int) -> str:
+    """A count as the post's LaTeX tables write it, such as 1{,}072."""
+    return f"{count:,}".replace(",", "{,}")
+
+
+def tex_run(name: str) -> str:
+    """A run's name as the post's LaTeX tables write it, such as A, an escaped _, then CAL."""
+    return r"\_".join(rf"\text{{{part}}}" for part in name.split("_"))
+
+
+def minus(x: float, places: int) -> str:
+    """A figure at the post's precision, with the post's prose minus sign, U+2212."""
+    return f"{x:.{places}f}".replace("-", "−")
+
+
+def signed(x: float, places: int) -> str:
+    """A change at the post's precision, signed + or −."""
+    return ("+" if x > 0 else "−") + f"{abs(x):.{places}f}"
+
+
+def clock(hour: int, minute: int = 0) -> str:
+    """A time of day as the post writes it, such as 9:30 a.m., 4:00 p.m. or noon."""
+    if (hour, minute) == (12, 0):
+        return "noon"
+    if hour < 12:
+        return f"{hour}:{minute:02d} a.m."
+    return f"{hour - 12}:{minute:02d} p.m."
+
+
+def run_rows(runs, names) -> list[str]:
+    """The second table's rows: return, Sharpe ratio and trades, as the post prints them."""
+    return [
+        rf"{tex_run(name)} & {runs[name].arithmetic_annual:.6f} & {runs[name].sharpe:.4f} & "
+        f"{tex_count(runs[name].trades)}"
+        for name in names
+    ]
+
+
+class TestWhatThePostQuotes:
+    """One copy of each figure ``blog/pead-edgar-rerun-lessons.md`` quotes, read against the run.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built again from the runs and the committed files, at
+    the precision the post prints it, and looked for in one copy: a fragment
+    holding the number and the words around it that name one place in the
+    post. A typo in that copy, or a re-pin that leaves the post behind, fails
+    here. The three tables are rebuilt from the runs, so a digit added to a
+    cell fails as well as a digit changed. Counts the post spells out, such
+    as forty-three, are spelled from the count.
+
+    What it reads splits by whether the figure needs the owner's archive.
+
+    1. Everywhere, the six committed runs and the files they read: Chan's
+       prices and flags, the ticker table and the Item 2.02 index under
+       ``research/filings/earnings/``, IVV's schedules, and the archive's
+       committed manifest. That covers the rule's constants and the book's two
+       figures, the universes, the first table, the committed rows of the
+       second, the identity, Lesson 1's checks, table, shares and day, the
+       two figures whose only copy is the chart's alt text, Lesson 2's
+       counts and times, and Lesson 3. ``chan.pead``,
+       ``chan.pead_rerun`` and ``chan.earnings_filings`` supply the
+       constants, and the hours a time read late moves by come from the tz
+       database's offsets for New York.
+    2. Only where the archive is configured and ``QT_ARCHIVE_RUN=1`` is set,
+       C, D, E1 and E5 and the archive's opens. That covers the second table
+       whole, EP's 294 and 181 days, and every number in Lesson 4. CI skips
+       this part.
+
+    The post states most figures more than once, in a lesson, a table, the
+    chart's alt text and caption, or the closing lists, and the other copies
+    are not read, so a typo in one of them passes. Neither are the figures
+    README lists as unpinned: Chan's words and pages, the readings of the
+    submissions file, the facts read when the record was built, the readings
+    in words, the alt text's approximate readings of the curves, and the
+    references.
+    """
+
+    #: The five of the nine outside CAL that left the fund during the window,
+    #: which ``TestWhatThePostMeasured`` and ``tests/test_earnings_filings.py`` pin.
+    LEFT_THE_FUND = ("AKS", "CPWR", "MWW", "TLAB", "WFR")
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    @staticmethod
+    def missing(text: str, fragments: list[str]) -> list[str]:
+        return [fragment for fragment in fragments if fragment not in text]
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def lesson_1(cls, sources, runs) -> SimpleNamespace:
+        """A's trades split by why a stock is outside U, as the classes above split them."""
+        returns, positions = a_trades(sources, runs)
+        scale = to_annual(runs["A"])
+        rows = {row.ticker: row for row in sources.table}
+        u, cal = set(sources.universe("U")), set(sources.universe("CAL"))
+        no_series = cal_without_a_series(sources)
+        groups = {
+            "U": [s for s in returns.columns if s in u],
+            "outside CAL": [s for s in returns.columns if s not in cal],
+            "reused": [s for s in no_series if rows[s].archive_check == "returns"],
+            "unpriced": [s for s in no_series if rows[s].archive_check in ("missing", "none")],
+            "outside U": [s for s in returns.columns if s not in u],
+            "ALL": list(returns.columns),
+            "left the fund": list(cls.LEFT_THE_FUND),
+        }
+        groups["untied"] = groups["outside CAL"] + groups["reused"]
+
+        def measured(stocks):
+            return (
+                len(stocks),
+                int((positions[stocks] != 0).to_numpy().sum()),
+                float(returns[stocks].to_numpy().sum()) * scale,
+            )
+
+        held = positions.stack() != 0
+        trades = returns.stack()[held]
+        outside = set(groups["outside U"])
+        is_outside = np.array([stock in outside for _, stock in trades.index])
+        inside, out = trades[~is_outside], trades[is_outside]
+        welch = (out.mean() - inside.mean()) / np.sqrt(
+            out.var(ddof=1) / len(out) + inside.var(ddof=1) / len(inside)
+        )
+        spell = longest_spell(cumulative_return(runs["A"]))
+        return SimpleNamespace(
+            returns=returns,
+            positions=positions,
+            scale=scale,
+            groups=groups,
+            by={name: measured(stocks) for name, stocks in groups.items()},
+            inside=inside,
+            outside=out,
+            welch=float(welch),
+            largest=out.sort_values(ascending=False).head(5),
+            high=runs["A"].days[spell.high],
+        )
+
+    def test_the_rule_and_the_book(self, sources, text) -> None:
+        window = sources.window
+        assert ENTRY == 0.5, "half its moving deviation"
+        assert (pead_rerun.SESSION_OPEN.hour, pead_rerun.SESSION_OPEN.minute) == (9, 30)
+        assert (pead_rerun.SESSION_CLOSE.hour, pead_rerun.SESSION_CLOSE.minute) == (16, 0)
+        fragments = [
+            "after the previous close and before the open is bought at the open when its gap "
+            "is at least half its moving deviation",
+            f"the standard deviation of its gaps over the last {LOOKBACK} days",
+            f"divides by a fixed {DENOMINATOR}, whatever the day holds",
+            f"an annual percentage rate, or APR, of {BOOK_APR_PERCENT} percent and a Sharpe "
+            f"ratio of {BOOK_SHARPE} on the S&P 500 from {window[0]:%B %Y} to "
+            f"{window[-1]:%B %Y}",
+            f"His APR is the arithmetic annual return, {TRADING_DAYS} times the average daily "
+            "return.",
+            f"times the square root of {TRADING_DAYS}, so it measures return per unit of risk",
+            f"an announcement between the {clock(16)} close and the {clock(9, 30)} open Eastern",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_what_the_rerun_found(self, sources, runs, text) -> None:
+        sizes = {name: len(sources.universe(name)) for name in pead_rerun.UNIVERSES}
+        fragments = [
+            f"drop {sizes['ALL'] - sizes['U']} stocks, and they carry a third of the return.**",
+            f"Chan’s arithmetic annual return of {runs['A'].arithmetic_annual:.6f}, the "
+            f"{BOOK_APR_PERCENT} percent he prints, falls to {runs['A_U'].arithmetic_annual:.6f} "
+            f"on the {sizes['U']} of his {sizes['ALL']} stocks that pass both.",
+            f"On the {sizes['CAL']} stocks whose filer passes the check against EDGAR, and on "
+            f"Chan’s prices, it lifts the return from {runs['A_CAL'].arithmetic_annual:.6f} on "
+            f"Chan’s flags to {runs['B1'].arithmetic_annual:.6f}",
+            f"The rerun wrote down its {spelled(len(pead_rerun.SPECS))} runs",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_universes_calendars_and_vendor(self, sources, text) -> None:
+        sizes = {name: len(sources.universe(name)) for name in pead_rerun.UNIVERSES}
+        rows = {row.ticker: row for row in sources.table}
+        entries = {e.symbol: e for e in read_archive_manifest() if e.cross_section == "sp500"}
+        (downloaded,) = {
+            entries[rows[s].archive_ticker].download_date for s in sources.universe("PX")
+        }
+        fragments = [
+            f"**ALL**, Chan’s {sizes['ALL']} stocks.",
+            f"**CAL**, the {sizes['CAL']} whose filer passed its check.",
+            f"**PX**, the {sizes['PX']} whose price series passed its check.",
+            f"**U**, the {sizes['U']} that pass both.",
+            f"A filing accepted before {clock(9, 30)} on a trading day flags that day. One "
+            f"accepted at {clock(16)} or later",
+            f"sit in a private archive, downloaded on {downloaded}.",
+            f"{spelled(len(pead_rerun.SPECS)).capitalize()} runs cover the four differences.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_first_table(self, text) -> None:
+        """What each run reads, rebuilt from the registered specs."""
+        prices = {"Chan": "Chan's", "adjusted": "archive, adjusted", "raw": "archive, raw"}
+        flags = {"Chan": "Chan's", "R1": "R1", "R5": "R5"}
+        rows = [
+            rf"{tex_run(s.name)} & \text{{{s.universe}}} & \text{{{prices[s.prices]}}} & "
+            rf"\text{{{flags[s.flags]}}}"
+            for s in pead_rerun.SPECS
+        ]
+        table = (
+            r"\small\begin{array}{l|l|l|l}" + "\n"
+            r"\text{Run} & \text{Stocks} & \text{Prices} & \text{Flags} \\ \hline" + "\n"
+            + " \\\\\n".join(rows)
+            + "\n\\end{array}"
+        )  # fmt: skip
+        assert self.missing(text, [table]) == []
+
+    def test_the_second_table_s_committed_rows(self, runs, text) -> None:
+        """The six rows CI can derive. The archive part below rebuilds the table whole."""
+        assert self.missing(text, [row + r" \\" for row in run_rows(runs, COMMITTED)]) == []
+
+    def test_the_identity(self, runs, text) -> None:
+        days = len(runs["A"].days)
+        fragments = [
+            f"the trades it takes and their mean return, over the {days} days of the window.",
+            rf"\times {TRADING_DAYS}}}{{{DENOMINATOR} \times {days}}}",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1_s_checks(self, sources, text) -> None:
+        rows = {row.ticker: row for row in sources.table}
+        routes = Counter((row.archive_source, row.archive_check) for row in sources.table)
+        passing = [int(row.days_over) for row in sources.table if row.priced]
+        reused = [int(row.days_over) for row in sources.table if row.archive_check == "returns"]
+        ivv = earnings_filings.FILINGS_DIR / "ivv"
+        report_date = earnings_filings.IVV_REPORT_DATE
+        schedule = pd.read_csv(ivv / f"{report_date}.csv", dtype=str, keep_default_na=False)
+        (ace,) = [
+            holding_price(row["value"], row["shares"])
+            for _, row in schedule.iterrows()
+            if row["name"] == "ACE Ltd."
+        ]
+        ace_gap = ace / sources.closes.at[pd.Timestamp(earnings_filings.PRICE_DAY), "CB"] - 1
+        earlier = sorted(p.stem for p in ivv.glob("2*.csv") if p.stem < report_date)
+        no_series = cal_without_a_series(sources)
+        entries = {e.symbol: e for e in read_archive_manifest() if e.cross_section == "sp500"}
+        first = {
+            s: entries[rows[s].archive_ticker].first_date
+            for s in no_series
+            if rows[s].archive_check == "missing"
+        }
+        last_day = str(sources.window[-1].date())
+        after = [s for s, day in first.items() if day > last_day]
+        (inside,) = [s for s, day in first.items() if day <= last_day]
+        assert inside == "EP"
+        lacks = int((sources.window < first[inside]).sum())
+        unproposed = [s for s in no_series if rows[s].archive_check == "none"]
+        nine = len([s for s in sources.universe("ALL") if not rows[s].calendar])
+        four = len(reused)
+        fragments = [
+            f"It was filing on {earnings_filings.PRICE_DAY}.",
+            f"one holding in the iShares S&P 500 fund’s schedule of {report_date}.",
+            f"That holding’s price is within {round(100 * earnings_filings.PRICE_TOLERANCE)} "
+            "percent of Chan’s close that day.",
+            f"It released earnings under Item {earnings_filings.ITEM} in the window.",
+            f"Every series of the same company differs on at most {max(passing)} days. The "
+            f"{spelled(four)} reused tickers that fail, CB among them, differ on "
+            f"{min(reused)} to {max(reused)}. Under Chan’s own tickers, "
+            f"{routes[('same', 'pass')]} series pass. Searching the archive by returns rather "
+            f"than by ticker finds {routes[('search', 'pass')]} more, companies stored under a "
+            f"later ticker, which makes PX’s {len(sources.universe('PX'))}.",
+            f"Its holding sits {100 * ace_gap:.2f} percent above the old Chubb’s close",
+            f"{spelled(nine).capitalize()} stocks fail the filer check",
+            f"{spelled(len(self.LEFT_THE_FUND)).capitalize()} are missing from the fund’s "
+            f"schedule of {report_date}",
+            f"All five were in its schedule of {earlier[-2]} and gone from that of {earlier[-1]}",
+            f"**{spelled(nine + four).capitalize()} cannot be confirmed as the right company.** "
+            f"They are the {spelled(nine)} that fail the filer check",
+            f"and the {spelled(four)} reused tickers whose series holds another company’s history.",
+            f"**{spelled(len(no_series) - four).capitalize()} lack the prices to check.**",
+            f"{spelled(len(unproposed)).capitalize()} have no series there at all. For "
+            f"{len(after)} the series under that ticker starts after the window ends on "
+            f"{last_day}, as ALTR’s starts on {first['ALTR']}, DELL’s on {first['DELL']} and "
+            f"DOW’s on {first['DOW']}.",
+            f"starts on {first['EP']} and lacks the window’s first {lacks} days.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_1_s_table(self, lesson_1, text) -> None:
+        """Rebuilt whole from A's trades, each cell at the precision its column prints."""
+        by = lesson_1.by
+        cells = [
+            ("U, both pass", by["U"]),
+            ("Filer check fails", by["outside CAL"]),
+            ("Reused ticker", by["reused"]),
+            ("No full prices", by["unpriced"]),
+            ("A, all", by["ALL"]),
+        ]
+        rows = [
+            rf"\text{{{name}}} & {count} & {tex_count(trades)} & {added:.6f}"
+            for name, (count, trades, added) in cells
+        ]
+        table = (
+            r"\small\begin{array}{l|r|r|r}" + "\n"
+            r"\text{Stocks} & \text{Count} & \text{Trades} & \text{Adds to A} \\ \hline" + "\n"
+            + " \\\\\n".join(rows[:-1])
+            + " \\\\ \\hline\n"
+            + rows[-1]
+            + "\n\\end{array}"
+        )  # fmt: skip
+        assert self.missing(text, [table]) == []
+
+    def test_lesson_1_s_shares_and_the_day(self, sources, runs, lesson_1, text) -> None:
+        by, returns, positions = lesson_1.by, lesson_1.returns, lesson_1.positions
+        a = runs["A"]
+        effect = a.arithmetic_annual - runs["A_U"].arithmetic_annual
+        nine = a.arithmetic_annual - runs["A_CAL"].arithmetic_annual
+        assert by["outside U"][2] == pytest.approx(effect, rel=1e-12)
+        assert by["outside CAL"][2] == pytest.approx(nine, rel=1e-12), "exactly A against A_CAL"
+        n_out, t_out, _ = by["outside U"]
+        n_untied, t_untied, untied = by["untied"]
+        day = lesson_1.high
+        outside = lesson_1.groups["outside U"]
+        on_the_day = float(returns.loc[day, outside].sum()) * lesson_1.scale
+        assert 0.4 < on_the_day / effect < 0.5, "close to half"
+        largest = lesson_1.largest
+        top_day, top_stock = largest.index[0]
+        assert top_day == day, "the largest trade falls on the day"
+        cal = set(sources.universe("CAL"))
+        assert all(positions.at[d, s] == -1.0 and s not in cal for d, s in largest.index)
+        theirs = sum(stock in self.LEFT_THE_FUND for _, stock in largest.index)
+        closes = sources.closes.loc[sources.window, list(self.LEFT_THE_FUND)]
+        fell = [1 - c.dropna().iloc[-1] / c.dropna().iloc[0] for _, c in closes.items()]
+        cal_effects = effects_of(runs)
+        top = float(largest.iloc[0])
+        fragments = [
+            f"The {n_out} stocks outside U take {t_out} of A’s {thousands(a.trades)} trades and "
+            f"add {effect:.6f}, which is {effect / a.arithmetic_annual:.2f} of A’s return",
+            f"The {n_untied} the checks cannot confirm take {t_untied} trades and add "
+            f"{untied:.6f}, which is {untied / effect:.2f} of the {effect:.6f}",
+            f"The nine that fail the filer check add {nine:.6f} on their own, which is exactly "
+            "A against A_CAL.",
+            f"Those are the {by['reused'][0] + by['unpriced'][0]} stocks that pass the filer "
+            "check and have no checked series.",
+            f"On {day.date()}, the day A’s cumulative return reaches the high its longest "
+            f"drawdown starts from, the stocks outside U add {on_the_day:.6f}, close to half of "
+            f"their {effect:.6f}, through {int((positions.loc[day, outside] != 0).sum())} trades.",
+            f"Chan’s {top_stock}, a single trade that returned {top:.4f}, or {100 * top:.2f} "
+            "percent,",
+            f"and they carry {float(largest.sum() / lesson_1.outside.sum()):.2f} of the "
+            f"{effect:.6f} the stocks outside U add.",
+            f"Per trade, the stocks outside U earn {lesson_1.outside.mean():.6f} on average "
+            f"against {lesson_1.inside.mean():.6f} inside.",
+            f"is {lesson_1.welch:.2f} (Welch, 1947).",
+            f"Chan’s closes for those five fell {round(100 * min(fell))} to "
+            f"{round(100 * max(fell))} percent over it. They add {by['left the fund'][2]:.6f} "
+            f"of the nine’s {nine:.6f}, and {spelled(theirs)} of the five largest trades outside "
+            "U are theirs.",
+            f"by {-cal_effects['universe'][0]:.6f} against R1’s {cal_effects['calendar'][0]:.6f}",
+            f"Dropping the {n_out} stocks moves it by {signed(cal_effects['universe'][1], 4)}, "
+            f"and R1’s calendar moves it by {signed(cal_effects['calendar'][1], 4)}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_chart_s_alt_text(self, runs, lesson_1, text) -> None:
+        """The two figures whose only copy is the alt text: the brass line's end and the points.
+
+        Its readings of the curves along the way are approximate and not read.
+        """
+        no_series = lesson_1.by["reused"][2] + lesson_1.by["unpriced"][2]
+        point = {
+            name: f"{thousands(runs[name].trades)} and "
+            f"{100 * pead_rerun.per_trade(runs[name]):.3f} percent"
+            for name in COMMITTED
+        }
+        rest = [f"{name} at {point[name]}" for name in COMMITTED[1:]]
+        fragments = [
+            f"climbs mostly in 2012 to end at {no_series:.6f}",
+            f"A sits at {point['A'].replace(' and ', ' trades and about ')}, "
+            + ", ".join(rest[:-1])
+            + f", and {rest[-1]}.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_2(self, sources, text) -> None:
+        """The index's counts and times, and Apple's six read 4 or 5 hours late.
+
+        A late reading adds the hours Eastern sits behind UTC once more, so
+        those hours come from the tz database's offsets for New York.
+        """
+        eastern = "America/New_York"
+
+        def behind(day: str) -> int:
+            offset = pd.Timestamp(day).tz_localize(eastern).utcoffset().total_seconds()
+            return -int(offset) // 3600
+
+        summer, winter = behind("2011-07-01"), behind("2011-01-03")
+        releases = sources.releases
+        times = sorted(r.accepted[11:] for r in releases)
+        before = sum(t < "09:30:00" for t in times)
+        session = sum("09:30:00" <= t < "16:00:00" for t in times)
+        window = sources.window
+        apple = [
+            pd.Timestamp(r.accepted)
+            for r in releases
+            if r.ticker == "AAPL"
+            and window[0] <= pd.Timestamp(r.accepted).normalize() <= window[-1]
+        ]
+        (about,) = {at.round("30min").time() for at in apple}
+        dst = [at for at in apple if at.tz_localize(eastern).dst()]
+        standard = [at for at in apple if not at.tz_localize(eastern).dst()]
+        assert {at.month for at in standard} == {1}, "the two in January"
+
+        def late(hours: int) -> str:
+            shifted = pd.Timestamp.combine(pd.Timestamp("2011-01-03").date(), about)
+            shifted += pd.Timedelta(hours=hours)
+            return clock(shifted.hour, shifted.minute)
+
+        hour, minute, second = (int(part) for part in times[0].split(":"))
+        fragments = [
+            f"runs {summer} hours ahead of Eastern time under daylight saving time and {winter} "
+            "hours ahead under standard time",
+            f"Each of Apple’s {spelled(len(apple))} releases in the window was accepted at about "
+            f"{clock(about.hour, about.minute)} Eastern.",
+            f"the {spelled(len(dst))} filed under daylight saving time land at about "
+            f"{late(summer)}, and the {spelled(len(standard))} in January, on "
+            f"{standard[0].date()} and {standard[1].date()}, at about {late(winter)} All are "
+            "still after the close",
+            f"No filing in that list was accepted earlier than {hour}:{minute:02d}:{second:02d} "
+            "a.m. Eastern on any day.",
+            f"The list holds {thousands(len(releases))} filings, and {thousands(before)} of them "
+            "were accepted before the open.",
+            f"from {clock(16 - winter)} onward in winter, or from {clock(16 - summer)} onward in "
+            f"summer, moves past the {clock(16)} close",
+            f"The list holds {session} accepted during the session.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_lesson_3(self, runs, text) -> None:
+        names = ("A_CAL", "B1", "B5")
+        flags = {s.name: ("Chan's" if s.flags == "Chan" else s.flags) for s in pead_rerun.SPECS}
+        per = {name: pead_rerun.per_trade(runs[name]) for name in names}
+
+        def row(label: str, cells) -> str:
+            return rf"\text{{{label}}} & " + " & ".join(cells)
+
+        table = (
+            r"\small\begin{array}{l|r|r|r}" + "\n"
+            + " & " + " & ".join(tex_run(n) for n in names) + r" \\ \hline" + "\n"
+            + " \\\\\n".join([
+                row("Flags", [rf"\text{{{flags[n]}}}" for n in names]),
+                row("Trades", [tex_count(runs[n].trades) for n in names]),
+                row("Mean per trade", [f"{per[n]:.6f}" for n in names]),
+                row("Annual return", [f"{runs[n].arithmetic_annual:.6f}" for n in names]),
+                row("Sharpe ratio", [f"{runs[n].sharpe:.4f}" for n in names]),
+            ])
+            + "\n\\end{array}"
+        )  # fmt: skip
+        a_cal, b1, b5 = (runs[n] for n in names)
+        whole = b1.trades * per["B1"] - a_cal.trades * per["A_CAL"]
+        at_chans = (b1.trades - a_cal.trades) * per["A_CAL"] / whole
+        at_r1s = (b1.trades - a_cal.trades) * per["B1"] / whole
+        gain = b1.arithmetic_annual - a_cal.arithmetic_annual
+        past = {
+            n: int((np.count_nonzero(runs[n].positions, axis=1) > DENOMINATOR).sum())
+            for n in ("B1", "B5")
+        }
+        assert per["B5"] < per["A_CAL"] and b5.sharpe <= a_cal.sharpe, "gains only by trading more"
+        fragments = [
+            table,
+            f"R1 lifts the return by {gain:.6f} in two ways. It takes {thousands(b1.trades)} "
+            f"trades against {thousands(a_cal.trades)}, and its mean per trade is "
+            f"{per['B1']:.6f} against {per['A_CAL']:.6f}, about "
+            f"{round(100 * (per['B1'] / per['A_CAL'] - 1))} percent higher.",
+            f"If each extra trade earned the {per['A_CAL']:.6f} of Chan’s flags, the extra trades "
+            f"would account for {at_chans:.2f} of the gain",
+            f"At R1’s own {per['B1']:.6f}, they account for {at_r1s:.2f}",
+            f"The Sharpe ratio rises from {a_cal.sharpe:.4f} to {b1.sharpe:.4f}",
+            f"On its busiest day B1 holds {b1.most_held} positions, and on {past['B1']} days it "
+            f"holds more than {DENOMINATOR}.",
+            f"It takes {thousands(b5.trades)} trades at a mean of {per['B5']:.6f}, below the "
+            f"{per['A_CAL']:.6f} of Chan’s flags, and its Sharpe ratio, {b5.sharpe:.4f} against "
+            f"A_CAL’s {a_cal.sharpe:.4f}, is no higher. It holds more than {DENOMINATOR} "
+            f"positions on {past['B5']} days, and {b5.most_held} on its busiest.",
+        ]
+        assert self.missing(text, fragments) == []
+
+    def test_the_second_table_whole(self, archive_runs, text) -> None:
+        """Every run's row, so a row or a digit added fails too. Skips without the archive."""
+        runs, _ = archive_runs
+        table = (
+            r"\small\begin{array}{l|r|r|r}" + "\n"
+            r"\text{Run} & \text{Annual return} & \text{Sharpe ratio} & \text{Trades} \\ \hline"
+            + "\n"
+            + " \\\\\n".join(run_rows(runs, [s.name for s in pead_rerun.SPECS]))
+            + "\n\\end{array}"
+        )  # fmt: skip
+        assert self.missing(text, [table]) == []
+
+    def test_ep_s_series(self, archive_runs, sources, text) -> None:
+        """Read as ``tests/test_earnings_filings.py`` reads it. Skips without the archive."""
+        from chan.archive import read_cross_section
+
+        _, archive = read_cross_section("sp500", symbols=["EP"])
+        chan = sources.closes["EP"].loc[sources.window]
+        theirs = archive["EP"].reindex(sources.window)
+        difference = (chan.pct_change() - theirs.pct_change()).abs()
+        held = int(difference.notna().sum())
+        over = int((difference > earnings_filings.RETURN_TOLERANCE).sum())
+        fragment = (
+            f"on the {held} days both hold, its daily returns differ from those of Chan’s closes "
+            f"on {over}."
+        )
+        assert self.missing(text, [fragment]) == []
+
+    def test_lesson_4(self, archive_runs, sources, text) -> None:
+        """Every number in the lesson reads the archive. Skips without it."""
+        runs, prices = archive_runs
+        by = effects_of(runs)
+        off, _ = opens_off_chans(sources, prices)
+        over = off > OPEN_TOLERANCE
+        n_off, n_stocks = int(over.to_numpy().sum()), int(over.any().sum())
+        px = len(sources.universe("PX"))
+        assert n_stocks == len(sources.universe("ALL")) - len(sources.universe("U"))
+        by_day = over.sum(axis=1).sort_values(ascending=False)
+        (first_day, first), (second_day, second) = list(by_day.head(2).items())
+        fixed = runs_on_chans_opens(sources, prices)
+        moves = {
+            name: (
+                fixed[name].arithmetic_annual - runs[name].arithmetic_annual,
+                fixed[name].sharpe - runs[name].sharpe,
+            )
+            for name in fixed
+        }
+        trade = {
+            name: {stock: (str(day.date()), float(value)) for (day, stock), value in s.items()}
+            for name, s in trades_moved_by_chans_opens(sources, prices, runs, fixed).items()
+        }
+        e5, e1 = trade["E5"], trade["E1"]
+        assert set(e5) == {"PNC", "MCO", "TMK"} and set(e1) == {"CAM", "MCO", "TMK"}
+        interaction = by["interaction, what E1 − A_U leaves"][0]
+        e1_a, e5_a = by["E1 against A"], by["E5 against A"]
+        assert interaction < 0, "less than the three effects together"
+        assert e1_a[0] < 0 and e5_a[0] < 0 and e1_a[1] > 0 > e5_a[1], "lower, above and below"
+        fragments = [
+            f"On PX’s {px} stocks with Chan’s flags, switching to Alpha Vantage’s adjusted "
+            f"prices moves the arithmetic annual return by {signed(by['vendor'][0], 6)}, run C "
+            "against A_PX. Switching from adjusted to raw prices moves it by "
+            f"{signed(by['basis'][0], 6)} more, run D against C.",
+            f"{runs['D'].trades} in D against {runs['C'].trades} in C.",
+            f"{n_off} of the archive’s opens for PX’s stocks lie more than "
+            f"{round(100 * OPEN_TOLERANCE)} percent from Chan’s, across {n_stocks} of those {px} "
+            f"stocks. That {n_stocks} only happens to equal",
+            f"Of the {n_off}, {first} fall on {first_day.date()} and {second} on "
+            f"{second_day.date()}.",
+            f"than like {first + second} separate errors.",
+            f"Putting Chan’s open in place of each of the {n_off} moves C by "
+            f"{signed(moves['C'][0], 6)} and E1 by {signed(moves['E1'][0], 6)}. It moves E5 by "
+            f"{signed(moves['E5'][0], 6)} in return and {signed(moves['E5'][1], 4)} in Sharpe "
+            f"ratio, through {spelled(len(e5))} trades.",
+            f"**PNC Financial Services on {e5['PNC'][0]}** turns from long to short, worth "
+            f"{minus(e5['PNC'][1], 6)}.",
+            f"**Moody’s, MCO, on {e5['MCO'][0]}** stays short and loses more from Chan’s open, "
+            f"worth {minus(e5['MCO'][1], 6)}.",
+            f"**Torchmark, TMK, on {e5['TMK'][0]}** stays long and turns a small gain into a "
+            f"loss, worth {minus(e5['TMK'][1], 6)}.",
+            f"Cameron International, CAM, on {e1['CAM'][0]}, which turns from long to short and "
+            f"gains {e1['CAM'][1]:.6f}.",
+            f"give E1 an arithmetic annual return of {runs['E1'].arithmetic_annual:.6f} and a "
+            f"Sharpe ratio of {runs['E1'].sharpe:.4f}, above A_U’s "
+            f"{runs['A_U'].arithmetic_annual:.6f} and {runs['A_U'].sharpe:.4f}.",
+            f"come out lower in return, E1 by {-e1_a[0]:.6f} and E5 by {-e5_a[0]:.6f}. In Sharpe "
+            f"ratio, E1 sits {e1_a[1]:.4f} above A and E5 {-e5_a[1]:.4f} below",
+            f"E1 against A_U is {signed(by['all of it, E1 against A_U'][0], 6)}, which is "
+            f"{-interaction:.6f} less than the calendar, vendor and basis effects together.",
+        ]
+        assert self.missing(text, fragments) == []
