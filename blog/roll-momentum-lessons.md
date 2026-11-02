@@ -1,6 +1,6 @@
-# Trading TU on its roll return beats Chan’s momentum rule by stepping out of the market, and misses all three of his figures
+# On Chan’s window, trading TU on its roll return beats his momentum rule by stepping out of the market, and misses all three of his figures
 
-*Chan’s book trades the two-year Treasury note future on its roll return and reports beating his momentum rule. On one rebuilt series the comparison holds, because the old rule never leaves the market. None of the three figures reproduces.*
+*Chan trades the two-year Treasury note future on its roll return and reports beating his momentum rule. On one rebuilt series it does, by sitting out days that earned about nothing while the momentum rule stays in. None of the three figures reproduces.*
 
 ## Why trade the roll return instead of the past return
 
@@ -8,25 +8,31 @@ A trend-following rule on futures has a puzzle behind it. Why should a future’
 
 The test starts from Example 6.1, a momentum strategy on TU, the two-year Treasury note future. Each day it buys if TU’s price is above its level 250 trading days earlier and sells if it is below, and it holds each of those bets for 25 days. Chan reports that from 2004-06-01 to 2012-05-11 “the Sharpe ratio is a respectable 1”, with an APR of 1.7 percent and a maximum drawdown of 2.5 percent (Chan, 2013, Kindle edition, pp. 204 to 205). The APR is the compounded annual return. The Sharpe ratio divides the average daily return by its standard deviation and scales it to a year, so it measures return per unit of risk. The maximum drawdown is the largest fall from a peak.
 
-Then comes the explanation. A future’s total return splits into the move of the spot price under it and a roll return, which the future earns by converging on the spot as it nears expiry. Chan argues that the roll return is what makes futures trend: “Typically, the sign of roll returns does not vary very often” (Chan, 2013, p. 206). The spot return swings in both directions from day to day. So if the roll return keeps its sign for months and dominates the average, a long holding period sees a total return that keeps its sign too.
+Then comes the explanation. A future’s total return splits into the move of the spot price under it, the price of the thing it is written on, and a roll return, which the future earns by converging on the spot as it nears expiry. Chan argues that the roll return is what makes futures trend: “Typically, the sign of roll returns does not vary very often” (Chan, 2013, p. 206). The spot return swings in both directions from day to day. So if the roll return keeps its sign for months and makes up most of the average return, a long holding period sees a total return that keeps its sign too.
 
-If that is the cause, the roll return itself should be a better signal than the past total return. Chan says so on p. 206, calling it “a cleaner and potentially better momentum signal”, and tries it on TU. The rule goes long when the lagged roll return, yesterday’s value, is above 3 percent a year, short when it is below −3 percent, and flat otherwise. Chan reports “a higher APR of 2.5 percent and Sharpe ratio of 2.1 from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of 1.1 percent” (Chan, 2013, p. 206).
+If that is the cause, the roll return itself should be a better signal than the past total return. Chan says so on p. 206, calling it “a cleaner and potentially better momentum signal”, and tries it on TU. The rule goes long when the lagged roll return is above 3 percent a year, short when it is below −3 percent, and flat otherwise. The book does not say how far the roll return is lagged, and the rule tested here uses the previous day’s value. Chan reports “a higher APR of 2.5 percent and Sharpe ratio of 2.1 from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of 1.1 percent” (Chan, 2013, p. 206).
 
-No script ships for that experiment, so this repository wrote the rule down itself and ran it on Chan’s own files. The rule misses all three printed figures. It does beat Example 6.1 on all three when both run on one series over one window, and a second copy of the prices that Chan saved agrees. The Sharpe ratio carries most of that win. The APR margin is about as small as the error in the price series this repository had to rebuild.
+### What the reproduction found
 
-**Every result here is exploratory.** The rule was written down after trying about 90 variants on the same data, so the run cannot count as a test of whether the roll-return signal works. It can say what the book’s sentence gives on Chan’s files under one stated reading, and nothing about the trade today.
+No script ships for the experiment on p. 206, so this repository wrote the rule down itself and ran it on Chan’s own files. The rule misses all three printed figures.
+
+It does beat Example 6.1 on all three when the two rules run on one series over one window. That series had to be rebuilt, because no file anyone kept follows TU’s front contract to the end of the window. A continuous close that Chan saved in May 2012 shows the same win on the days it covers. The Sharpe ratio carries most of the win. The margin between the two rules’ APRs is small enough that rebuilding the price series moves it by about a quarter, and a threshold of 2.9 or 3.2 percent instead of 3 turns it negative.
+
+**Every result here is exploratory.** This repository wrote the rule down after trying about 90 variants on the same data, so the run cannot count as a test of whether the roll-return signal works. It can say what the book’s sentence gives on Chan’s files under one stated reading, and nothing about the trade today.
 
 The four lessons below say what the run does teach. The code is open source at [l3a0/quantitative-trading](https://github.com/l3a0/quantitative-trading).
 
 ## The rule and the files
 
-A futures contract is a promise to buy or sell something on a set date, and each delivery month trades as its own contract. The [post on calendar spreads](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md) explains them. When later contracts trade above nearer ones, the market is in contango, and a long position loses as its contract’s price sinks toward the spot. When later contracts trade below nearer ones, the market is in backwardation, and a long position gains as its price rises toward the spot. That gain or loss is the roll return.
+A futures contract is a promise to buy or sell something on a set date, and each delivery month trades as its own contract. The [post on calendar spreads](https://github.com/l3a0/quantitative-trading/blob/main/blog/calendar-spreads-lessons.md#the-claim-and-the-files) explains futures contracts. When later contracts trade above nearer ones, the market is in contango, and a long position loses as its contract’s price sinks toward the spot. When later contracts trade below nearer ones, the market is in backwardation, and a long position gains as its price rises toward the spot. That gain or loss is the roll return.
 
 ### The roll return γ
 
 Chan estimates the roll return, which he writes γ, in Example 5.3, by regressing “the prices of the various contracts against their time to maturity” on a fixed day (Chan, 2013, p. 179). His script, `estimateFuturesReturns.m`, does it on each day with the log prices of the five nearest contracts against their place in line, 1 to 5. Then γ is −12 times the slope, an annual rate. A positive γ means the later contracts are cheaper, which is backwardation and pays a long position. The [post on Chan’s spot and roll returns](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#the-model-and-the-files) reproduces this fit on TU and four other futures.
 
-The −12 assumes adjacent contracts are a month apart. This post calls that the script’s column units, since each contract sits in its own column of Chan’s file. That post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-2-the-script-counts-contracts-not-months) shows what the assumption does to a future whose contracts are not a month apart. TU’s contracts are a quarter apart, so on all 1,087 days where γ is defined, γ in column units is exactly three times γ measured in months, the rate the book’s words describe. Chan gives the threshold on p. 206 in annualized terms, so γ in months might look like the right one. It peaks at 2.447 percent inside the test window and never reaches 3 percent, so a rule on it never trades. The rule here therefore reads γ in column units. That is a reading of the book, and the post says so wherever it matters.
+The −12 assumes adjacent contracts are a month apart, so the script counts each step from one contract’s column of Chan’s file to the next as one month. This post calls the result γ in column units. TU’s contracts are a quarter apart, so each step is really three months. On all 1,087 days where γ is defined, γ in column units is exactly three times γ measured in months, the rate the book’s words describe. The roll returns post’s [second lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/roll-returns-lessons.md#lesson-2-the-script-counts-contracts-not-months) shows what the one-month assumption does to a future whose contracts are not a month apart.
+
+Chan gives the threshold on p. 206 in annualized terms, so γ in months might look like the signal to use. But γ in months peaks at 2.447 percent inside the test window and never reaches 3 percent, so a rule on it never trades. The rule here therefore reads γ in column units. That is a reading of the book, and the post says so wherever it matters.
 
 ### Example 6.1’s rule
 
@@ -34,40 +40,46 @@ Example 6.1 trades in 25 tranches. A tranche is one twenty-fifth of the capital,
 
 ### The declared rule
 
-With no script to transcribe, this repository wrote the rule down in five parts and calls it the declared rule. It was written before the code was built and after the scratch runs Lesson 4 describes.
+With no script to transcribe, this repository wrote the rule down in five parts and calls it the declared rule. The rule was written down before this experiment’s code was built, but after two trial runs had tried about 90 variants, which Lesson 4 describes.
 
 1. **The signal.** γ in column units, from Chan’s Example 5.3 fit.
-2. **The threshold.** Long where γ is above 0.03 and short where it is below −0.03, both strict. A day with no γ opens neither.
+2. **The threshold.** Long where γ is strictly above 0.03 and short where it is strictly below −0.03. A day with no γ is neither long nor short.
 3. **The lag.** The position set on one day earns the next day’s return, which is Example 6.1’s own convention.
-4. **The window.** Every series is computed on the full file and cut last to 2009-01-02 to 2012-08-13, the 913 trading days of the window Chan names on p. 206. Cutting first would leave Example 6.1’s 250-day signal off for the window’s first 250 trading days. Its signal would then be live on only 663 of the 913, and its APR would fall to 0.008435.
+4. **The window.** Every series is computed on the full file first and only then trimmed to 2009-01-02 to 2012-08-13, the 913 trading days of the window Chan names on p. 206. Trimming first would leave Example 6.1’s 250-day signal with no value for the window’s first 250 trading days. Its signal would then exist on only 663 of the 913, and its APR would fall to 0.008435.
 5. **The arithmetic.** Example 6.1’s script, `TU_mom.m`, for the APR, the Sharpe ratio and the drawdown, with 252 trading days a year, no risk-free rate and no cost.
 
-### The files
+### The TU strip and the front-contract series
 
-The data is a strip, Chan’s own MATLAB file holding every contract of one future and its spot price, converted here to one file per contract. This strip holds 93 TU contracts and the spot over 5,565 days, from 1990-06-22 to 2012-08-13, and was saved on 2012-08-14. It is the only TU file in the [repository’s data](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) that reaches the end of the book’s window.
+The data is a strip, Chan’s own MATLAB file holding every contract of one future and its spot price, converted here to one file per contract. This strip holds 93 TU contracts over 5,565 days, from 1990-06-22 to 2012-08-13, and TU’s spot price from 1995-08-10. It was saved on 2012-08-14 and is the only TU file in the [repository’s data](https://github.com/l3a0/quantitative-trading/blob/main/data/README.md) that reaches the end of the book’s window.
 
-Example 6.1 trades a continuous series of TU. It follows the front contract, the one nearest expiry, and switches to the next contract shortly before each expires. The switch is called a roll, which is a different thing from the roll return. Chan’s files of that series end in May 2012, three months short of the window. So the position here earns on a front-contract series rebuilt from the strip, which Lesson 3 describes. Example 6.1’s rule runs on the same rebuilt series, so the two rules are compared on one set of prices, days and arithmetic.
+Example 6.1 trades a continuous series of TU. It follows the front contract, the one nearest expiry, and switches to the next contract shortly before each expires. The switch is called a roll, which is a different thing from the roll return. Chan’s own copies of that series end in May 2012, three months short of the window. So the position here earns on a front-contract series rebuilt from the strip, which Lesson 3 describes. Example 6.1’s rule runs on the same rebuilt series, so the two rules are compared on one set of prices, days and arithmetic.
 
 ## Lesson 1: the declared rule misses all three printed figures
 
-Here are the three figures beside the book’s. A gap is the computed figure minus the printed one, at the book’s precision. The drawdown row shows its size, as the book prints it.
+Here are the three figures beside the book’s. A gap is the computed figure minus the printed one, at the book’s precision. The drawdown column shows its size, as the book prints it.
 
 ```math
-\begin{array}{l|r|r|r}
-\text{Figure} & \text{Computed} & \text{Book} & \text{Gap} \\ \hline
-\text{APR} & 1.3725\ \text{percent} & 2.5\ \text{percent} & -1.1 \\
-\text{Sharpe ratio} & 1.803348 & 2.1 & -0.3 \\
-\text{Maximum drawdown} & 0.7299\ \text{percent} & 1.1\ \text{percent} & -0.4
+\small\begin{array}{l|r|r|r}
+ & \text{APR} & \text{Sharpe} & \text{Drawdown} \\ \hline
+\text{Computed} & 1.3725\% & 1.803348 & 0.7299\% \\
+\text{Book} & 2.5\% & 2.1 & 1.1\% \\
+\text{Gap} & -1.1 & -0.3 & -0.4
 \end{array}
 ```
 
 All three miss. The APR and the Sharpe ratio land below the book, and the drawdown is shallower than the book’s.
 
-A different download of the prices is the first thing to suspect, because vendors restate history. It does not explain this miss on the days a saved copy covers. Chan’s 2012-05-11 save, a continuous TU close that ends on that day and was saved the next, covers 849 of the window’s 913 trading days. On those days, the declared rule earning that close gives an APR of 1.437321 percent, a Sharpe ratio of 1.791969 and a drawdown of 0.807695 percent. The rebuilt series gives 1.468184 percent, 1.870808 and 0.7299 percent on the same days. Both sit far from the book. The 64 window days that save does not cover would have to carry the rest of the gap.
+### Where the miss could come from
 
-The rule is simple in this window. It is long on 572 of the 913 days, 62.65 percent, and flat on the rest. Because γ never falls below −3 percent, it is never short. It changes position 21 times and opens the window flat. γ is 1.61 percent on 2008-12-31, under the threshold. On the window’s first three days, all five contracts carry one price, so the fit’s slope and γ are zero to within 10⁻¹³.
+A different download of the prices is the first thing to suspect, because vendors restate history. It does not explain the miss on the days a saved copy covers. Chan’s continuous TU close follows the front contract. It ends on 2012-05-11, was saved the next day, and covers 849 of the window’s 913 trading days. On those days, the declared rule earning that close gives an APR of 1.4373 percent, a Sharpe ratio of 1.791969 and a drawdown of 0.8077 percent. The rebuilt series gives 1.4682 percent, 1.870808 and 0.7299 percent on the same days. Both sit far from the book. The 64 window days that close does not cover would have to carry the rest of the gap.
 
-A miss cannot say whether Chan computed a different number or read his own sentence differently. The sentence leaves the lag, the series the position earns and the unit of γ open, and each choice is part of the method. Lesson 4 shows one variant that lands two of the three figures, and why it is not the one tested.
+A miss cannot say whether Chan computed a different number or read his own sentence differently. The sentence leaves the lag, the series the position earns and the unit of γ open, and each choice is part of the method. Lesson 4 shows one variant that matches two of the three figures, and why it is not the one tested.
+
+### How the declared rule trades the window
+
+In this window the rule is long on 572 of the 913 days, 62.65 percent, and flat on the rest. Because γ never falls below −3 percent, it is never short. It changes position 21 times. It opens the window flat, because the position that earns the window’s first day is set by γ on 2008-12-31, which is 1.61 percent, under the threshold. On the window’s first three days, the five nearest contracts close at the same price, so the fit’s slope and γ are zero to within 10⁻¹³.
+
+Those three days start a longer pattern. On 185 of the window’s days, from 2009-01-02 to 2009-09-29, the third, fourth and fifth of the contracts γ is fitted on carry one price, and that shared price changes from day to day. A fit whose three farthest prices are equal finds no roll among those contracts. The position on 169 of the 341 flat days was set on a γ fitted on one of those days. The strip cannot say whether the exchange or the data vendor priced those contracts that way.
 
 The figure below draws both rules on the rebuilt series. The book prints no chart for this experiment, so the figure is this repository’s own.
 
@@ -77,69 +89,79 @@ The figure below draws both rules on the rebuilt series. The book prints no char
 
 ## Lesson 2: the declared rule beats Example 6.1 by stepping out of the market
 
-The comparison on p. 206 is three claims: a higher APR, a higher Sharpe ratio and a smaller drawdown than Example 6.1. A claim holds when the declared rule beats Example 6.1’s rule on the same series and days. Here are the two rules side by side.
+The comparison on p. 206 makes three claims against Example 6.1.
+
+1. A higher APR.
+2. A higher Sharpe ratio.
+3. A smaller drawdown.
+
+A claim holds when the declared rule beats Example 6.1’s rule on the same series and days. Here are the two rules side by side. Unlike the table in Lesson 1, this one writes the APR and the drawdown as fractions, so 0.013725 is the 1.3725 percent above. It also signs the drawdowns, so the larger number is the smaller fall.
 
 ```math
-\begin{array}{l|r|r|r}
-\text{Figure} & \text{Declared rule} & \text{Example 6.1's rule} & \text{Margin} \\ \hline
-\text{APR} & 0.013725 & 0.013377 & +0.000348 \\
-\text{Sharpe ratio} & 1.803348 & 1.196742 & +0.606606 \\
-\text{Maximum drawdown} & -0.007299 & -0.009167 & +0.001868
+\small\begin{array}{l|r|r|r}
+ & \text{APR} & \text{Sharpe} & \text{Drawdown} \\ \hline
+\text{Declared} & 0.013725 & 1.803348 & -0.007299 \\
+\text{Example 6.1} & 0.013377 & 1.196742 & -0.009167 \\
+\text{Margin} & 0.000348 & 0.606606 & 0.001868
 \end{array}
 ```
 
-Drawdowns are signed here, so the larger number is the smaller fall. All three claims hold. They hold on Chan’s 2012-05-11 save too, over the 849 days it covers. There the declared rule gives 1.4373 percent, 1.791969 and a drawdown of 0.8077 percent, against Example 6.1’s 1.4069 percent, 1.187438 and 0.9851 percent.
+All three claims hold. They hold on Chan’s continuous close too, over the 849 days it covers. There the declared rule gives an APR of 1.4373 percent against Example 6.1’s 1.4069 percent, a Sharpe ratio of 1.791969 against 1.187438, and a drawdown of 0.8077 percent against 0.9851 percent.
 
-The margins are not equally strong. The APR margin of 0.000348 is small. On the save’s 849 days, the APR margin is 0.000304 on the save and 0.000225 on the rebuild, so it keeps its sign on both copies of the prices but moves by about a quarter between them. So the APR claim is the weakest of the three. The Sharpe ratio’s margin of 0.606606 carries the comparison.
+The margins are not equally strong. The APR margin of 0.000348 is small. Over the 849 days Chan’s continuous close covers, the APR margin is 0.000304 on that close and 0.000225 on the rebuild. It keeps its sign on both copies of the prices but moves by about a quarter between them. It does not keep its sign when the threshold moves, since a threshold of 2.9 or 3.2 percent turns it negative. So the APR claim is the weakest of the three. The Sharpe ratio’s margin of 0.606606 carries the comparison. No test here asks whether any of the three margins is larger than day-to-day swings in TU’s returns could produce by chance.
 
 ### Where the Sharpe ratio’s margin comes from
 
-In this window Example 6.1 never leaves the market. From 25 trading days before the window to its end, TU always stood above its level 250 trading days earlier. So every tranche Example 6.1 opened was long, and all 25 are long on all 913 days. A rule that is fully long every day earns exactly the contract’s own return, so in this window Example 6.1’s rule is the same as buying TU and holding it. The [post on Example 1.1’s hypothesis tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-5-two-checks-added-afterwards-point-at-drift-not-kurtosis) reaches the same mechanism from another direction. On a series that drifts upward, the 250-day rule is long most of the time and collects the drift.
+Over the whole window, Example 6.1 never leaves the market. From 25 trading days before the window to its end, TU always stood above its level 250 trading days earlier. So every tranche Example 6.1 opened was long, and all 25 are long on all 913 days. A rule that is fully long every day earns exactly the contract’s own return, so in this window Example 6.1’s rule is the same as buying TU and holding it. The [post on Example 1.1’s hypothesis tests](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-hypothesis-tests-lessons.md#lesson-5-two-checks-added-afterwards-point-at-drift-not-kurtosis) reaches the same mechanism from another direction. On a series that drifts upward, the 250-day rule is long most of the time and collects the drift.
 
-The declared rule is that same long position with 341 days taken out. Over those 341 days, TU’s return compounds to −0.001244, close to nothing. Over the 572 days the rule is long, it compounds to 0.050629, which is the declared rule’s whole return. So the two rules earn almost the same. Their average annual returns, the mean daily return times 252 without compounding, are 0.013661 and 0.013351.
+The declared rule is that same long position with 341 days taken out. Over those 341 days, TU’s return compounds to −0.001244, close to nothing. Over the 572 days the rule is long, it compounds to 0.050629, which is the declared rule’s whole return. So the two rules earn almost the same. Their average annual returns, the mean daily return times 252 without compounding, are 0.013661 for the declared rule and 0.013351 for Example 6.1’s rule.
 
 What differs is the risk. Sitting out 341 days that went nowhere removes their day-to-day swings without removing any return. Annual volatility is the standard deviation of daily returns scaled to a year, and the declared rule’s is 0.007575 against 0.011156 for holding TU. Divide each average return by its volatility and the Sharpe ratios of 1.80 and 1.20 follow.
 
-The figure’s top panel shows it. The declared rule’s line goes flat through every shaded stretch, while Example 6.1’s line wanders up in some of them and down in others, and the two end close together.
+The top panel of the figure in Lesson 1 shows the difference. The declared rule’s line goes flat through every shaded stretch, while Example 6.1’s line wanders up in some of them and down in others, and the two end close together.
 
-So on this window the roll-return signal’s advantage is that it was out of the market on 341 of the 913 days, and those days happened to earn nothing. The difference is narrow. It says nothing about a window where TU fell. There Example 6.1 would go short, while the declared rule goes short only if γ falls below −3 percent, which it never did here.
+So on this window the roll-return signal’s advantage is that it was out of the market on 341 of the 913 days, and those days earned about nothing. This run cannot say whether γ picked those days or chance did. On 169 of them the position was set by a γ fitted on the shared prices Lesson 1 describes. That advantage belongs to this window. It says nothing about a window where TU fell. There Example 6.1 would go short, while the declared rule goes short only if γ falls below −3 percent, which it never did here.
 
 ### The book’s own comparison spans two windows
 
-The book sets its 2.5 percent, 2.1 and 1.1 percent against Example 6.1’s printed 1.7 percent, 1 and 2.5 percent. Those printed figures cover 2004-06-01 to 2012-05-11, which the [Example 6.1 post’s first lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#lesson-1-the-books-figures-come-from-the-full-window-not-the-line-the-script-runs) shows is the window they reproduce on, while the new ones start in 2009. So the book compares two windows as well as two rules. On one window, the APR margin is 0.000348, far smaller than the gap between the printed 2.5 and 1.7 percent.
+The book sets its new figures against Example 6.1’s printed ones: an APR of 2.5 percent against 1.7 percent, a Sharpe ratio of 2.1 against 1, and a drawdown of 1.1 percent against 2.5 percent. Example 6.1’s printed figures cover 2004-06-01 to 2012-05-11, and the [Example 6.1 post’s first lesson](https://github.com/l3a0/quantitative-trading/blob/main/blog/tu-momentum-lessons.md#lesson-1-the-books-figures-come-from-the-full-window-not-the-line-the-script-runs) shows they reproduce on that window. The new figures start in 2009. So the book compares two windows as well as two rules. On one window, the APR margin is 0.000348, far smaller than the gap between the printed 2.5 and 1.7 percent.
 
 ## Lesson 3: a series nobody saved has to be rebuilt
 
-This repository rests on one premise. A vendor can restate a price history, so a number computed from a series nobody kept is a number nobody can check. This experiment meets the other side of that problem. The series it needs, TU’s front contract through August 2012, exists in no file anyone kept. So it has to be built, and then checked against the nearest thing that was kept.
+This repository rests on one premise. A vendor can restate a price history, so a number computed from a series nobody kept is a number nobody can check. The series this experiment needs is one of those. TU’s front contract through August 2012 exists in no file anyone kept. So it has to be built, and then checked against the nearest thing that was kept.
 
-A continuous future stitches one contract after another, and each switch is a roll. The [post on VX against ES](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md) explains how a saved continuous series shifts its earlier prices at each roll, which is called back-adjustment, so its price level has no gap. The daily change on the roll day still spans two contracts, so it is not the return of either one. The rebuild here does something simpler. Each day’s return is taken within one contract, from yesterday’s close to today’s, so a roll never enters a return.
+A continuous future stitches one contract after another, and each switch is a roll. At each roll, a saved continuous series shifts its earlier prices so its price level has no gap. That shift is called back-adjustment, and the [post on VX against ES](https://github.com/l3a0/quantitative-trading/blob/main/blog/vx-es-lessons.md#the-regression-and-the-files) explains it. The change on the roll day then depends on how the shift was measured, and it need not equal either contract’s own change. The rebuild here does something simpler. It takes each day’s return within one contract, from yesterday’s close to today’s, so a roll never enters a return.
 
 The question is which day to switch. The rebuild takes the nearest contract that was priced the day before and still has at least seven trading days left before its last price. So the old contract earns through the seventh trading day before its last price and the new one from the sixth. The March 2012 roll shows it. The March 2012 contract’s last price in the strip is on 2012-03-30. It earns through 2012-03-21, and the June contract earns from 2012-03-22.
 
-Seven days is not a choice made to fit a result. It was read off Chan’s 2012-05-11 save, which follows the old contract until eight trading days before its last price and the new one from six. On the day between, its change spans the two contracts. The check against that save covers the 1,999 daily changes the two series share.
+### Checking the rebuild against Chan’s continuous close
+
+The rebuild’s seven-day switch is not a choice made to fit a result. It was read off Chan’s continuous close, which follows the old contract until eight trading days before its last price and the new one from six. That close does not settle the day between. On 29 of the 32 rolls in its span, its change on that day matches neither contract’s own change. The rebuild gives the day to the old contract. Giving it to the new one, a roll eight days before the last price, gives an APR of 1.3665 percent and a Sharpe ratio of 1.789044, against 1.3725 percent and 1.803348. The check against that close covers the 1,999 daily changes the two series share.
 
 1. **The returns agree.** They correlate at 0.998359.
-2. **Every disagreement sits on the roll day.** 30 changes differ by more than the files’ rounding. All 30 fall on the seventh trading day before a contract’s last price, where the save’s change spans two contracts and the rebuild takes a return within one contract instead. The save’s span holds 32 rolls, and on the other two the save’s change across contracts lands within rounding.
+2. **Every disagreement sits on the roll day.** 30 changes differ by more than the files’ rounding. All 30 fall on the seventh trading day before a contract’s last price, where the close’s change differs from the old contract’s own change and the rebuild takes the old contract’s return. The close’s span holds 32 rolls, and on the other two its change lands within rounding of the old contract’s.
 
-So the rebuild follows the same contracts as the save on every day, and it differs only where the save’s stitching spans a roll. That bounds what the rebuild can be trusted for. Over the shared days, the declared rule’s APR on the rebuild sits 0.000309 above its APR on the save. The margin between the two rules moves less, from 0.000304 on the save to 0.000225 on the rebuild, because both rules earn the same prices and much of the difference cancels. Lesson 2’s APR margin of 0.000348 is still small enough that the rebuild moves a fair share of it.
+So the rebuild’s daily changes match those of Chan’s continuous close within rounding on every shared day but 30 of the 32 roll days. Over the shared days, the declared rule’s APR on the rebuild sits 0.000309 above its APR on that close. The margin between the two rules moves less, from 0.000304 on the close to 0.000225 on the rebuild, because both rules earn the same prices and much of the difference cancels. Lesson 2’s APR margin of 0.000348 is still small enough that the rebuild moves a fair share of it.
 
 ## Lesson 4: a rule declared late, and a variant set aside
 
-A rule fixed before the data is read can be tested by the data. A rule fixed after trying many variants has already been fitted to it. This experiment’s rule was meant to be written down before any figure was computed. It was not. Two scratch runs tried about 90 variants first, across lags, held contracts, units, thresholds and roll rules. That count comes from the run’s own written disclosure, and no test here checks it.
+A rule fixed before the data is read can be tested by the data. A rule fixed after trying many variants has already been fitted to it. The plan was to write this experiment’s rule down before computing any figure. That did not happen. Two trial runs first tried about 90 variants, across lags, held contracts, units, thresholds and roll rules. That count comes from a written note about the runs, and no test here checks it.
 
-The declaration rests on three grounds the scratch runs did not choose.
+The declaration rests on three grounds the trial runs did not choose.
 
 1. **The lag** is Example 6.1’s own convention, a position set on one day earning the next.
-2. **The series** is the one the rule on p. 206 revises, Example 6.1’s front contract.
-3. **The roll day** was read off the 2012-05-11 save, as Lesson 3 describes, rather than chosen by any strategy figure.
+2. **The series** is Example 6.1’s front contract, since the rule on p. 206 revises Example 6.1.
+3. **The roll day** was read off Chan’s continuous close, as Lesson 3 describes, rather than chosen by any strategy figure.
 
-One variant in the scratch runs came close to the book. It holds the fifth contract priced the day before, the farthest of the five that γ is fitted on, instead of the front contract. That gives an APR of 2.4712 percent, a Sharpe ratio of 2.144165 and a drawdown of 1.1583 percent. The first two land the book’s 2.5 percent and 2.1. The drawdown misses 1.1 percent.
+### The fifth-contract variant
 
-It is set aside because of how it is built. The position is set by γ, and γ is fitted partly on that same fifth contract’s price. Suppose the fifth contract closes a little low one day. The slope steepens, γ rises, and the rule goes long that same contract. If the low close was noise that reverses the next day, the long position earns the reversal. So part of what the variant earns could come from the fit and the held contract sharing one price, rather than from the roll return the book describes. A scratch fit of γ on the four nearest contracts alone, which leaves the held contract out of the fit, lowered the Sharpe ratio to 1.801. No test repeats that 1.801, so the shared price is a candidate explanation rather than a finding.
+One variant in the trial runs came close to the book. Instead of the front contract, it holds the fifth-nearest contract among those priced the day before, the farthest of the five that γ is fitted on. That gives an APR of 2.4712 percent, a Sharpe ratio of 2.144165 and a drawdown of 1.1583 percent. The first two match the book’s 2.5 percent and 2.1 at the book’s precision. The drawdown misses 1.1 percent.
 
-One related variant is checked by a test. It counts the fifth contract only among those priced on both days, which skips a nearer contract that stopped trading the day before. It gives a Sharpe ratio of 1.957852, short of the book’s 2.1.
+It is set aside because of how it is built. The position is set by γ, and γ is fitted partly on that same fifth contract’s price. Suppose the fifth contract closes a little low one day. The slope steepens, γ rises, and the rule goes long that same contract. If the low close was noise that reverses the next day, the long position earns the reversal. So part of what the variant earns could come from the fit and the held contract sharing one price, rather than from the roll return the book describes. A trial fit of γ on the four nearest contracts alone, which leaves the held contract out of the fit, lowered the Sharpe ratio to 1.801. No test repeats that 1.801, so the shared price is a candidate explanation rather than a finding.
 
-Picking this variant now, after seeing that it lands the book, would fit the rule to the answer. A search across enough variants on one file can often find one that matches a printed number. So the fifth-contract variant is reported beside the result and never counted as the result.
+One related variant is checked by a test. It takes the fifth contract only from among those priced on both days, so a nearer contract that stopped trading the day before drops out of the count. It gives a Sharpe ratio of 1.957852, short of the book’s 2.1.
+
+Picking the fifth-contract variant now, after seeing that two of its figures match the book’s, would fit the rule to the answer. A search across enough variants on one file can often find one that matches a printed number. So the fifth-contract variant is reported beside the result and never counted as the result.
 
 The same reasoning is why every result here is exploratory. The declaration came after the variants, so nothing here is a registered test of the roll-return signal, one whose rule was written down before any data was read. A registered test would fix its rule first and run on data this search never loaded.
 
@@ -148,17 +170,17 @@ The same reasoning is why every result here is exploratory. The declaration came
 Three things are beyond it.
 
 1. **Whether the signal works out of sample.** The rule was written down after about 90 variants on the same strip, so its margins are not a test.
-2. **What Chan held.** No script ships for the rule on p. 206, and the book does not say how far the roll return is lagged or which price the position earns. The fifth-contract variant lands near the book, and choosing it after its number was seen would fit the rule to the answer.
-3. **What a trader would earn.** The returns are on the notional value of one contract, the face value of the notes it controls, with no cost and no margin, the deposit a broker requires to hold it. Chan puts TU’s notional value at about $200,000 against a margin of about $400 (pp. 204 to 205), so any real position would be leveraged, and the figures here say nothing about the leverage.
+2. **Which version of the rule Chan ran.** No script ships for the rule on p. 206, and the book does not say how far Chan lagged the roll return or which price the position earns. The fifth-contract variant comes close to the book’s figures, and choosing it after its number was seen would fit the rule to the answer.
+3. **What a trader would earn.** The returns are on the notional value of one contract, the face value of the notes it controls. They include no trading cost and no margin, the deposit a broker requires to hold the contract. Chan puts TU’s notional value at about $200,000 against a margin of about $400 (pp. 204 to 205), so any real position would be leveraged, and the figures here say nothing about the leverage.
 
 ## What this means for a trader
 
 One habit for each lesson.
 
-1. **Check a second copy of the data before blaming the download.** Here Chan’s saved close lands near the rebuild on the days it covers, so the miss is not in the download there. What is left is the reading of the sentence and the 64 days no copy here covers.
-2. **Ask what the benchmark was doing.** Example 6.1 was fully long for the whole window, so beating it meant beating buy and hold, and the win came from sitting out days that earned nothing.
+1. **Check a second copy of the data before blaming the download.** Here Chan’s continuous close comes close to the rebuild on the days it covers, so the miss is not in the download there. What is left is the reading of the sentence and the 64 days the 2012-05-11 close does not cover.
+2. **Ask what the benchmark was doing.** Example 6.1 was fully long for the whole window, so beating it meant beating buy and hold, and the win came from sitting out days that earned about nothing.
 3. **Check a rebuilt series against the nearest saved one, and measure how far it moves the comparison.** Here the rebuild moved the APR margin by about a quarter, which matters for a margin that small.
-4. **Write the rule down before reading the data, and distrust the variant that lands the book.** A variant found after the number is seen has already been fitted to it.
+4. **Write the rule down before reading the data, and distrust the variant that matches the book.** A variant found after the number is seen has already been fitted to it.
 
 ## References
 
