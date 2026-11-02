@@ -88,6 +88,9 @@ from chan.roll_returns import Strip, load_strip
 from chan.series import WindowCrossesScaleBreak
 from chan.tu_momentum import positions, read_sources, signals, strategy_returns
 from tests.support.committed_vintages import LIFTED_SOURCES
+from tests.support.post_tables import either_way, not_found_once, tables
+
+POST = paths.REPO_ROOT / "blog" / "roll-momentum-lessons.md"
 
 SPEC = (
     "inputdatadaily_tu_20120813/ chan-mat raw saved 2012-08-14, gamma in column units, long "
@@ -127,6 +130,39 @@ def frame(columns: dict[str, list[float]], days: int | None = None) -> pd.DataFr
     length = days or len(next(iter(columns.values())))
     index = pd.bdate_range("2020-01-01", periods=length)
     return pd.DataFrame(columns, index=index, dtype=float)
+
+
+def far_three_share_one_price(strip: Strip) -> np.ndarray:
+    """Each row on which the 3rd, 4th and 5th of the five fitted contracts carry one price."""
+    prices = strip.contracts.to_numpy(dtype=float)
+    one = np.zeros(len(prices), dtype=bool)
+    for t, row in enumerate(prices):
+        nearest = roll_returns._nearest_adjacent(row)
+        if nearest is not None:
+            third, fourth, fifth = row[nearest[2:]]
+            one[t] = third == fourth == fifth
+    return one
+
+
+def roll_rows_matching_neither(strip: Strip, result: RollMomentum, save) -> tuple[int, int]:
+    """The save's rolls on row L − 7, and how many of them match neither contract's own change."""
+    closes = save[1]
+    contracts = strip.contracts
+    prices = contracts.to_numpy(dtype=float)
+    span = np.asarray(result.days.isin(closes.index))
+    rows = np.flatnonzero(span)[1:]
+    change = dict(zip(rows, np.diff(closes.to_numpy(dtype=float)), strict=True))
+    held = module._held_columns(contracts, ROLL_ROWS)
+    last = module._last_priced_rows(contracts)
+    jump = [t for t in rows if held[t] >= 0 and last[held[t]] - t == ROLL_ROWS]
+    neither = sum(
+        all(
+            abs(change[t] - (prices[t, c] - prices[t - 1, c])) > SAVE_ROUNDING
+            for c in (held[t], held[t] + 1)
+        )
+        for t in jump
+    )
+    return len(jump), neither
 
 
 class TestTheDeclaredRule:
@@ -375,23 +411,7 @@ class TestTheRebuildAgainstTheSave:
         that row to the new contract, a roll 8 rows before the last price, moves
         the declared rule to 1.366491 percent and 1.789044.
         """
-        closes = save[1]
-        contracts = strip.contracts
-        prices = contracts.to_numpy(dtype=float)
-        span = np.asarray(result.days.isin(closes.index))
-        rows = np.flatnonzero(span)[1:]
-        change = dict(zip(rows, np.diff(closes.to_numpy(dtype=float))))
-        held = module._held_columns(contracts, ROLL_ROWS)
-        last = module._last_priced_rows(contracts)
-        jump = [t for t in rows if held[t] >= 0 and last[held[t]] - t == ROLL_ROWS]
-        neither = sum(
-            all(
-                abs(change[t] - (prices[t, c] - prices[t - 1, c])) > SAVE_ROUNDING
-                for c in (held[t], held[t] + 1)
-            )
-            for t in jump
-        )
-        assert (len(jump), neither) == (32, 29)
+        assert roll_rows_matching_neither(strip, result, save) == (32, 29)
         eight = roll_momentum(strip, roll_rows=8)
         assert 100 * eight.figures.apr == pytest.approx(1.366491, abs=5e-7), SPEC
         assert eight.figures.sharpe == pytest.approx(1.789044, abs=5e-7), SPEC
@@ -576,10 +596,18 @@ class TestTheRowsBeside:
         assert int((held < 0).sum()) == 0
         assert int((np.diff(held) != 0).sum()) == 21
 
-    def test_the_window_starts_flat(self, result) -> None:
-        """γ is below 0.03 on 2008-12-31, and all five contracts share one price on three days."""
+    def test_the_window_starts_flat(self, strip, result) -> None:
+        """γ is below 0.03 on 2008-12-31, and all five contracts share one price on three days.
+
+        The fourth window day, 2009-01-07, is the first whose five prices differ.
+        """
         gamma = pd.Series(result.gamma, index=result.days)
         assert gamma.loc["2008-12-31"] == pytest.approx(0.0161092, abs=5e-8), SPEC
+        contracts = strip.contracts
+        for day in ("2009-01-02", "2009-01-05", "2009-01-06", "2009-01-07"):
+            row = contracts.loc[day].to_numpy(dtype=float)
+            five = row[roll_returns._nearest_adjacent(row)]
+            assert (len(set(five)) == 1) == (day != "2009-01-07"), day
         for day in ("2009-01-02", "2009-01-05", "2009-01-06"):
             assert abs(gamma.loc[day]) < 1e-13
         assert result.held_position[0] == 0
@@ -590,13 +618,7 @@ class TestTheRowsBeside:
         They run from 2009-01-02 to 2009-09-29, and 169 of the 341 flat rows take
         their position, set the row before, from a γ fitted on one of those days.
         """
-        prices = strip.contracts.to_numpy(dtype=float)
-        one = np.zeros(len(prices), dtype=bool)
-        for t, row in enumerate(prices):
-            nearest = roll_returns._nearest_adjacent(row)
-            if nearest is not None:
-                third, fourth, fifth = row[nearest[2:]]
-                one[t] = third == fourth == fifth
+        one = far_three_share_one_price(strip)
         window = result.window
         assert int(one[window].sum()) == 185
         days = result.days[window & one]
@@ -644,6 +666,203 @@ class TestTheRowsBeside:
         assert matches(100 * found.apr, BOOK_APR_PERCENT)
         assert matches(found.sharpe, BOOK_SHARPE)
         assert not matches(-100 * found.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT)
+
+
+def signed(value: float, decimals: int) -> str:
+    """A figure as the post prints it, with a true minus sign."""
+    return f"{value:.{decimals}f}".replace("-", "−")
+
+
+class TestWhatThePostQuotes:
+    """At least one copy of each run figure ``blog/roll-momentum-lessons.md`` quotes.
+
+    The classes above pin each figure once, and the post copies it by hand.
+    Here each figure is built from the run at the precision the post prints
+    it, and looked for in a short fragment holding the number and the few
+    words that name one place in the post. Each fragment must occur exactly
+    once, so it cannot match a second copy. A typo in a copy that is read, or
+    a re-pin that leaves the post behind, fails here, while rewording the
+    prose between two figures does not. Where a word states a fact the run
+    decides, such as "never short" or "negative", the run is asserted to bear
+    it out. The post's two tables are each read whole, as the grid of its
+    cells with its row labels and column heads, so a cell changed, added,
+    dropped or moved fails, while the same table turned on its side still
+    passes. A number's unit is not read, so a table's percent signs could be
+    dropped and pass.
+
+    Where a figure repeats, the copies read are the summary's, the first in
+    the lesson that states it, and the alt text's exact figures. Example 6.1's
+    figures on the 2012-05-11 save are read against
+    ``tests/test_tu_momentum.py``'s pin through
+    ``test_example_6_1_on_the_save_is_entry_33_s_pin``. The copies left unread
+    include the title's and the subtitle's words, the habits' repeats of the
+    lessons, the references, and the alt text's rounded readings of the
+    lines, which ``README.md`` lists. Nothing checks Chan's words against
+    their source or the page numbers.
+    """
+
+    @pytest.fixture(scope="class")
+    @classmethod
+    def text(cls) -> str:
+        return POST.read_text(encoding="utf-8")
+
+    def test_the_post_holds_two_tables(self, text) -> None:
+        assert len(tables(text)) == 2
+
+    def test_lesson_1_s_table(self, result, text) -> None:
+        found = result.figures
+        apr, sharpe, drawdown = 100 * found.apr, found.sharpe, -100 * found.max_drawdown
+        expected = [
+            ["", "APR", "Sharpe", "Drawdown"],
+            ["Computed", f"{apr:.4f}", f"{sharpe:.6f}", f"{drawdown:.4f}"],
+            ["Book", BOOK_APR_PERCENT, BOOK_SHARPE, BOOK_MAX_DRAWDOWN_PERCENT],
+            [
+                "Gap",
+                str(gap(apr, BOOK_APR_PERCENT)),
+                str(gap(sharpe, BOOK_SHARPE)),
+                str(gap(drawdown, BOOK_MAX_DRAWDOWN_PERCENT)),
+            ],
+        ]
+        assert tables(text)[0] in either_way(expected)
+
+    def test_lesson_2_s_table(self, result, text) -> None:
+        revised, example = result.figures, result.example_figures
+        apr, sharpe, drawdown = margins(result)
+        expected = [
+            ["", "APR", "Sharpe", "Drawdown"],
+            ["Declared", f"{revised.apr:.6f}", f"{revised.sharpe:.6f}", f"{revised.max_drawdown:.6f}"],
+            ["6.1", f"{example.apr:.6f}", f"{example.sharpe:.6f}", f"{example.max_drawdown:.6f}"],
+            ["Margin", f"{apr:.6f}", f"{sharpe:.6f}", f"{drawdown:.6f}"],
+        ]
+        assert tables(text)[1] in either_way(expected)
+
+    def test_the_rule_and_the_files(self, strip, result, text) -> None:
+        defined = np.isfinite(result.gamma)
+        peak = np.nanmax(result.gamma_in_months[result.window])
+        contracts = strip.contracts
+        assert peak < THRESHOLD, "never reaches 3 percent"
+        fragments = [
+            f"On all {int(defined.sum()):,} days where γ is defined, γ in column units is exactly "
+            "three times γ measured in months",
+            f"But γ in months peaks at {100 * peak:.3f} percent inside the test window",
+            f"the {int(result.window.sum())} trading days of the window Chan names on p. 206.",
+            f"Its signal would then exist on only {int(result.window.sum()) - 250} of the 913, and "
+            f"its APR would fall to {result.example_cut_first_figures.apr:.6f}.",
+            f"This strip holds {contracts.shape[1]} TU contracts over {len(contracts):,} days, from "
+            f"{contracts.index[0].date()} to {contracts.index[-1].date()}, and TU’s spot price from "
+            f"{strip.spot.first_valid_index().date()}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_1(self, strip, result, check, save, text) -> None:
+        entry, closes = save
+        on_save, on_rebuild = check.revised_on_save, check.revised_on_rebuild
+        assert str((closes.index[-1] + pd.Timedelta(days=1)).date()) == entry.obtained
+        held = result.held_position
+        one = far_three_share_one_price(strip)
+        days = result.days[result.window & one]
+        set_on = one[np.flatnonzero(result.window) - 1]
+        gamma = pd.Series(result.gamma, index=result.days)
+        assert int((held < 0).sum()) == 0, "never short"
+        fragments = [
+            f"It ends on {closes.index[-1].date()}, was saved the next day, and covers "
+            f"{check.shared_window_rows} of the window’s {int(result.window.sum())} trading days.",
+            f"gives an APR of {100 * on_save.apr:.4f} percent, a Sharpe ratio of "
+            f"{on_save.sharpe:.6f} and a drawdown of {-100 * on_save.max_drawdown:.4f} percent.",
+            f"The rebuilt series gives {100 * on_rebuild.apr:.4f} percent, {on_rebuild.sharpe:.6f} "
+            f"and {-100 * on_rebuild.max_drawdown:.4f} percent on the same days.",
+            f"The {int(result.window.sum()) - check.shared_window_rows} window days that close "
+            "does not cover",
+            f"In this window the rule is long on {int((held > 0).sum())} of the 913 days, "
+            f"{100 * (held > 0).mean():.2f} percent, and flat on the rest.",
+            f"It changes position {int((np.diff(held) != 0).sum())} times.",
+            f"set by γ on 2008-12-31, which is {100 * gamma.loc['2008-12-31']:.2f} percent, under "
+            "the threshold.",
+            f"On {len(days)} of the window’s days, from {days[0].date()} to {days[-1].date()},",
+            f"The position on {int((set_on & (held == 0)).sum())} of the {int((held == 0).sum())} "
+            "flat days",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_2(self, result, check, text) -> None:
+        on_save, example_on_save = check.revised_on_save, check.example_on_save
+        revised, example = result.figures, result.example_figures
+        apr, sharpe, _ = margins(result)
+        held = result.held_position
+        market = np.nan_to_num(result.market[result.window])
+        flat = np.prod(1 + market[held == 0]) - 1
+        long = np.prod(1 + market[held > 0]) - 1
+        for threshold in (0.029, 0.032):
+            moved = rule_returns(roll_position(*roll_signals(result.gamma, threshold)), result.market)
+            assert tu_momentum.figures(moved[result.window]).apr < example.apr, "negative"
+        fragments = [
+            f"There the declared rule gives an APR of {100 * on_save.apr:.4f} percent against "
+            f"Example 6.1’s {100 * example_on_save.apr:.4f} percent, a Sharpe ratio of "
+            f"{on_save.sharpe:.6f} against {example_on_save.sharpe:.6f}, and a drawdown of "
+            f"{-100 * on_save.max_drawdown:.4f} percent against "
+            f"{-100 * example_on_save.max_drawdown:.4f} percent.",
+            f"The APR margin of {apr:.6f} is small.",
+            f"the APR margin is {on_save.apr - example_on_save.apr:.6f} on that close and "
+            f"{check.revised_on_rebuild.apr - check.example_on_rebuild.apr:.6f} on the rebuild.",
+            "since a threshold of 2.9 or 3.2 percent turns it negative.",
+            f"The Sharpe ratio’s margin of {sharpe:.6f} carries the comparison.",
+            f"TU’s return compounds to {signed(flat, 6)}, close to nothing.",
+            f"it compounds to {long:.6f}, which is the declared rule’s whole return.",
+            f"are {revised.average_annual_return:.6f} for the declared rule and "
+            f"{example.average_annual_return:.6f} for Example 6.1’s rule.",
+            f"the declared rule’s is {revised.annual_volatility:.6f} against "
+            f"{example.annual_volatility:.6f} for holding TU.",
+            f"the Sharpe ratios of "
+            f"{revised.average_annual_return / revised.annual_volatility:.2f} and "
+            f"{example.average_annual_return / example.annual_volatility:.2f} follow.",
+            f"out of the market on {int((held == 0).sum())} of the {len(held)} days",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_3(self, strip, result, check, save, text) -> None:
+        held = held_contracts(strip.contracts)
+        rolls, neither = roll_rows_matching_neither(strip, result, save)
+        eight = roll_momentum(strip, roll_rows=8).figures
+        assert held.loc["2012-03-21"] == "TU-2012H" and held.loc["2012-03-22"] == "TU-2012M"
+        assert check.beyond_rounding == check.beyond_rounding_on_jump_row
+        fragments = [
+            "It earns through 2012-03-21, and the June contract earns from 2012-03-22.",
+            f"On {neither} of the {rolls} rolls in its span,",
+            f"gives an APR of {100 * eight.apr:.4f} percent and a Sharpe ratio of "
+            f"{eight.sharpe:.6f}, against {100 * result.figures.apr:.4f} percent and "
+            f"{result.figures.sharpe:.6f}.",
+            f"covers the {check.changes:,} daily changes the two series share.",
+            f"They correlate at {check.correlation:.6f}.",
+            f"{check.beyond_rounding} changes differ by more than the files’ rounding. All "
+            f"{check.beyond_rounding_on_jump_row} fall",
+            f"sits {check.revised_on_rebuild.apr - check.revised_on_save.apr:.6f} above its APR on "
+            "that close.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_lesson_4(self, result, text) -> None:
+        fifth = result.fifth_figures
+        fragments = [
+            f"That gives an APR of {100 * fifth.apr:.4f} percent, a Sharpe ratio of "
+            f"{fifth.sharpe:.6f} and a drawdown of {-100 * fifth.max_drawdown:.4f} percent.",
+            f"It gives a Sharpe ratio of {result.fifth_on_both_days_figures.sharpe:.6f}, short of "
+            f"the book’s {BOOK_SHARPE}.",
+        ]
+        assert not_found_once(text, fragments) == []
+
+    def test_the_alt_text(self, result, text) -> None:
+        revised, example = result.figures, result.example_figures
+        held = result.held_position
+        gamma = pd.Series(result.gamma, index=result.days)[result.window]
+        fragments = [
+            f"sets the declared rule’s APR of {revised.apr:.6f} and Sharpe ratio of "
+            f"{revised.sharpe:.6f} beside the book’s",
+            f"gives Example 6.1’s rule {example.apr:.6f} and {example.sharpe:.6f},",
+            f"γ peaks at {gamma.max():.6f} on {gamma.idxmax().date()}",
+            f"the rule is long on {int((held > 0).sum())} trading days, short on none and flat on "
+            f"the {int((held == 0).sum())} shaded ones.",
+        ]
+        assert not_found_once(text, fragments) == []
 
 
 class TestTheGuardDecision:

@@ -6919,7 +6919,9 @@ Five groups of what it says are not pinned here.
    would be leveraged, and that Example 6.1's line moves up in some of the
    figure's shaded stretches and down in others, that a fit whose three
    farthest prices are equal finds no roll among them, and that the strip
-   cannot say whether the exchange or the data vendor set those prices.
+   cannot say whether the exchange or the data vendor set those prices, and
+   that the strip is the only TU file in the repository's data that reaches
+   the window's end.
 4. Arithmetic the post takes between pinned figures in words: the 1.80 and
    1.20 that average return over volatility gives, the 64 window rows the
    2012-05-11 save does not cover, a third of γ as three times the month
@@ -6960,6 +6962,10 @@ more in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
    contract's own, and the 1.366491 percent and 1.789044 that a roll on row
    L − 8 gives the declared rule.
 4. The APR margin turning negative at thresholds of 0.029 and 0.032.
+
+It also added `TestWhatThePostQuotes`, which reads one copy of each run
+figure from the post itself, at the precision the post prints, and both of
+its tables whole. Its docstring names the copies it leaves unread.
 
 Its one figure is drawn from the committed strip by
 [src/chan/roll_momentum_figures.py](src/chan/roll_momentum_figures.py), which
