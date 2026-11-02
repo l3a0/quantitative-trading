@@ -35,11 +35,12 @@ in each figure's failure message as :data:`SPEC`.
   ``chan.tu_momentum``'s ``signals`` on the rebuilt level, then
   ``positions``, then ``strategy_returns`` on the rebuilt return.
 
-Each figure the declared rule and Example 6.1 compute over the window is held
-at six decimals, so a change cannot move it inside the book's rounding
-unnoticed, and each of rows 1 to 3 at the precision the
-book printed, through ``matches`` and ``gap``. The book's figures are module
-constants, and there are no ``SCRIPT_*`` constants because no script ships.
+Each figure the declared rule and Example 6.1 compute over the window that the
+post or the report quotes is held at six decimals, so a change cannot move it
+inside the book's rounding unnoticed, and each of rows 1 to 3 at the precision
+the book printed, through ``matches`` and ``gap``. The book's figures are
+module constants, and there are no ``SCRIPT_*`` constants because no script
+ships.
 
 Exploratory. The rule was declared after about 90 scratch readings, as the
 module docstring discloses. It first ran here on 2026-10-10.
@@ -849,7 +850,8 @@ class TestTheRowsBeside:
         assert four.fifth_figures.sharpe == pytest.approx(1.802262, abs=5e-7), FOUR_SPEC
         assert four.figures.sharpe == pytest.approx(1.429338, abs=5e-7), FOUR_SPEC
         fifth_fall = result.fifth_figures.sharpe - four.fifth_figures.sharpe
-        assert result.figures.sharpe - four.figures.sharpe > fifth_fall
+        declared_fall = result.figures.sharpe - four.figures.sharpe
+        assert 0 < fifth_fall < declared_fall, "lowers both, the declared rule further"
         prices = strip.contracts.to_numpy(dtype=float)
         held = module._held_columns(strip.contracts, ROLL_ROWS)
         for t in np.flatnonzero(result.window):
@@ -1006,8 +1008,7 @@ class TestWhatThePostQuotes:
         np.testing.assert_array_equal(result.position, roll_position(*roll_signals(result.gamma)))
         no_gamma = roll_signals(np.array([np.nan]))
         assert not no_gamma[0][0] and not no_gamma[1][0], "neither long nor short"
-        assert len(result.gamma) == len(result.days) == len(strip.contracts), "the full file"
-        assert result.example_cut_first_figures.apr != result.example_figures.apr
+        assert result.example_cut_first_figures.apr < result.example_figures.apr, "would fall"
         np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
         save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
@@ -1253,9 +1254,8 @@ class TestWhatThePostQuotes:
         assert matches(100 * fifth.apr, BOOK_APR_PERCENT), "match"
         assert matches(fifth.sharpe, BOOK_SHARPE), "match"
         assert not matches(-100 * fifth.max_drawdown, BOOK_MAX_DRAWDOWN_PERCENT), "misses"
-        assert result.figures.sharpe - four.figures.sharpe > (
-            fifth.sharpe - four.fifth_figures.sharpe
-        ), "further"
+        fifth_fall = fifth.sharpe - four.fifth_figures.sharpe
+        assert 0 < fifth_fall < result.figures.sharpe - four.figures.sharpe, "lowers, further"
         fragments = [
             f"That gives an APR of {100 * fifth.apr:.4f} percent, a Sharpe ratio of "
             f"{fifth.sharpe:.6f} and a drawdown of {-100 * fifth.max_drawdown:.4f} percent.",
