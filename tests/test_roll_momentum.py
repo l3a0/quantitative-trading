@@ -85,7 +85,7 @@ from chan.roll_momentum import (
     rule_returns,
     run,
 )
-from chan.roll_returns import MONTHS_PER_YEAR, NEAREST, Strip, load_strip
+from chan.roll_returns import MONTH_LETTERS, MONTHS_PER_YEAR, NEAREST, Strip, load_strip
 from chan.series import WindowCrossesScaleBreak
 from chan.tu_momentum import (
     HOLD_DAYS,
@@ -100,6 +100,8 @@ from tests.support.committed_vintages import LIFTED_SOURCES
 from tests.support.post_tables import either_way, not_found_once, tables
 
 POST = paths.REPO_ROOT / "blog" / "roll-momentum-lessons.md"
+
+FOUR_SPEC = "as SPEC, with gamma fitted on the four nearest contracts rather than five"
 
 SPEC = (
     "inputdatadaily_tu_20120813/ chan-mat raw saved 2012-08-14, gamma in column units, long "
@@ -136,6 +138,20 @@ def save():
 @pytest.fixture(scope="module")
 def check(strip, result, save) -> SaveCheck:
     return check_against_save(strip, result, save[1])
+
+
+@pytest.fixture(scope="module")
+def four(strip) -> RollMomentum:
+    """Both rules with γ fitted on the four nearest contracts, the fifth left out of the fit.
+
+    Only ``chan.roll_returns.NEAREST`` moves, which the fit reads when it runs.
+    :mod:`chan.roll_momentum` holds its own copy, so the reading still holds the
+    fifth contract. The patch is undone before the fixture returns, so no other
+    test runs under it.
+    """
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(roll_returns, "NEAREST", NEAREST - 1)
+        return roll_momentum(strip)
 
 
 @pytest.fixture
@@ -466,9 +482,9 @@ class TestTheRebuildAgainstTheSave:
     ) -> None:
         """On 29 of the 32 rolls the save's change on row L − 7 matches neither contract's own.
 
-        So the save fixes rows L − 8 and L − 6 and leaves row L − 7 open. Giving
-        that row to the new contract, a roll 8 rows before the last price, moves
-        the declared rule to 1.366491 percent and 1.789044.
+        So the save fixes rows L − 8 and L − 6 and leaves open which contract earns
+        row L − 7. Giving that row to the new contract, a roll 8 rows before the
+        last price, moves the declared rule to 1.366491 percent and 1.789044.
         """
         assert roll_rows_matching_neither(strip, result, save) == (32, 29, 1)
         eight = roll_momentum(strip, roll_rows=8)
@@ -478,8 +494,10 @@ class TestTheRebuildAgainstTheSave:
     def test_the_roll_row_reaches_both_series_the_rules_earn_on(self, strip, result) -> None:
         """The declared rule earns ``market`` and Example 6.1's signal reads ``level``.
 
-        In this window Example 6.1 is long on every row whichever roll row its
-        level uses, so its figures cannot show a level that ignored the roll row.
+        A roll on row L − 8 opens one short tranche for Example 6.1 on 2012-08-08,
+        held to the window's end, and that changes its return on one row only.
+        So its figures barely show a level that ignored the roll row, and the
+        test reads the level itself.
         """
         contracts = strip.contracts
         eight = roll_momentum(strip, roll_rows=8)
@@ -745,9 +763,10 @@ class TestTheRowsBeside:
     def test_the_far_three_contracts_share_one_price_on_185_days(self, strip, result) -> None:
         """The 3rd, 4th and 5th fitted contracts carry one price on 185 window days.
 
-        They run from 2009-01-02 to 2009-09-29, and the pattern began before the
-        window. 169 of the 341 flat rows take their position, set the row before,
-        from a γ fitted on a row where those three share one price. All but one of
+        They fall on 185 of the 187 window days from 2009-01-02 to 2009-09-29, and
+        the pattern began before the window. 169 of the 341 flat rows take their
+        position, set the row before, from a γ fitted on a row where those three
+        share one price. All but one of
         those rows are window rows, and the one is 2008-12-31, the row before it.
         The shared price changes on 180 of the 184 steps from one of those days to
         the next.
@@ -757,6 +776,9 @@ class TestTheRowsBeside:
         assert int(one[window].sum()) == 185
         days = result.days[window & one]
         assert (str(days[0].date()), str(days[-1].date())) == ("2009-01-02", "2009-09-29")
+        span = window & np.asarray((result.days >= days[0]) & (result.days <= days[-1]))
+        assert int(span.sum()) == 187
+        assert [str(d.date()) for d in result.days[span & ~one]] == ["2009-02-18", "2009-06-23"]
         set_on = one[np.flatnonzero(window) - 1]
         assert int((set_on & (result.held_position == 0)).sum()) == 169
         set_days = result.days[np.flatnonzero(window) - 1][set_on & (result.held_position == 0)]
@@ -803,6 +825,23 @@ class TestTheRowsBeside:
         assert found.max_drawdown == pytest.approx(-0.011583, abs=5e-7), SPEC
         assert result.fifth_on_both_days_figures.sharpe == pytest.approx(1.957852, abs=5e-7)
 
+    def test_a_fit_on_four_contracts_lowers_both_rules(self, strip, result, four) -> None:
+        """γ fitted on the four nearest contracts, which leaves the fifth out of the fit.
+
+        The declared rule's Sharpe ratio falls further than the fifth-contract
+        reading's, though the front contract it holds is in both fits, so the
+        fall does not single out the held contract.
+        """
+        assert four.fifth_figures.sharpe == pytest.approx(1.802262, abs=5e-7), FOUR_SPEC
+        assert four.figures.sharpe == pytest.approx(1.429338, abs=5e-7), FOUR_SPEC
+        fifth_fall = result.fifth_figures.sharpe - four.fifth_figures.sharpe
+        assert result.figures.sharpe - four.figures.sharpe > fifth_fall
+        prices = strip.contracts.to_numpy(dtype=float)
+        held = module._held_columns(strip.contracts, ROLL_ROWS)
+        for t in np.flatnonzero(result.window):
+            priced = np.flatnonzero(np.isfinite(prices[t - 1]))
+            assert held[t] in priced[: NEAREST - 1], "the front contract is in both fits"
+
     def test_the_fifth_contract_reading_lands_two_of_the_book_s_three(self, result) -> None:
         """Why it is set aside rather than ignored: it lands nearer the book than the rule does."""
         found = result.fifth_figures
@@ -819,7 +858,7 @@ def signed(value: float, decimals: int) -> str:
 #: The counts the post spells out in words.
 WORDS = {2: "two", 3: "three", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 #: The positions the post spells out in words.
-ORDINALS = {6: "sixth", 7: "seventh"}
+ORDINALS = {6: "sixth", 7: "seventh", 8: "eighth"}
 
 
 def power_of_ten(exponent: int) -> str:
@@ -931,11 +970,15 @@ class TestWhatThePostQuotes:
         longs, shorts = signals(result.level[result.window])
         (saved,) = {member.obtained for member in strip.members}
         assert peak < THRESHOLD, "never reaches 3 percent"
+        months = {MONTH_LETTERS.index(symbol[-1]) for symbol in contracts.columns}
+        assert months == {2, 5, 8, 11}, "a quarter apart"
         assert (result.month_position == 0).all(), "never trades"
         np.testing.assert_array_equal(result.position, roll_position(*roll_signals(result.gamma)))
         np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
         save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
+            f"reads γ in column units, so its {100 * THRESHOLD:.0f} percent threshold is "
+            f"{100 * THRESHOLD / 3:.0f} percent a year of TU’s roll return.",
             f"buys if TU’s price is above its level {LOOKBACK} trading days earlier and sells if "
             f"it is below, and it holds each of those bets for {HOLD_DAYS} days.",
             f"above {100 * THRESHOLD:.0f} percent a year, short when it is below "
@@ -947,6 +990,7 @@ class TestWhatThePostQuotes:
             f"the log prices of the {WORDS[NEAREST]} nearest contracts against their place in "
             f"line, 1 to {NEAREST}. Then γ is {signed(-MONTHS_PER_YEAR, 0)} times the slope",
             f"The {signed(-MONTHS_PER_YEAR, 0)} assumes adjacent contracts are a month apart",
+            "TU’s contracts are a quarter apart, so each step is really three months. "
             f"On all {int(defined.sum()):,} days where γ is defined, γ in column units is exactly "
             "three times γ measured in months",
             f"But γ in months peaks at {100 * peak:.3f} percent inside the test window and never "
@@ -977,6 +1021,9 @@ class TestWhatThePostQuotes:
         held = result.held_position
         one = far_three_share_one_price(strip)
         days = result.days[result.window & one]
+        between = int(
+            (result.window & np.asarray((result.days >= days[0]) & (result.days <= days[-1]))).sum()
+        )
         set_on = one[np.flatnonzero(result.window) - 1]
         gamma = pd.Series(result.gamma, index=result.days)
         assert int((held < 0).sum()) == 0, "never short"
@@ -1015,7 +1062,7 @@ class TestWhatThePostQuotes:
             f"{on_save.sharpe:.6f} and a drawdown of {-100 * on_save.max_drawdown:.4f} percent.",
             f"The rebuilt series gives {100 * on_rebuild.apr:.4f} percent, {on_rebuild.sharpe:.6f} "
             f"and {-100 * on_rebuild.max_drawdown:.4f} percent on the same days.",
-            f"The {window - shared} window days that close does not cover",
+            f"The {window - shared} window days the close does not cover",
             f"In this window the rule is long on {int((held > 0).sum())} of the {window} days, "
             f"{100 * (held > 0).mean():.2f} percent, and flat on the other "
             f"{int((held == 0).sum())}.",
@@ -1024,7 +1071,8 @@ class TestWhatThePostQuotes:
             "It opens the window flat, because the position that earns the window’s first day is "
             f"set by γ on 2008-12-31, which is {100 * gamma.loc['2008-12-31']:.2f} percent, under "
             "the threshold.",
-            f"On {len(days)} of the window’s days, from {days[0].date()} to {days[-1].date()}, the "
+            f"On {len(days)} of the {between} window days from {days[0].date()} to "
+            f"{days[-1].date()}, the "
             "third, fourth and fifth nearest contracts close at one price, and that shared price "
             "changes from day to day.",
             f"The position on {int((set_on & (held == 0)).sum())} of the {int((held == 0).sum())} "
@@ -1083,8 +1131,8 @@ class TestWhatThePostQuotes:
             "declared rule loses all three claims.",
             f"At {100 * below:.1f} and {100 * above:.1f} percent the Sharpe ratio’s margin is "
             "positive again.",
-            f"From {HOLD_DAYS} trading days before the window to its end, TU always stood above "
-            f"its level {LOOKBACK} trading days earlier.",
+            f"From {HOLD_DAYS} trading days before the window to its end, the rebuilt series "
+            f"always stood above its level {LOOKBACK} trading days earlier.",
             f"and all {HOLD_DAYS} are long on all {len(window)} days.",
             f"the mean daily return times {TRADING_DAYS} without compounding",
             f"TU swung more on those {int(rows.sum())} days than across the window, with an annual "
@@ -1126,12 +1174,14 @@ class TestWhatThePostQuotes:
             f"last price and the new one from the {ORDINALS[ROLL_ROWS - 1]}.",
             f"The March 2012 contract’s last price in the strip is on {last.date()}. It earns "
             f"through {through.date()}, and the June contract earns from {after.date()}.",
-            f"Its daily changes are the old contract’s own until {WORDS[ROLL_ROWS + 1]} trading "
-            f"days before its last price and the new contract’s from {WORDS[ROLL_ROWS - 1]}.",
-            "On the day between, it already shows the new contract’s price,",
+            "sets the rebuild’s switch to within one day. Its daily changes are the old "
+            f"contract’s own through the {ORDINALS[ROLL_ROWS + 1]} trading day before that "
+            f"contract’s last price, and the new contract’s from the {ORDINALS[ROLL_ROWS - 1]}.",
+            f"On the {ORDINALS[ROLL_ROWS]}, the day between, its price is already the new "
+            "contract’s,",
             f"On {neither} of the {rolls} rolls in its span,",
             f"and on {'one' if new_only == 1 else new_only} it matches the new contract’s.",
-            f"a roll {WORDS[ROLL_ROWS + 1]} days before the last price, the declared rule gives "
+            "a switch one day earlier, the declared rule gives "
             f"an APR of {100 * eight.apr:.4f} percent and a Sharpe ratio of "
             f"{eight.sharpe:.6f}, against {100 * result.figures.apr:.4f} percent and "
             f"{result.figures.sharpe:.6f}.",
@@ -1148,7 +1198,7 @@ class TestWhatThePostQuotes:
         ]
         assert not_found_once(text, fragments) == []
 
-    def test_lesson_4(self, result, text) -> None:
+    def test_lesson_4(self, result, four, text) -> None:
         fifth = result.fifth_figures
         assert matches(100 * fifth.apr, BOOK_APR_PERCENT), "match"
         assert matches(fifth.sharpe, BOOK_SHARPE), "match"
@@ -1160,6 +1210,10 @@ class TestWhatThePostQuotes:
             f"book’s precision. The drawdown misses {BOOK_MAX_DRAWDOWN_PERCENT} percent.",
             f"It gives a Sharpe ratio of {result.fifth_on_both_days_figures.sharpe:.6f}, short of "
             f"the book’s {BOOK_SHARPE}.",
+            f"lowers the variant’s Sharpe ratio from {fifth.sharpe:.6f} to "
+            f"{four.fifth_figures.sharpe:.6f}.",
+            "The same fit lowers the declared rule’s Sharpe ratio further, from "
+            f"{result.figures.sharpe:.6f} to {four.figures.sharpe:.6f},",
         ]
         assert not_found_once(text, fragments) == []
 

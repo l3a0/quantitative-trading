@@ -141,7 +141,7 @@ SWITCH_LABELS = [
     "March’s close less 0.1407",
     "03-21: switches to June’s close, +0.0625",
     "neither March’s +0.0547 nor June’s +0.0546",
-    "30 of 1,999 changes differ, all on the 7th day before a last price",
+    "30 of 1,999 changes differ beyond rounding, all at 7 days to last price",
 ]
 
 #: The same limits the USD.CAD sketches hold, in pixels.
@@ -849,26 +849,6 @@ class TestTheSwitch:
 
 
 class TestTheHelpers:
-    @pytest.mark.parametrize(
-        ("n", "word"),
-        [
-            (1, "1st"),
-            (2, "2nd"),
-            (3, "3rd"),
-            (4, "4th"),
-            (7, "7th"),
-            (11, "11th"),
-            (12, "12th"),
-            (13, "13th"),
-            (21, "21st"),
-            (22, "22nd"),
-            (23, "23rd"),
-            (111, "111th"),
-        ],
-    )
-    def test_ordinal(self, n, word) -> None:
-        assert sketches._ordinal(n) == word
-
     def test_change_signs_every_value(self) -> None:
         assert [sketches._change(v) for v in (0.0625, 0.0, -0.0123)] == [
             "+0.0625",
@@ -922,7 +902,7 @@ class TestTheSwitchSketch:
             "December’s close less 0.2500",
             "12-17: switches to March’s close, −0.0123",
             "neither December’s +0.0001 nor March’s −0.0200",
-            "12 of 2,345 changes differ, 11 on the 7th day before a last price",
+            "12 of 2,345 changes differ beyond rounding, 11 at 7 days to last price",
         ]
 
     def test_its_colours(self, every) -> None:
@@ -1054,7 +1034,7 @@ class TestTheSwitchSketch:
             "with brown words reading “March’s close less 0.1407”",
             "Brown words beside it read “03-21: switches to June’s close, +0.0625”",
             "black words under them read “neither March’s +0.0547 nor June’s +0.0546”",
-            "Black words at the bottom read “30 of 1,999 changes differ",
+            "Black words at the bottom read “30 of 1,999 changes differ beyond rounding",
             "The rows say which contract each series reads rather than drawing prices to scale",
             "every mark sits at its own trading day",
             "the finished drawing holds for twelve seconds.",

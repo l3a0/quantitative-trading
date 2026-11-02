@@ -6896,10 +6896,10 @@ lessons from Entry 36 of the replication log.
    and 2.9 percent its Sharpe ratio still wins. Example 6.1 is fully long on
    every window row, so it is holding TU, and the 341 rows the declared rule
    sits out compound to about nothing while its volatility falls.
-3. No saved series follows the front contract to the window's end, so a
-   front-contract series is rebuilt from the strip, and every change that
-   differs from the save falls on the roll row, where the save's change matches
-   neither contract's own on 29 of 32 rolls.
+3. No file this repository keeps follows the front contract to the window's
+   end, so a front-contract series is rebuilt from the strip, and every change
+   that differs from the save by more than rounding falls on the roll row,
+   where the save's change matches neither contract's own on 29 of 32 rolls.
 4. The rule was declared after about 90 scratch readings, so every result is
    exploratory, and the fifth-contract reading that lands two of the book's
    figures is set aside.
@@ -6915,9 +6915,7 @@ Five groups of what it says are not pinned here.
    signal", the 3 percent threshold, and the 2.5 percent, 2.1 and 1.1 percent
    are at 2690. The book's figures are pinned, and its words are not.
 2. Facts from the run's own disclosure rather than the data: the two scratch
-   runs and their count of about 90 readings, and the Sharpe ratio of about
-   1.80 that a scratch fit of γ on the four nearest contracts gave the
-   fifth-contract reading. No test repeats any of the three.
+   runs and their count of about 90 readings. No test repeats either.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
@@ -6959,7 +6957,7 @@ before the post.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) pins all three, and
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-pins the figure's lines and labels. The review before publishing pinned six
+pins the figure's lines and labels. The review before publishing pinned seven
 more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
 
 1. The spot's first day, 1995-08-10.
@@ -6971,15 +6969,18 @@ more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.p
    of 1.845682 and 1.428115 from 2009-10-01, once no position rests on those
    prices.
 4. The 29 of 32 rolls on which the save's change on row L − 7 matches neither
-   contract's own, the one on which it matches only the new contract's, and
-   the 1.366491 percent and 1.789044 that a roll on row L − 8 gives the
-   declared rule.
+   contract's own, the one on which it matches only the new contract's, the
+   save's close on row L − 7 being the new contract's plus its row L − 6
+   shift on all 32, and the 1.366491 percent and 1.789044 that a roll on row
+   L − 8 gives the declared rule.
 5. The APR margin turning negative at thresholds of 0.029 and 0.032, all
    three margins at 0.028, and the Sharpe ratio's margin positive again at
    0.027 and 0.029.
 6. The 64 days the 2012-05-11 save does not cover needing about 4.2 percent
    between them to reach the book's APR, and earning 0.03 percent on the
    rebuild.
+7. The Sharpe ratios of 1.802262 for the fifth-contract reading and 1.429338
+   for the declared rule when γ is fitted on the four nearest contracts.
 
 It also added `TestWhatThePostQuotes`, which reads from the post itself one
 copy of each run figure the post quotes outside the sketches' alt texts, at
@@ -7029,8 +7030,8 @@ second uses brown for Chan's continuous close, the series Example 6.1 trades.
    from 2012-03-22. Chan's continuous close sits 0.1407 below March's close on
    2012-03-20 and equals June's close on 2012-03-21, where its change of
    +0.0625 matches neither March's own +0.0547 nor June's own +0.0546. It
-   closes on the 30 of 1,999 changes that differ, all on the 7th trading day
-   before a last price. Its days and numbers come from the run, and its rows
+   closes on the 30 of 1,999 changes that differ beyond rounding, all at 7
+   trading days to a last price. Its days and numbers come from the run, and its rows
    say which contract each series reads rather than drawing prices to scale.
 
 Redraw both with:

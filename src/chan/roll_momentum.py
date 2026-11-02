@@ -74,10 +74,13 @@ arithmetic.
 
 **The fifth-contract reading is set aside.** Holding the fifth contract priced
 the day before, the farthest of the five γ is fitted on, lands nearer the
-book than the declared rule does. It came out of the scratch search, and a
-scratch fit of γ on the four nearest contracts, which no test here repeats,
-lowered its Sharpe ratio. So the match may lean on γ moving against the traded
-contract's own price that day, a candidate explanation rather than a finding.
+book than the declared rule does. It came out of the scratch search. The match
+may lean on γ moving against the traded contract's own price that day, but a
+fit of γ on the four nearest contracts, which leaves that contract out, lowers
+the declared rule's Sharpe ratio more than this reading's, though the declared
+rule's contract stays in the fit. So that explanation is a candidate rather
+than a finding, and ``TestTheRowsBeside::test_a_fit_on_four_contracts_lowers_both_rules``
+holds both figures.
 :func:`fifth_contract_returns` computes it for one row beside the replication,
 and it is never the verdict.
 

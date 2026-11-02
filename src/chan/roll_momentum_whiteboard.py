@@ -4,7 +4,8 @@
 the reader's head: the declared rule earns about what holding TU earns while
 swinging less, because the days it sits out went nowhere, and the rebuilt
 front contract and Chan's continuous close switch contracts one trading day
-apart, which is where every change that differs between them falls. This
+apart, which is where every change that differs between them by more than
+rounding falls. This
 module draws the two as scenes, and the post places each right after the text
 it draws.
 
@@ -28,7 +29,7 @@ it draws.
    less 0.1407, and another ties its 2012-03-21 point to June, whose close it
    equals there. Its change on 2012-03-21, +0.0625, matches neither March's
    own +0.0547 nor June's own +0.0546. A closing note gives the 30 of 1,999
-   changes that differ, all on the 7th trading day before a last price.
+   changes that differ beyond rounding, all at 7 trading days to a last price.
 
 The first sketch is schematic in its ticks and figured in its words. The tick
 heights and the number and places of the stretches are made up, though the
@@ -595,11 +596,11 @@ def _switch_day(s: Switch) -> Scene:
             frames=8,
         ),
         Label(
-            f"{s.differ:,} of {s.changes:,} changes differ, all on the "
-            f"{_ordinal(run.ROLL_ROWS)} day before a last price"
+            f"{s.differ:,} of {s.changes:,} changes differ beyond rounding, all at "
+            f"{run.ROLL_ROWS} days to last price"
             if s.on_roll_row == s.differ
-            else f"{s.differ:,} of {s.changes:,} changes differ, {s.on_roll_row:,} on the "
-            f"{_ordinal(run.ROLL_ROWS)} day before a last price",
+            else f"{s.differ:,} of {s.changes:,} changes differ beyond rounding, "
+            f"{s.on_roll_row:,} at {run.ROLL_ROWS} days to last price",
             NAMES_X,
             CLOSING_Y,
             names="save-after",
@@ -608,12 +609,6 @@ def _switch_day(s: Switch) -> Scene:
         ),
     ]
     return Scene("Chan’s continuous close switches a day early", "switch_day", tuple(steps))
-
-
-def _ordinal(n: int) -> str:
-    """``7th`` for 7, with English's suffixes."""
-    suffix = "th" if 10 <= n % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
-    return f"{n}{suffix}"
 
 
 # --- Drawing ------------------------------------------------------------------
