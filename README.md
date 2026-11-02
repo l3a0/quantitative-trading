@@ -9428,8 +9428,8 @@ Six groups of what it says are not pinned here.
    capital, that ruin needs a large k and a bad month at once, that the
    panel's failures lean toward companies that left or tickers that changed,
    that the Newey-West t and the bound treat the average monthly gap as
-   roughly normal, and what the row
-   check compares.
+   roughly normal, what the row check compares, and who the monthly rule
+   lets be held.
 4. Figures the post states in words, such as a few hundredths a year, and the
    figure's alt text, which reads its curves approximately.
 5. Facts outside the committed data: the first edition's release in November
