@@ -9380,11 +9380,13 @@ amendments and every other figure is exploratory. Every figure computed from
 the prices of IVV's members or from SPY's Alpha Vantage series reads the
 owner's archive, so a reader cannot rerun it, while every figure from Chan's
 file and every count in Lesson 4 except the 6,943 member-months the monthly rule
-leaves out on the series the run reads, and the few that cutting each series at
-its last traded day leaves out or lets in, come from committed files. The
-post links the levered low-beta post for the rule, the beta match, the ruin
-line and June 2001 rather than repeating them, and draws five lessons from
-Entry 49 of the replication log.
+leaves out on the series the run reads, and those that cutting each series at
+its last day that traded and moved the price leaves out or lets in, come from
+committed files. The archive produced three of those files once, the check's
+result, each series' span and the holes, so a reader can recount Lesson 4 but
+cannot rerun the check. The post links the levered low-beta post for the rule,
+the beta match, the ruin line and June 2001 rather than repeating them, and
+draws five lessons from Entry 49 of the replication log.
 
 1. The test is not decided. The levered low fifth trailed by 0.0590 a year at
    a Newey-West t of −0.4974, and Y is 0.2948. Measured after the run, a
@@ -9420,10 +9422,13 @@ Six groups of what it says are not pinned here.
    each earlier formation's beta, leverage and returns in memory and discarded
    them before anyone printed or read any, that the owner then ruled to skip such
    formations, and that the three later formations were not yet known. Also
-   the sorting of the ten points into five that change the computation, three
-   that restate a rule, one that corrects the survivor label and one that
-   gates the tests. Entry 49 of the replication log and its plan record the
-   history, and the sorting is the post's own reading of the plan's ten points.
+   that Entry 7 had already computed the members' monthly returns for Example
+   7.7, which ranks on past returns rather than beta, and the post's judgement
+   of what that earlier run leaves standing. Also the sorting of the ten
+   points into five that change the computation, three that restate a rule,
+   one that corrects the survivor label and one that gates the tests. Entry 49
+   of the replication log and its plan record the history, and the judgement
+   and the sorting are the post's own reading.
 3. Readings no test asserts: that a negative k would mean selling the low
    fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
    means Chan's June 2001, levered that far, would still have lost the whole
@@ -9437,7 +9442,9 @@ Six groups of what it says are not pinned here.
    chart's alt text reads its curves approximately, and it also quotes the
    chart's labels exactly, such as 69.0762, −0.8014 and 2024-12-31, along with
    the count of skipped formations and the axis limits. No test reads any of
-   them.
+   them. Item 11 under `TestWhatThePostMeasured` below pins the counts behind
+   four of those words, "some", "a few", "most" and "the rest", without
+   reading the post.
 5. Facts outside the committed data: the first edition's release in November
    2008, and that this repository has read the rule only in the 2021 revised
    edition and has not checked that the first edition prints it.
@@ -9515,8 +9522,9 @@ formations prints: 1.5738, 0.0818, 9.4342 and 3.4162.
     and −0.0042 without it and December 2024, and the three lowest and three
     highest d all inside the only stretch of holding months, October 2024 to
     April 2026, in which k exceeded 7.
-11. The counts behind "a few", "most" and "the rest" in the post's account of
-    the cut and the earlier test's rule, which the post states only in words.
+11. The counts behind "some", "a few", "most" and "the rest" in the post's
+    account of the cut and the earlier test's rule, which the post states only
+    in words.
     Against the manifest's spans, the cut leaves out 20 more member-months
     and lets in 4. At the 208 formations kept, that rule would drop 67 of the
     82 covered members whose series stop inside the holding month, and hold

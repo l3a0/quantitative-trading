@@ -11641,7 +11641,7 @@ columns have nothing to hold in any row and are dropped, under
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the true gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
+| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is how large a true gap would have to be for this test to find it four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
 | 2 | none, not a replication | The low fifth's Sharpe ratio is 0.8607 and the high fifth's 0.6770. Nothing tests the difference, so it neither confirms nor refutes location 4684's premise, and it decides nothing because the claim is about growth. |
 | 3 | none, not a replication | Unlevered, the high fifth compounded at 0.1613 a year, the low fifth at 0.1069 and SPY at 0.1378. Levered, the low fifth reached 0.1023, below its own unlevered growth. Nothing tests any of these gaps. |
 | 4 | none, not a replication | Over the formations kept, the low fifth's mean beta at formation bottomed at 0.0563 and k peaked at 27.9727, both at the formation of 2025-03-31, against Entry 45's 69.0762. |
@@ -11671,10 +11671,10 @@ write-up measured after the run, which `TestWhatThePostCounted` and
 
 1. **On IVV's S&P 500 from 2009, the rule is not decided.** Levered to
    the high fifth's beta, the low fifth's compounded growth trailed the
-   unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. The
-   test finds a true gap of 0.2948 a year four times in five, so the run says
-   little either way. That is Not decided, and it maps to
-   `did not reproduce`.
+   unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. A
+   true gap would have to be 0.2948 a year for the test to find it four times
+   in five, so the run says little either way. That is Not decided, and it
+   maps to `did not reproduce`.
 2. **The beta match did not ruin the portfolio here, and its worst levered
    month was December 2024.** Over the formations kept, the low fifth's mean beta at
    formation bottomed at 0.0563 and k peaked at 27.9727, against Entry 45's

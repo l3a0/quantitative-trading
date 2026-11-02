@@ -923,6 +923,11 @@ class TestWhatThePostMeasured:
     and each k included, by the holding month it applied to. So the run's table
     prints March 2026's k on its 2026-02-27 row and March 2020's on its
     2020-02-28 row.
+
+    The last test also pins counts the post does not quote. They are the
+    counts behind its "some", "a few", "most" and "the rest" in its account
+    of the cut and the earlier test's rule, and the test does not read the
+    post. The write-up measured them after the run too.
     """
 
     def test_the_one_sided_upper_bound_on_the_levered_sides_advantage(self, holdout) -> None:
@@ -1079,14 +1084,15 @@ class TestWhatThePostMeasured:
         after(float(ruinous_leverage(p.low, p.rf)[mar]), 7.983670912779481, "7.9837")
 
     def test_what_the_cut_and_the_earlier_rule_do_to_series_that_stop(self, holdout) -> None:
-        """The counts behind the post's "a few", "most" and "the rest".
+        """The counts behind the post's "some", "a few", "most" and "the rest".
 
-        Against the manifest's spans, the cut at each series' last traded row
-        leaves out 20 more member-months and lets in 4, which net to 6,943 less
-        6,927. At the 208 formations kept, 82 covered members' series stop
-        inside the holding month. The earlier test's rule, a close at the next
-        month-end on the manifest's spans, would drop 67 of them and hold the
-        other 15, each on one unchanged close from its stop to that month-end.
+        Against the manifest's spans, the cut at each series' last row that
+        traded and moved leaves out 20 more member-months and lets in 4, which
+        net to 6,943 less 6,927. At the 208 formations kept, 82 covered
+        members' series stop inside the holding month. The earlier test's rule,
+        a close at the next month-end on the manifest's spans, would drop 67 of
+        them and hold the other 15, each on one unchanged close from its stop
+        to that month-end.
         """
         rows = sp500_panel.load()
         calendar = sp500_panel.calendar()
