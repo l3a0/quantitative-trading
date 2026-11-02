@@ -13,8 +13,9 @@ Entry 36 carries the verdicts and points here row by row. The rows are the ones
 under "The pins".
 
 Every pin on the committed files reads one vintage and one specification
-unless it names the second vintage, so both are stated once here and carried
-in each figure's failure message as :data:`SPEC`.
+unless its test names a departure, such as the second vintage, γ in months or
+the fifth contract, so both are stated once here and carried in each figure's
+failure message as :data:`SPEC`.
 
 - **Vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
   2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to 2012-08-13 and
@@ -627,7 +628,8 @@ class TestTheComparisonMargins:
         apr_error = check.revised_on_rebuild.apr - check.revised_on_save.apr
         assert apr_error == pytest.approx(0.000309, abs=5e-7), (
             SPEC
-            + "; less the same rule on inputdataohlcdaily_20120511/tu.csv over its 849 window rows"
+            + "; over the 849 window rows inputdataohlcdaily_20120511/tu.csv covers,"
+            + " 2009-01-02..2012-05-11, less the same rule earning that save's close on those rows"
         )
 
     def test_the_claims_hold_on_the_save_too(self, check) -> None:

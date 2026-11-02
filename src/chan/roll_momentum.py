@@ -20,8 +20,8 @@ whiteboard sketches.
 1. γ is :func:`chan.roll_returns.roll_returns` on the TU strip, Example 5.3's
    fit in the script's column units. :func:`chan.roll_returns.roll_returns_in_months`
    is a third of it on every row of TU, to rounding, because every contract is a quarter from the
-   next, and it never reaches 0.03 in the window. So the column units are what
-   the data allows rather than a preference.
+   next, and it never reaches 0.03 in the window. So the rule reads column units
+   because a rule on months would never trade in the window.
 2. :func:`roll_signals` reads today's γ: ``longs = γ > 0.03`` and
    ``shorts = γ < −0.03``, both strict, with a NaN comparison false.
 3. The position is ``longs − shorts`` and the return is
@@ -541,7 +541,10 @@ def report(
         f"{result.fifth_on_both_days_figures.sharpe:.6f}"
     )
     print()
-    print("  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices.")
+    print(
+        "  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices,"
+        " except the lines on the save, which earn its adjusted close."
+    )
     print("  Exploratory. docs/replication-log.md Entry 36 carries the verdicts.")
 
 

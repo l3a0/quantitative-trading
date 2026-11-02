@@ -8341,8 +8341,11 @@ choose. The lag is Example 6.1's own convention, the series is the one the
 book says it revises, and the 2012-05-11 save, rather than any strategy
 figure, fixes the roll to within one row. The unit of γ is not among those
 grounds, because row 13's reason for it is read from the strip the rule is
-tested on. Row 9 says which row the save leaves open and what the other choice
-gives. Row 14 is the reading that came close, and it is never the verdict.
+tested on. Entry 27 found that Table 5.1 labels the script's column-unit
+averages annualized, so the book's own usage also points to column units, but
+the declaration did not rest on it. Row 9 says which row the save leaves open
+and what the other choice gives. Row 14 is the reading that came close, and it
+is never the verdict.
 
 Every result here is **exploratory**. The declaration came after the
 readings, so this entry cannot count as a registered test of the roll-return
@@ -8439,9 +8442,10 @@ Three things.
 test would fix the rule first and read data this search never loaded.
 
 **What Chan held.** No script ships for location 2690, and the book does not
-say how far the roll return is lagged, which price the position earns, or in
-which unit γ is compared with the threshold. Row 14 shows a reading that lands
-near the book, and choosing it after its number was seen would be a search.
+say how far the roll return is lagged, which series the position earns, or
+whether its annualized threshold applies to γ in the script's column units or
+in months. Row 14 shows a reading that lands near the book, and choosing it
+after its number was seen would be a search.
 
 **What a trader would earn.** The returns are on the notional value of one
 contract with no cost and no margin, as in Entry 33.

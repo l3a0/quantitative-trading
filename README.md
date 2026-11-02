@@ -6908,16 +6908,18 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   Example 5.3's regression on "time to maturity" is at 2399. Example 6.1's
-   window of June 1, 2004, to May 11, 2012, "a respectable 1", the 1.7 and 2.5
-   percent, and TU's notional value of about $200,000 against a margin of
-   about $400 are at 2668. "The sign of roll returns does not vary very often"
+   Example 5.3's regression on "time to maturity" and Table 5.1's label of
+   its averages as annualized are at 2399. Example 6.1's window of June 1,
+   2004, to May 11, 2012, "a respectable 1", the 1.7 and 2.5 percent, and
+   TU's notional value of about $200,000 against a margin of about $400 are
+   at 2668. "The sign of roll returns does not vary very often"
    is at 2683. "A cleaner and potentially better momentum signal", the 3
    percent threshold, and the 2.5 percent, 2.1 and 1.1 percent from January 2,
    2009, to August 13, 2012, are at 2690. The book's figures are pinned, and
    its words are not.
 2. Facts from the run's own disclosure rather than the data: the two scratch
-   runs and their count of about 90 readings. No test repeats either.
+   runs, their count of about 90 readings, and that the fifth-contract
+   reading came out of them. No test repeats any of them.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
@@ -6928,7 +6930,9 @@ Five groups of what it says are not pinned here.
    that the strip is the only TU file in the repository's data that reaches
    the window's end. Of the post's words for how the rebuild and the
    fifth-contract variant pick a contract, only the rebuild's seven trading
-   days are read, though tests on the code hold both rules.
+   days are read, though tests on the code hold both rules. The counts of the
+   post's own lists, such as its four lessons and three grounds, are read by
+   no test either.
 4. Arithmetic the post takes between pinned figures in words: the three
    months between the 2012-05-11 save's last day and the window's end. The
    post reads the APR margins' move from 0.000304 to 0.000225 as about a
@@ -6940,7 +6944,8 @@ Five groups of what it says are not pinned here.
    values and γ's rounded peak are checked.
 5. Its references, cited rather than computed, and what it says about them:
    that *Algorithmic Trading* is Chan's second book, and that the roll returns
-   post reproduces the fit of γ on TU and four other futures.
+   post reproduces the fit of γ on TU and four other futures and shows that
+   Table 5.1's roll returns are averages of γ in column units.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py), to
