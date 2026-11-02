@@ -109,8 +109,10 @@ SPEC = (
 
 #: The thresholds either side of 0.03 at which the APR margin turns negative.
 APR_SIGN_THRESHOLDS = (0.029, 0.032)
-#: The threshold one step below 0.03 at which all three margins turn negative.
+#: The threshold two tenths of a percent below 0.03 at which all three margins turn negative.
 ALL_THREE_THRESHOLD = 0.028
+#: The thresholds either side of 0.028 at which the Sharpe ratio's margin is positive again.
+SHARPE_SIGN_THRESHOLDS = (0.027, 0.029)
 #: γ on the window's first days, when all five fitted prices are equal, is
 #: zero to within ten to this power.
 ZERO_EXPONENT = -13
@@ -198,6 +200,28 @@ def leading_equal_price_days(strip: Strip, result: RollMomentum) -> int:
             break
         count += 1
     return count
+
+
+def roll_rows_printing_each_contract(
+    strip: Strip, result: RollMomentum, save
+) -> tuple[int, int, int]:
+    """The save's rolls on row L − 7, on how many its shift from the new contract's close
+    there is the one it holds on L − 6, and on how many its shift from the old contract's
+    close is the one it held on L − 8."""
+    closes = save[1]
+    prices = strip.contracts.to_numpy(dtype=float)
+    span = np.flatnonzero(np.asarray(result.days.isin(closes.index)))
+    level = dict(zip(span, closes.to_numpy(dtype=float), strict=True))
+    held = module._held_columns(strip.contracts, ROLL_ROWS)
+    last = module._last_priced_rows(strip.contracts)
+    jump = [t for t in span[1:-1] if held[t] >= 0 and last[held[t]] - t == ROLL_ROWS]
+
+    def shift(t: int, c: int) -> float:
+        return level[t] - prices[t, c]
+
+    new = sum(abs(shift(t, held[t] + 1) - shift(t + 1, held[t] + 1)) <= SAVE_ROUNDING for t in jump)
+    old = sum(abs(shift(t, held[t]) - shift(t - 1, held[t])) <= SAVE_ROUNDING for t in jump)
+    return len(jump), int(new), int(old)
 
 
 class TestTheDeclaredRule:
@@ -463,6 +487,16 @@ class TestTheRebuildAgainstTheSave:
         np.testing.assert_array_equal(eight.level, adjusted_level(contracts, 8).to_numpy())
         assert not np.array_equal(eight.level, result.level)
 
+    def test_the_save_prints_the_new_contract_on_row_l_minus_7(self, strip, result, save) -> None:
+        """On row L − 7 the save holds the new contract's close plus its row L − 6 shift.
+
+        It does on all 32 rolls of the 2012-05-11 save, chan-mat, adjusted, saved
+        2012-05-12, against the TU strip saved 2012-08-14, within SAVE_ROUNDING.
+        The old contract's shift carries over from row L − 8 only on the 2 rolls
+        whose change on row L − 7 matches the old contract's own.
+        """
+        assert roll_rows_printing_each_contract(strip, result, save) == (32, 32, 2)
+
     def test_the_save_s_span_holds_32_rolls(self, strip, save) -> None:
         """The held contract changes 32 times, so 30 of the 32 jump rows differ beyond rounding.
 
@@ -547,11 +581,12 @@ class TestTheComparisonMargins:
     def test_the_apr_margin_turns_negative_at_2_9_and_3_2_percent(self, result) -> None:
         """Only the APR margin's sign is at stake, so a threshold either side of 0.03 is enough."""
         assert APR_SIGN_THRESHOLDS == (0.029, 0.032)
+        assert at_threshold(result, THRESHOLD) == result.figures, "the helper is the run's rule"
         for threshold in APR_SIGN_THRESHOLDS:
             assert at_threshold(result, threshold).apr < result.example_figures.apr, threshold
 
     def test_all_three_margins_turn_negative_at_2_8_percent(self, result) -> None:
-        """One step below the book's 0.03, the declared rule loses all three claims."""
+        """At 0.028, below the book's 0.03, the declared rule loses all three claims."""
         assert ALL_THREE_THRESHOLD == 0.028
         moved = at_threshold(result, ALL_THREE_THRESHOLD)
         example = result.example_figures
@@ -560,6 +595,12 @@ class TestTheComparisonMargins:
         assert abs(example.max_drawdown) - abs(moved.max_drawdown) == pytest.approx(
             -0.000859, abs=5e-7
         ), SPEC
+
+    def test_the_sharpe_margin_is_positive_either_side_of_2_8_percent(self, result) -> None:
+        """Either side of 0.028, at 0.027 and 0.029, the Sharpe ratio's margin is positive."""
+        assert SHARPE_SIGN_THRESHOLDS == (0.027, 0.029)
+        for threshold in SHARPE_SIGN_THRESHOLDS:
+            assert at_threshold(result, threshold).sharpe > result.example_figures.sharpe, threshold
 
     def test_row_4_s_margin_is_about_the_rebuild_s_own_error(self, check) -> None:
         """0.035 points of APR, against the 0.031 the rebuild and the save part by over 849 rows."""
@@ -617,12 +658,15 @@ class TestWhatTheMarginsAreMadeOf:
     def test_from_2009_10_01_no_position_rests_on_shared_prices(self, strip, result) -> None:
         """The last shared-price row is 2009-09-29, and its position earns 2009-09-30."""
         one = far_three_share_one_price(strip)
-        assert str(result.days[one][-1].date()) == "2009-09-29"
-        after = np.asarray(result.window_days >= pd.Timestamp("2009-10-01"))
+        last = np.flatnonzero(one)[-1]
+        assert str(result.days[last].date()) == "2009-09-29"
+        assert result.days[last + 2] == pd.Timestamp("2009-10-01")
+        after = np.asarray(result.window_days >= result.days[last + 2])
         revised = tu_momentum.figures(result.daily[result.window][after])
         example = tu_momentum.figures(result.example_daily[result.window][after])
         assert revised.sharpe == pytest.approx(1.845682, abs=5e-7), SPEC
         assert example.sharpe == pytest.approx(1.428115, abs=5e-7), SPEC
+        assert 0 < revised.sharpe - example.sharpe < margins(result)[1], "a smaller margin remains"
 
     def test_the_two_rules_volatilities_and_average_returns(self, result) -> None:
         """Average annual returns of 0.013661 and 0.013351 over 0.007575 and 0.011156."""
@@ -658,7 +702,7 @@ class TestTheRowsBeside:
         assert check.example_on_save == tu_momentum.tu_momentum(save[1]).active_line_figures
 
     def test_the_64_uncovered_days_cannot_carry_the_gap(self, result, check) -> None:
-        """They would need about 4.2 percent to reach the book's 2.5, and add 0.03 percent."""
+        """They would need about 4.2 percent between them to reach the book's 2.5, and earn 0.03."""
         uncovered = result.window_days > pd.Timestamp("2012-05-11")
         assert int(uncovered.sum()) == 64
         need = (1.025 ** (913 / 252)) / (1 + check.revised_on_save.apr) ** (849 / 252) - 1
@@ -867,14 +911,19 @@ class TestWhatThePostQuotes:
         lower = at_threshold(result, ALL_THREE_THRESHOLD)
         assert lower.apr < example.apr and lower.sharpe < example.sharpe, "loses on all three"
         assert abs(lower.max_drawdown) > abs(example.max_drawdown), "loses on all three"
+        below, above = SHARPE_SIGN_THRESHOLDS
+        for threshold in SHARPE_SIGN_THRESHOLDS:
+            assert at_threshold(result, threshold).sharpe > example.sharpe, "still wins"
         fragments = [
             f"a threshold of {100 * low:.1f} or {100 * high:.1f} percent instead of the book’s "
             f"{100 * THRESHOLD:.0f} turns it negative.",
-            f"At {100 * ALL_THREE_THRESHOLD:.1f} percent the rule here loses on all three.",
+            f"At {100 * ALL_THREE_THRESHOLD:.1f} percent the rule here loses on all three, "
+            f"though at {100 * below:.1f} and {100 * above:.1f} percent it still wins on the "
+            "Sharpe ratio.",
         ]
         assert not_found_once(text, fragments) == []
 
-    def test_the_rule_and_the_files(self, strip, result, text) -> None:
+    def test_the_rule_and_the_files(self, strip, result, save, text) -> None:
         defined = np.isfinite(result.gamma)
         peak = np.nanmax(result.gamma_in_months[result.window])
         contracts = strip.contracts
@@ -883,7 +932,18 @@ class TestWhatThePostQuotes:
         (saved,) = {member.obtained for member in strip.members}
         assert peak < THRESHOLD, "never reaches 3 percent"
         assert (result.month_position == 0).all(), "never trades"
+        np.testing.assert_array_equal(result.position, roll_position(*roll_signals(result.gamma)))
+        np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
+        save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
+            f"buys if TU’s price is above its level {LOOKBACK} trading days earlier and sells if "
+            f"it is below, and it holds each of those bets for {HOLD_DAYS} days.",
+            f"above {100 * THRESHOLD:.0f} percent a year, short when it is below "
+            f"{signed(-100 * THRESHOLD, 0)} percent",
+            f"a front-contract series he saved in {save_month}",
+            f"Chan’s own copies of that series end in {save_month}",
+            "1. **The signal.** γ in column units, from Chan’s Example 5.3 fit.",
+            "3. **The lag.** The position set on one day earns the next day’s return",
             f"the log prices of the {WORDS[NEAREST]} nearest contracts against their place in "
             f"line, 1 to {NEAREST}. Then γ is {signed(-MONTHS_PER_YEAR, 0)} times the slope",
             f"The {signed(-MONTHS_PER_YEAR, 0)} assumes adjacent contracts are a month apart",
@@ -922,6 +982,13 @@ class TestWhatThePostQuotes:
         assert int((held < 0).sum()) == 0, "never short"
         before_window = result.days[np.flatnonzero(result.window)[0] - 1]
         assert one[np.flatnonzero(result.window)[0] - 1], "the first was set before the window"
+        assert held[0] == 0, "opens the window flat"
+        prices = strip.contracts.to_numpy(dtype=float)
+        shared = [
+            prices[t][roll_returns._nearest_adjacent(prices[t])[2]]
+            for t in np.flatnonzero(result.window & one)
+        ]
+        assert np.count_nonzero(np.diff(shared)) > len(shared) / 2, "changes from day to day"
         window, shared = int(result.window.sum()), check.shared_window_rows
         need = (1 + float(BOOK_APR_PERCENT) / 100) ** (window / TRADING_DAYS) / (
             1 + on_save.apr
@@ -954,14 +1021,19 @@ class TestWhatThePostQuotes:
             f"{int((held == 0).sum())}.",
             "Because γ never falls below −3 percent, the rule is never short.",
             f"It changes position {int((np.diff(held) != 0).sum())} times.",
+            "It opens the window flat, because the position that earns the window’s first day is "
             f"set by γ on 2008-12-31, which is {100 * gamma.loc['2008-12-31']:.2f} percent, under "
             "the threshold.",
-            f"On {len(days)} of the window’s days, from {days[0].date()} to {days[-1].date()},",
+            f"On {len(days)} of the window’s days, from {days[0].date()} to {days[-1].date()}, the "
+            "third, fourth and fifth nearest contracts close at one price, and that shared price "
+            "changes from day to day.",
             f"The position on {int((set_on & (held == 0)).sum())} of the {int((held == 0).sum())} "
             "flat days",
-            f"The first of those days was {before_window.date()}, the day before the window.",
-            f"would have to add about {round(100 * need, 1)} percent to reach the book’s "
-            f"{BOOK_APR_PERCENT} percent. On the rebuild they add {100 * added:.2f} percent.",
+            f"The first of those positions was set on {before_window.date()}, the day before "
+            "the window.",
+            f"would have to earn about {round(100 * need, 1)} percent between them to lift the APR "
+            f"to the book’s {BOOK_APR_PERCENT} percent. On the rebuild they earn "
+            f"{100 * added:.2f} percent.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -980,6 +1052,9 @@ class TestWhatThePostQuotes:
         assert lower.sharpe < example.sharpe, "even that"
         assert lower.apr < example.apr, "loses all three"
         assert abs(lower.max_drawdown) > abs(example.max_drawdown), "loses all three"
+        below, above = SHARPE_SIGN_THRESHOLDS
+        for threshold in SHARPE_SIGN_THRESHOLDS:
+            assert at_threshold(result, threshold).sharpe > example.sharpe, "positive again"
         window = np.flatnonzero(result.window)
         long_before = signals(result.level)[0][window[0] - HOLD_DAYS : window[-1] + 1]
         assert long_before.all(), "always stood above its level 250 trading days earlier"
@@ -988,6 +1063,7 @@ class TestWhatThePostQuotes:
         one = far_three_share_one_price(strip)
         rows = one[np.flatnonzero(result.window) - 1] & (held == 0)
         swing = tu_momentum.figures(market[rows]).annual_volatility
+        assert swing > example.annual_volatility, "swung more"
         after = np.asarray(result.window_days >= pd.Timestamp("2009-10-01"))
         after_revised = tu_momentum.figures(result.daily[result.window][after]).sharpe
         after_example = tu_momentum.figures(result.example_daily[result.window][after]).sharpe
@@ -1005,11 +1081,15 @@ class TestWhatThePostQuotes:
             "threshold.",
             f"At {100 * ALL_THREE_THRESHOLD:.1f} percent even that margin turns negative, and the "
             "declared rule loses all three claims.",
+            f"At {100 * below:.1f} and {100 * above:.1f} percent the Sharpe ratio’s margin is "
+            "positive again.",
             f"From {HOLD_DAYS} trading days before the window to its end, TU always stood above "
             f"its level {LOOKBACK} trading days earlier.",
             f"and all {HOLD_DAYS} are long on all {len(window)} days.",
             f"the mean daily return times {TRADING_DAYS} without compounding",
-            f"with an annual volatility of {swing:.6f} against {example.annual_volatility:.6f}.",
+            f"TU swung more on those {int(rows.sum())} days than across the window, with an annual "
+            f"volatility of {swing:.6f} against {example.annual_volatility:.6f}.",
+            "Over the whole window, Example 6.1 never leaves the market.",
             f"From 2009-10-01, once no position rests on those prices, the declared rule’s Sharpe "
             f"ratio is {after_revised:.2f} against Example 6.1’s {after_example:.2f}, so a smaller "
             "margin remains.",
@@ -1036,7 +1116,7 @@ class TestWhatThePostQuotes:
         after = held.index[held == "TU-2012M"][0]
         assert contracts.index.get_loc(last) - contracts.index.get_loc(through) == ROLL_ROWS
         # The save matches the rebuild off row L − 7, so it follows the old
-        # contract through row L − 8 and the new one from row L − 6.
+        # contract's own changes through row L − 8 and the new one's from row L − 6.
         assert check.beyond_rounding == check.beyond_rounding_on_jump_row
         span = held.loc[save[1].index].to_numpy()
         assert int((span[1:] != span[:-1]).sum()) == rolls
@@ -1046,8 +1126,9 @@ class TestWhatThePostQuotes:
             f"last price and the new one from the {ORDINALS[ROLL_ROWS - 1]}.",
             f"The March 2012 contract’s last price in the strip is on {last.date()}. It earns "
             f"through {through.date()}, and the June contract earns from {after.date()}.",
-            f"It follows the old contract until {WORDS[ROLL_ROWS + 1]} trading days before its "
-            f"last price and the new one from {WORDS[ROLL_ROWS - 1]},",
+            f"Its daily changes are the old contract’s own until {WORDS[ROLL_ROWS + 1]} trading "
+            f"days before its last price and the new contract’s from {WORDS[ROLL_ROWS - 1]}.",
+            "On the day between, it already shows the new contract’s price,",
             f"On {neither} of the {rolls} rolls in its span,",
             f"and on {'one' if new_only == 1 else new_only} it matches the new contract’s.",
             f"a roll {WORDS[ROLL_ROWS + 1]} days before the last price, the declared rule gives "
@@ -1060,7 +1141,8 @@ class TestWhatThePostQuotes:
             f"{check.beyond_rounding_on_jump_row} fall on the {ORDINALS[ROLL_ROWS]} trading day "
             "before a contract’s last price,",
             f"The close’s span holds {rolls} rolls, and on the other "
-            f"{WORDS[rolls - check.beyond_rounding_on_jump_row]} its change lands within rounding",
+            f"{WORDS[rolls - check.beyond_rounding_on_jump_row]} its change lands within rounding "
+            "of the old contract’s.",
             f"sits {check.revised_on_rebuild.apr - check.revised_on_save.apr:.6f} above its APR on "
             "that close.",
         ]
@@ -1089,12 +1171,15 @@ class TestWhatThePostQuotes:
         revised_end = np.prod(1 + result.daily[result.window]) - 1
         assert revised_end > example_end, "just above it"
         (saved,) = {member.obtained for member in strip.members}
+        tranches = backshift(1, result.example_positions)[result.window]
+        assert (tranches == HOLD_DAYS).all(), "holds all 25 tranches long on every window day"
         fragments = [
             f"ends at {100 * example_end:.1f} percent. The green line",
             f"It ends just above it, at {100 * revised_end:.1f} percent.",
             f"a step-like line between about 0 and {100 * gamma.max():.1f} percent, with dashed "
             f"lines at {100 * THRESHOLD:.0f} and {signed(-100 * THRESHOLD, 0)} percent.",
             f"Chan’s TU strip, saved {saved},",
+            f"says Example 6.1’s rule holds all {HOLD_DAYS} tranches long on every window day",
             f"sets the declared rule’s APR of {revised.apr:.6f} and Sharpe ratio of "
             f"{revised.sharpe:.6f} beside the book’s",
             f"gives Example 6.1’s rule {example.apr:.6f} and {example.sharpe:.6f},",

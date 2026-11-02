@@ -6892,14 +6892,14 @@ lessons from Entry 36 of the replication log.
    save lands near the rebuilt series, so the vintage does not explain the
    miss on the 849 window days that save covers.
 2. It beats Example 6.1 on all three on one series, by stepping aside, at the
-   book's 3 percent threshold. At 2.8 percent it loses all three. Example
-   6.1 is fully long on every window row, so it is holding TU, and the 341
-   rows the declared rule sits out compound to about nothing while its
-   volatility falls.
-3. No saved series reaches the window, so the front contract is rebuilt from
-   the strip, and every change that differs from the save falls on the roll
-   row, where the save's change matches neither contract's own on 29 of 32
-   rolls.
+   book's 3 percent threshold. At 2.8 percent it loses all three, though at 2.7
+   and 2.9 percent its Sharpe ratio still wins. Example 6.1 is fully long on
+   every window row, so it is holding TU, and the 341 rows the declared rule
+   sits out compound to about nothing while its volatility falls.
+3. No saved series follows the front contract to the window's end, so a
+   front-contract series is rebuilt from the strip, and every change that
+   differs from the save falls on the roll row, where the save's change matches
+   neither contract's own on 29 of 32 rolls.
 4. The rule was declared after about 90 scratch readings, so every result is
    exploratory, and the fifth-contract reading that lands two of the book's
    figures is set aside.
@@ -6914,10 +6914,10 @@ Five groups of what it says are not pinned here.
    not vary very often" is at 2683. "A cleaner and potentially better momentum
    signal", the 3 percent threshold, and the 2.5 percent, 2.1 and 1.1 percent
    are at 2690. The book's figures are pinned, and its words are not.
-2. Facts from the run's own disclosure rather than the data: the count of
-   about 90 scratch readings, and the Sharpe ratio of about 1.80 that a
-   scratch fit of γ on the four nearest contracts gave the fifth-contract
-   reading. No test repeats either.
+2. Facts from the run's own disclosure rather than the data: the two scratch
+   runs and their count of about 90 readings, and the Sharpe ratio of about
+   1.80 that a scratch fit of γ on the four nearest contracts gave the
+   fifth-contract reading. No test repeats any of the three.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
@@ -6974,10 +6974,12 @@ more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.p
    contract's own, the one on which it matches only the new contract's, and
    the 1.366491 percent and 1.789044 that a roll on row L − 8 gives the
    declared rule.
-5. The APR margin turning negative at thresholds of 0.029 and 0.032, and all
-   three margins at 0.028.
-6. The 64 days the 2012-05-11 save does not cover needing about 4.2 percent to
-   reach the book's APR, and adding 0.03 percent on the rebuild.
+5. The APR margin turning negative at thresholds of 0.029 and 0.032, all
+   three margins at 0.028, and the Sharpe ratio's margin positive again at
+   0.027 and 0.029.
+6. The 64 days the 2012-05-11 save does not cover needing about 4.2 percent
+   between them to reach the book's APR, and earning 0.03 percent on the
+   rebuild.
 
 It also added `TestWhatThePostQuotes`, which reads from the post itself one
 copy of each run figure the post quotes outside the sketches' alt texts, at

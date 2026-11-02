@@ -51,9 +51,11 @@ rebuilds it from the strip. With L a contract's last priced row, row t earns
 and has L − t ≥ 7, where a contract still priced on the file's last row counts
 as never expiring. The old contract therefore earns through row L − 7 and the
 new one from row L − 6. The 2012-05-11 save fixes that roll to within one row.
-It follows the old contract through L − 8 and the new one from L − 6. Its
-change on L − 7 matches neither contract's own on 29 of 32 rolls, so the save
-leaves that one row open, and the rebuild gives it to the old contract.
+Its changes are the old contract's own through L − 8 and the new one's from
+L − 6, and on L − 7 it already holds the new contract's close plus the shift it
+holds on L − 6. Its change on L − 7 matches neither contract's own on 29 of 32
+rolls, so the save leaves open which contract earns that row, and the rebuild
+gives it to the old contract.
 :func:`adjusted_level` adds up the same contract's price changes, which is what
 Example 6.1's signal reads.
 :func:`check_against_save` sets the rebuild against that save over the 1,999
