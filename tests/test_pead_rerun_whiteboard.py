@@ -564,7 +564,7 @@ class TestTheUniverseSketch:
             assert x0 < circle.x.min() and circle.x.max() < x1, gid
             assert y0 < circle.y.min() and circle.y.max() < y1, gid
         box = _stroke(scene, "box")
-        assert (box.x.min(), box.x.max(), box.y.min(), box.y.max()) == pytest.approx(BOX)
+        assert (box.x.min(), box.y.min(), box.x.max(), box.y.max()) == pytest.approx(BOX)
 
     def test_each_count_sits_in_its_region(self, every) -> None:
         """U inside both circles, the 47 in CAL alone, the 5 in PX alone and
