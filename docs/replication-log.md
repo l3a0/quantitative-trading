@@ -4507,12 +4507,33 @@ and the tables above do not, so they are named here.
 
 The last three were added after the result was seen and decide nothing.
 
+### The post's sketches
+
+The Conditional Parameter Optimization post carries two whiteboard sketches,
+added in its review before publishing on 2026-11-01.
+
+1. **The entry and exit rule.** It draws a made-up z-score path against the
+   rule's lines and the position `chan.cpo.positions` holds along it. It is
+   schematic and carries no figures from the run. Its exit lines are
+   `EXIT_FRACTION` times the entry, and its closing line reads the grid's
+   lowest entry, 0.2, from `ENTRY_THRESHOLDS`.
+2. **The annual returns.** It draws the fixed arm's 17.29% a year compounding
+   to 61.4% over three years, the 68.0% an arithmetic 17.29% can reach at
+   most, and Chan's printed 73% above both, with the re-chosen arm's 71.8%,
+   81.0% and 83% in a note.
+   `test_chan_s_annual_returns_do_not_compound_to_his_cumulative_ones` and
+   `test_chan_s_annual_returns_read_as_arithmetic_cannot_reach_them_either`
+   already pin those figures, and the sketch computes them from the same
+   constants.
+
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and
 [blog/conditional-parameter-optimization-lessons.md](../blog/conditional-parameter-optimization-lessons.md)
 moves with it, since that post quotes most of these figures. So does its one
 figure, which draws row 10 and redraws only where the archive is, with
-`QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures`.
+`QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.cpo_figures`, and so do
+its two whiteboard sketches, which `uv run python -m chan.cpo_whiteboard`
+redraws.
 
 ## Entry 17: cross-sectional momentum, Chan's *Algorithmic Trading*
 

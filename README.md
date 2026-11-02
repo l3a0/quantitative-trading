@@ -4394,6 +4394,48 @@ Entry 16 names, that the run ends on 2020-12-31, and that a fresh draw matches
 the committed file. A public clone can check what the code draws but cannot
 redraw the committed figure.
 
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/cpo_whiteboard.py](src/chan/cpo_whiteboard.py) on the USD.CAD
+post's sketch machinery. Each sits after the text it draws.
+
+1. `cpo_sketch_rule.gif`, after the list of the strategy, the grid and the
+   bars, draws a z-score path against lines at +entry, +0.6 times the entry, 0,
+   −0.6 times the entry and −entry, above a strip of the position held. The
+   path falls below −entry and the rule buys GLD, rises back above −0.6 times
+   the entry and the long exits, rises above +entry and the rule shorts, and
+   falls back below +0.6 times the entry and the short exits, so each exit
+   comes before the z-score reaches 0. It closes on the grid's lowest entry,
+   0.2, and the lines it puts the rule at.
+2. `cpo_sketch_annual_returns.gif`, in Lesson 2, draws one dollar compounding
+   at the fixed arm's 17.29% a year to 61.4% over three years, a dashed
+   ceiling at 68.0%, the most an arithmetic 17.29% can compound to, and the
+   book's printed 73% above both. A note gives the re-chosen arm's 71.8%,
+   81.0% and 83%.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds, the pace of the equity seasonals post's
+slower sketches.
+
+The first sketch is schematic and carries no figures from the run. Its path is
+made up, its exit lines come from `chan.cpo.EXIT_FRACTION`, its position strip
+is `chan.cpo.positions` run on that path, and its closing line reads the
+grid's lowest entry from `chan.cpo.ENTRY_THRESHOLDS`, constants a clone
+checks. The second is not schematic: it computes every figure from Chan's
+printed figures in `BOOK_UNCONDITIONAL` and `BOOK_CONDITIONAL`, the ones
+[tests/test_cpo.py](tests/test_cpo.py) pins on every clone, and needs no bars.
+[tests/test_cpo_whiteboard.py](tests/test_cpo_whiteboard.py) holds what each
+sketch says, its inks, that the exit fraction is −0.6, that the strip matches a
+literal loop over the rules and changes where the path crosses each line, that
+each exit comes before 0, that every height in the second stands to one scale
+of a dollar's growth, that both build slowly and hold for twelve seconds, where
+each sits in the post, and that each alt text quotes every label in the order
+it is drawn. It compares each committed GIF with a fresh draw byte for byte
+only on macOS arm64 in Comic Sans MS, as the USD.CAD sketches' test does.
+
+```bash
+uv run python -m chan.cpo_whiteboard
+```
+
 [blog/cross-sectional-momentum-lessons.md](blog/cross-sectional-momentum-lessons.md)
 is a fifteenth post, about cross-sectional momentum, Example 6.2 of Chan's
 *Algorithmic Trading*. Each day the strategy buys the 50 stocks with the
