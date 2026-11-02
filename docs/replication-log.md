@@ -11725,6 +11725,25 @@ with it, since that post quotes most of these figures. So does its one
 figure, which `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures`
 redraws where the archive is.
 
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing.
+
+1. **Y and the upper bound**, in Lesson 1. The yearly standard error is
+   0.1185. Measured from the gap of −0.0590, 1.645 standard errors reach the
+   upper bound of 0.1360. Measured from 0, 1.645 plus 0.8416 standard errors
+   reach Y, 0.2948. The sketch draws both on one axis and prints no figure
+   where the second bracket's first 1.645 standard errors end, since the post
+   does not state it.
+2. **What the formation cannot know**, in Lesson 5, which is schematic. The
+   old rule drops a stock whose series stops between the formation and the
+   next month-end, and it can do so only by reading that later date. The new
+   rule holds the stock, earns its return to its last close and then holds
+   cash.
+
+A change to the first sketch's figures moves it too, and
+`QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_whiteboard`
+redraws both through the same `read_holdout`.
+
 ## Entry 50: the Khandani-Lo reversal on the S&P 400, Chan's *Quantitative Trading*
 
 Source: Ernest P. Chan, *Quantitative Trading: How to Build Your Own

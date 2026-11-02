@@ -9439,9 +9439,11 @@ Six groups of what it says are not pinned here.
 Every other number in the post traces to an assertion in
 [tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py), to
 [tests/test_low_beta_leverage.py](tests/test_low_beta_leverage.py) for the
-figures on Chan's file, or to
+figures on Chan's file, to
 [tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
-for the figure's own numbers. Two classes hold the ones that had no pin
+for the figure's own numbers, or to
+[tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
+for the sketches'. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
 `TestWhatThePostCounted` item 2.
 `TestWhatThePostCounted` reads committed files and runs everywhere.
@@ -9515,6 +9517,44 @@ of a fresh draw with the committed file in
 [tests/test_figures_match_code.py](tests/test_figures_match_code.py). The
 price is that CI never sees the real right column drawn, and a reader cannot
 redraw it.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/low_beta_holdout_whiteboard.py](src/chan/low_beta_holdout_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+
+1. `low_beta_holdout_sketch_bound_and_y.gif`, in Lesson 1, after the
+   paragraph giving the one-sided upper bound. On one axis of the yearly gap,
+   a black bracket runs 1.645 standard errors of 0.1185 from the measured gap
+   of −0.0590 to the upper bound of 0.1360, with the advantages the data
+   reject hatched in red beyond it. A brass bracket runs from 0 to Y, 0.2948,
+   which is 1.645 plus 0.8416 of the same standard errors, and a tick marks
+   where its first 1.645 end. That point is 0.1950, which the post does not
+   state, so the sketch prints no figure there.
+2. `low_beta_holdout_sketch_look_ahead.gif`, in Lesson 5, after the paragraph
+   on the holding month. Stock A trades past the formation and the next
+   month-end, and stock B's series stops between them. The old rule, which
+   asked for a close at the next month-end, drops B only by reading that later
+   date. The new rule earns B's return to its last close and then holds cash.
+
+The first is drawn to scale, and the second is schematic and carries no
+figures. The first sketch's figures come from the registered run's verdict,
+which needs the owner's archive, so
+[tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
+pins a frozen copy of them and runs everywhere, and
+`test_the_whiteboard_draws_this_runs_figures` in
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) holds that
+the run gives that copy. Both build more slowly than the USD.CAD post's
+sketches and hold their finished drawings for twelve seconds. Redraw both
+with the command below. Without the archive it redraws only the schematic,
+names the GIF it left stale and exits non-zero.
+
+```bash
+QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_whiteboard
+```
+
+[tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
+holds what each draws, where each mark sits on its axis, the order of events
+the schematic shows, and that each GIF follows its paragraph in the post.
 
 [blog/usdcad-holdout-lessons.md](blog/usdcad-holdout-lessons.md) is a
 forty-eighth post, about Example 2.5 of Chan's *Algorithmic Trading* run on

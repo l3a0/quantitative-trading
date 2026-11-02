@@ -48,6 +48,7 @@ decimals, which is what the log quotes. The run first ran here on 2026-10-11.
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 from collections import Counter
@@ -892,6 +893,20 @@ class TestWhatThePostMeasured:
         # Y is 1.645 + 0.8416 of the same yearly error, written out rather than
         # read from the module's constants, so a wrong constant there fails.
         assert f"{(1.645 + 0.8416) * error:.4f}" == f"{result.detectable:.4f}" == "0.2948"
+
+    def test_the_whiteboard_draws_this_runs_figures(self, holdout) -> None:
+        """The bound sketch in ``tests/test_low_beta_holdout_whiteboard.py``
+        draws its ``PINNED`` figures, so it runs without the archive. This
+        holds that this run gives them, at the tolerance every pin here uses."""
+        from chan.low_beta_holdout_whiteboard import BoundFigures
+        from tests.test_low_beta_holdout_whiteboard import PINNED
+
+        drawn = BoundFigures.from_verdict(holdout.verdict)
+        for field in dataclasses.fields(BoundFigures):
+            name = field.name
+            assert getattr(drawn, name) == pytest.approx(getattr(PINNED, name), abs=1e-9), (
+                f"{name}; {SPEC}; {AFTER_THE_RUN}"
+            )
 
     def test_unlevered_the_high_fifth_out_compounded_the_low_by_0_0543(self, holdout) -> None:
         """From the full values, since the rounded 0.1613 and 0.1069 differ by 0.0544."""
