@@ -8118,8 +8118,8 @@ thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
 off his own files, on an announcement calendar read from EDGAR's Item 2.02
 filings and on Alpha Vantage prices from the owner's archive. Chan reports an
 APR of 6.7 percent and a Sharpe ratio of 1.5, which the post on post-earnings
-drift reproduces on his files. This post links that one for the rule, the
-fixed 30 and the flag counts rather than repeating them, and draws four
+drift reproduces on his files. This post states the rule and the fixed 30
+in brief, links that one for both in full and for the flag counts, and draws four
 lessons from Entry 46 of the replication log. Every result in it is
 exploratory, and the runs on the archive's prices cannot be rerun by a reader.
 
@@ -8184,7 +8184,7 @@ Five groups of what it says are not pinned here.
 [tests/test_pead_rerun.py](tests/test_pead_rerun.py) reads the post itself. It
 checks one copy of every other number the post quotes against the value the
 suite derives, at the precision the post prints it, and rebuilds the post's
-three tables whole, so a typo in that copy or a re-pin that leaves the post
+four tables whole, the second only where the archive is configured, so a typo in that copy or a re-pin that leaves the post
 behind fails. Its docstring names what it reads. A second copy of a figure, in
 another lesson, the alt text, the caption or the closing lists, is not read.
 Each value it checks is pinned in
@@ -8207,7 +8207,7 @@ The C, D, E1 and E5 figures, the vendor and basis effects, the interaction, EP's
 294 and 181 days and every number in Lesson 4 are asserted and read only where
 the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
 them. `TestTheWiring` holds in CI that each of those runs reads its
-registered prices, flags and stocks. Nine had no pin before it, and all were
+registered prices, flags and stocks. Nine had no pin before the post, and all were
 measured after the runs.
 
 1. That A less A_U is exactly the trades of the 56 stocks outside U, and A

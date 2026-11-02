@@ -1283,8 +1283,9 @@ class TestWhatThePostQuotes:
     holding the number and the words around it that name one place in the
     post. A typo in that copy, or a re-pin that leaves the post behind, fails
     here. A fragment never matches inside a longer number, so a digit added
-    beside a figure fails as well as a digit changed, and the three tables
-    are rebuilt from the runs whole. Counts the post spells out, such as
+    beside a figure fails as well as a digit changed, and the four tables
+    are rebuilt whole, the first from the registered runs and the others from
+    the runs' figures. CI rebuilds only the second table's committed rows. Counts the post spells out, such as
     forty-three, are spelled from the count.
 
     What it reads splits by whether the figure needs the owner's archive.
