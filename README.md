@@ -4372,7 +4372,8 @@ Six groups of its figures are not pinned here.
    Kindle page numbers match the print edition's, that the early-closing dates
    were copied from a software calendar of NYSE's schedule, and that
    scikit-learn's seed sets the held-out tenth and the sample the bins are cut
-   from.
+   from, and that the 13:00 bar on an early close still trades at
+   regular-session volume, likely the closing auction.
 
 Eight of its figures had no pin before it, and each now has one. The first
 and the last two run on every clone, and the other five sit in

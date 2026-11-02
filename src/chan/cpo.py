@@ -74,9 +74,9 @@ SESSION_LAST = "15:59"
 EARLY_CLOSE_LAST = "12:59"
 #: NYSE's early closes from 2006 to 2020, every one at 13:00, from the XNYS
 #: calendar of ``exchange_calendars`` 4.13.2, which encodes the exchange's
-#: published schedule. On these days the 13:00 bar holds the closing auction's
-#: print and the bars from 13:01 to 15:59 are extended-hours bars, and reading 2
-#: drops them all.
+#: published schedule. On these days the 13:00 bar still trades at
+#: regular-session volume, likely the closing auction, and the bars from 13:01
+#: to 15:59 are extended-hours bars. Reading 2 drops them all.
 EARLY_CLOSES = frozenset(
     {
         "2006-07-03", "2006-11-24", "2007-07-03", "2007-11-23", "2007-12-24",
@@ -134,9 +134,10 @@ def regular_session(bars: pd.DataFrame, end: str = SPAN_END) -> pd.DataFrame:
     """The regular-session bars on or before ``end``, reading 2.
 
     That is the bars opening from 09:30 to 15:59, or to 12:59 on one of
-    :data:`EARLY_CLOSES`. On those days the bars after 12:59 are extended-hours
-    trading, so keeping them would trade, liquidate and read features on
-    after-hours prints. The first run kept them, which broke reading 2, and the
+    :data:`EARLY_CLOSES`. On those days the 13:00 bar still trades at
+    regular-session volume, likely the closing auction, and the bars after it are
+    extended-hours trading, so keeping them would trade, liquidate and read
+    features past the close. The first run kept them, which broke reading 2, and the
     review of the pull request found it.
     """
     minutes = bars.index.strftime("%H:%M")

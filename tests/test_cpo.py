@@ -174,8 +174,8 @@ class TestTheBars:
     def test_an_early_close_ends_the_session_at_1259(self):
         """2019-11-29 closed at 13:00.
 
-        Its 13:00 bar holds the closing auction's print, and the bars after it are
-        extended hours.
+        Its 13:00 bar still trades at regular-session volume, likely the closing
+        auction, and the bars after it are extended hours.
         """
         index = pd.to_datetime(
             ["2019-11-29 12:59", "2019-11-29 13:00", "2019-11-29 14:57", "2019-12-02 15:59"]
@@ -475,8 +475,9 @@ class TestExample71OnTheArchive:
     before any return was computed, with scikit-learn 1.9.1 and `ta` 0.11.0 as
     `uv.lock` fixes them. A lock update that moves either can move rows 5 to 10.
 
-    The first run kept the extended-hours bars after 12:59 on NYSE's 34 early
-    closes, which broke reading 2, and the review of the pull request found it.
+    The first run kept the bars after 12:59 on NYSE's 34 early closes, a 13:00 bar
+    still at regular-session volume and extended-hours bars after it, which broke
+    reading 2, and the review of the pull request found it.
     These pins are from the corrected run. Entry 16 sets the first run's figures
     beside them.
     """

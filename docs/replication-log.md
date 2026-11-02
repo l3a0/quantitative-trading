@@ -4330,7 +4330,8 @@ round trip both arms lose money.
 
 **The first run broke a declared reading, and both runs are reported.** On
 NYSE's 34 early closes from 2006 to 2020 the session ends at 13:00, and the
-first run kept the extended-hours bars from 13:00 to 15:59, against reading 2.
+first run kept the bars from 13:00 to 15:59, a 13:00 bar still at regular-session
+volume and extended-hours bars after it, against reading 2.
 The review of the pull request found it, and the fix implements the reading as
 declared rather than changing it. The corrected run gives every figure below.
 The first run gave 3.55, 0.6798, 5.791 and 15.676 for the unconditional column,
