@@ -1,6 +1,6 @@
 # Chan’s post-earnings drift moves off his own files, and the 56 stocks EDGAR or a second vendor cannot confirm carry a third of its return
 
-*Chan’s post-earnings drift reproduces to the digit on his own files. Rerun on a calendar built from SEC filings and on another vendor’s prices, the figure moves for four reasons of very different size. The 56 stocks that a check against EDGAR or a check against the second vendor cannot confirm carry a third of the return, and the 13 whose ticker cannot be tied to the right company carry about two thirds of that. The calendar built from filings earns more, mostly by trading more. The vendor barely matters, except at the open.*
+*Chan’s post-earnings drift reproduces to the digit on his own files. Rerun on a calendar built from SEC filings and on another vendor’s prices, the figure moves for four reasons of very different size. The 56 stocks that a check against EDGAR or a check against the second vendor cannot confirm carry a third of the return, and the 13 whose tie to the right company the checks cannot confirm carry about two thirds of that. The calendar built from filings earns more, mostly by trading more. The vendor barely matters, except at the open.*
 
 ## Why rerun a figure that already reproduces
 
@@ -18,15 +18,16 @@ A calendar can be rebuilt from public records. A company that releases its earni
 
 The rerun found four things.
 
-1. **A check against EDGAR and a check against a second vendor’s prices drop 56 stocks, and they carry a third of the return.** Chan’s arithmetic annual return of 0.066743, the 6.7 percent he prints, falls to 0.043678 on the 441 of his 497 stocks that pass both. The 13 whose ticker cannot be tied to the right company carry about two thirds of the drop.
+1. **A check against EDGAR and a check against a second vendor’s prices drop 56 stocks, and they carry a third of the return.** Chan’s arithmetic annual return of 0.066743, the 6.7 percent he prints, falls to 0.043678 on the 441 of his 497 stocks that pass both. The 13 whose tie to the right company the checks cannot confirm carry about two thirds of the drop.
 2. **EDGAR’s timestamp needs the filing’s own header.** The time EDGAR’s data service gives for a filing has changed from one reading to the next. In October 2026 it read hours late for some filers, the companies as EDGAR registers them, which would move a morning filer’s release into the trading session.
 3. **The calendar a trader could build earns more, mostly by trading more.** On the 488 stocks whose filer passes the check against EDGAR, and on Chan’s prices, it lifts the return from 0.054481 on Chan’s flags to 0.071050, and three quarters to four fifths of that comes from the extra trades.
 4. **Another vendor’s closes, and whether its prices are adjusted for splits and dividends, barely move the figure, and its opens can.** Three trades on opens where the two vendors disagree move one version of the rerun more than the vendor and the adjustment together.
 
-**Every result here is exploratory.** The rerun wrote its comparison down before seeing any number on these sources, which would normally let a result confirm something. Two things stand in the way.
+**Every result here is exploratory.** The rerun wrote down its ten runs, and which pair of runs measures each effect, before any of them ran. That would normally let a result confirm something. Three things stand in the way.
 
-1. A check made while planning the rerun had already measured, on Chan’s flags, how much of the return each vendor’s prices could cover, so part of the sample had already been seen.
-2. Chan chose the rule, the window and the divisor of 30, and reported them on these same days.
+1. Planning had already looked at the sources. It chose R5 by its match with Chan’s flags on 32 stocks, measured how much of Chan’s return the stocks with a matching Alpha Vantage series carry, and predicted that the universe would move the figure most and the vendor and the adjustment least.
+2. This post measured the splits in Lesson 1, the shares in Lesson 3 and every comparison of opens in Lesson 4 after the runs.
+3. Chan chose the rule, the window and the divisor of 30, and reported them on these same days.
 
 So the rerun can say where the figure moves off his files, and nothing about whether the drift pays today.
 
@@ -101,7 +102,7 @@ Every figure and every difference in this post is rounded from its true value, s
 
 A is the drift post’s run, unchanged. Each effect is one run read against another. The universe effect is A_U against A, the calendar’s is B1 against A_CAL, the vendor’s is C against A_PX, and the effect of the price basis is D against C.
 
-The rule divides each day by the fixed 30, which the [drift post’s lesson on the 30](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md#lesson-3-the-30-and-the-leverage-are-facts-about-the-run) explains. So a run’s arithmetic annual return follows from two numbers alone, the trades it takes and their mean return, over the 330 days of the window.
+The strategy divides each day by the fixed 30, which the [drift post’s lesson on the 30](https://github.com/l3a0/quantitative-trading/blob/main/blog/post-earnings-drift-lessons.md#lesson-3-the-30-and-the-leverage-are-facts-about-the-run) explains. So a run’s arithmetic annual return follows from two numbers alone, the trades it takes and their mean return, over the 330 days of the window.
 
 ```math
 \begin{gathered}\text{arithmetic annual return} \\ = \frac{\text{trades} \times \text{mean return per trade} \times 252}{30 \times 330}\end{gathered}
@@ -130,7 +131,7 @@ The filer check’s third condition is what catches ACE. Its holding sits 5.92 p
 
 Nine stocks fail the filer check, in five ways.
 
-1. Five are missing from the fund’s schedule of 2012-03-31, though Chan’s file holds them. Two of those five also carry another company’s filer.
+1. Five are missing from the fund’s schedule of 2012-03-31, though Chan’s file holds them. All five were in its schedule of 2011-09-30 and gone from that of 2011-12-31, so they left the index inside the window. Two of those five also carry another company’s filer.
 2. Cablevision’s proposed filer is BJ’s Wholesale.
 3. DuPont’s is today’s DuPont, formed in December 2015, which was not filing on 2012-03-30.
 4. NYSE Euronext’s name in EDGAR does not match.
@@ -138,7 +139,7 @@ Nine stocks fail the filer check, in five ways.
 
 The 56 stocks outside U fail for two kinds of reason.
 
-1. **Thirteen cannot be tied to the right company.** They are the nine that fail the filer check and the four reused tickers whose series holds another company’s history.
+1. **Thirteen cannot be confirmed as the right company.** They are the nine that fail the filer check, five of which carry their own company’s filer, and the four reused tickers whose series holds another company’s history.
 2. **Forty-three lack the prices to check.** The archive does not hold the company’s prices for the whole window under that ticker. Seven have no series there at all. For 35 the series under that ticker starts after the window ends on 2012-04-24, as ALTR’s starts on 2017-11-01, DELL’s on 2018-12-21 and DOW’s on 2019-03-20. The series under EP, El Paso’s ticker, starts on 2011-02-23 and lacks the window’s first 35 days. It holds another company’s prices too, because on the 294 days both hold, its daily returns differ from those of Chan’s closes on 181. The check stops at the missing days, so EP counts here rather than among the reused tickers.
 
 ### What the 56 stocks add to A’s return
@@ -156,7 +157,7 @@ Each stock trades on its own gap and its own moving deviation, so dropping some 
 \end{array}
 ```
 
-The 56 stocks outside U take 123 of A’s 1,072 trades and add 0.023065, which is 0.35 of A’s return, about a third. The 13 that cannot be tied to the right company take 28 trades and add 0.014787, which is 0.64 of the 0.023065, about two thirds. The nine that fail the filer check add 0.012261 on their own, which is exactly A against A_CAL.
+The 56 stocks outside U take 123 of A’s 1,072 trades and add 0.023065, which is 0.35 of A’s return, about a third. The 13 the checks cannot confirm take 28 trades and add 0.014787, which is 0.64 of the 0.023065, about two thirds. The nine that fail the filer check add 0.012261 on their own, which is exactly A against A_CAL.
 
 **This post measured the split after seeing the runs’ figures, so it is exploratory.** The chart’s top panel builds A’s return day by day from three groups. Its brass line adds two of the table’s groups together, the reused tickers and the stocks with no full prices. Those are the 47 stocks that pass the filer check and have no checked series.
 
@@ -167,6 +168,8 @@ The 56 stocks outside U take 123 of A’s 1,072 trades and add 0.023065, which i
 The dropped stocks’ return is concentrated. On 2011-08-04, the day A’s cumulative return reaches the high its longest drawdown starts from, the stocks outside U add 0.010702, close to half of their 0.023065, through 8 trades. The largest is a short of MEMC Electronic Materials, Chan’s WFR, a single trade that returned 0.1108, or 11.08 percent, from the open to the close. The five largest trades outside U are all shorts, all in the nine stocks that fail the filer check, and they carry 0.54 of the 0.023065 the stocks outside U add.
 
 Per trade, the stocks outside U earn 0.007367 on average against 0.001808 inside. Welch’s t, which compares two means without assuming their spreads are equal, is 1.46 (Welch, 1947). A t of about 2 is the usual bar for ruling out chance. Even 1.46 treats every trade as independent, and the trades of one August day are not. The rerun cannot say whether these stocks earn more for a reason or had a few good days.
+
+One candidate reason sits in the filer check itself. It reads the fund’s schedule at the window’s end, so it drops the five stocks that left the index during the window, and Chan’s closes for those five fell 27 to 69 percent over it. They add 0.007524 of the nine’s 0.012261, and three of the five largest trades outside U are theirs. Nothing here tests whether that is why they earn more.
 
 The universe moves the arithmetic return more than R1’s calendar does, by 0.023065 against R1’s 0.016568, which Lesson 3 explains. On this one window the Sharpe ratio ranks them the other way. Dropping the 56 stocks moves it by −0.2094, and R1’s calendar moves it by +0.3792.
 
@@ -233,7 +236,7 @@ The effects do not add up exactly. E1 against A_U is +0.013811, which is 0.00294
 
 Five questions are beyond it.
 
-1. **Whether the drift pays after 2012.** The window, the rule and the 30 are Chan’s, and the check made while planning the rerun had already looked at the sample. A test that could confirm the drift would fix the rule in writing and run it on later data.
+1. **Whether the drift pays after 2012.** The window, the rule and the 30 are Chan’s, and planning had already looked at the sources. A test that could confirm the drift would fix the rule in writing and run it on later data.
 2. **Whether the dropped stocks’ trades were one day’s luck.** Close to half their contribution falls on 2011-08-04, and the t of 1.46 assumes independent trades. More stocks tied to their filers and series, or another window, would be needed to tell.
 3. **When each release went out.** A release goes out no later than the moment EDGAR accepts the filing that reports it, and can go out earlier. So a filing accepted in the session can follow a release made before the open.
 4. **Whether a filing under the earnings item is an earnings release.** Item 2.02 is the item a release is filed under, and nothing here reads the filing’s text, so an 8-K carrying the item for another reason flags a day too.
@@ -243,7 +246,7 @@ Five questions are beyond it.
 
 One habit for each lesson.
 
-1. **Tie every ticker to a company at the date of the data, and check the tie.** A lookup by today’s ticker can return real filings or prices from the wrong company. Check too that the vendor holds that company’s prices for the whole window, because a stock with no prices drops out as surely as one tied to the wrong company. The stocks that fail can carry a large share of a backtest’s return.
+1. **Tie every ticker to a company at the date of the data, and check the tie.** A lookup by today’s ticker can return real filings or prices from the wrong company, and a check against the index’s members on one date drops the stocks that left before it. Check too that the vendor holds that company’s prices for the whole window, because a stock with no prices drops out as surely as one tied to the wrong company. The stocks that fail can carry a large share of a backtest’s return.
 2. **Read a filing’s time from the filing.** A data service’s time field can change between two readings of the same filing. EDGAR’s read hours late for some filers in October 2026 and true a month later, and a late reading drops a morning filer’s releases from a calendar that trades the open.
 3. **Split a return into trades and the mean per trade.** Under a fixed divisor, a calendar that flags more days earns more without trading any better. The Sharpe ratio does not depend on the divisor, so it is the figure to read for that question, though one window cannot settle it.
 4. **Check the price a strategy trades at, not only the price it is checked on.** A series that matches on every close can still disagree at the open, and one disputed open can move a figure more than the vendor does.

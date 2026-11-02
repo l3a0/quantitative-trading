@@ -8,8 +8,10 @@ checks run beside them on late filings and on the archive's opens.
 ticker table and the index that the universes are cut from, Entry 46's rows
 15 and 16 and the 48 renamed companies among them.
 
-Every pin names its vintage and its specification, stated once here and
-carried in each failure message as :data:`SPEC`.
+Every pin names its vintage and its specification, stated once here.
+:data:`SPEC` and :data:`ARCHIVE_SPEC` repeat them in the failure messages of
+the runs' own figures, and a pin without either reads the same vintages under
+the same specification.
 
 - **Vintages.** Chan's ``inputdataohlcdaily_stocks_20120424/`` and
   ``earnannfile/``, read as :mod:`chan.pead` reads them. The ticker table and
@@ -697,8 +699,36 @@ class TestWhatThePostMeasured:
         none = [s for s in stocks if rows[s].archive_check == "none"]
         assert len(none) == 7 and not any(s in entries for s in none)
 
+    def test_the_five_that_left_the_fund_during_the_window(self, sources, runs) -> None:
+        """AKS, CPWR, MWW, TLAB and WFR, missing from IVV's schedule of 2012-03-31.
+
+        ``tests/test_earnings_filings.py`` holds that each was in the schedule
+        of 2011-09-30 and in neither later one. Chan's closes fell 27 to 69
+        percent over the window for all five. Of A's 13 trades in them, 9 are
+        shorts, and they add 0.007524 of the nine outside CAL's 0.012261. Three
+        of the five largest trades outside U are theirs. Exploratory, and it
+        tests no reason why these stocks earn more.
+        """
+        five = ["AKS", "CPWR", "MWW", "TLAB", "WFR"]
+        returns, positions = a_trades(sources, runs)
+        scale = to_annual(runs["A"])
+        closes = sources.closes.loc[sources.window, five]
+        spans = {s: closes[s].dropna() for s in five}
+        fell = {s: round(float(c.iloc[-1] / c.iloc[0] - 1), 3) for s, c in spans.items()}
+        assert fell == {
+            "AKS": -0.558, "CPWR": -0.273, "MWW": -0.671, "TLAB": -0.404, "WFR": -0.694,
+        }, AFTER_THE_RUNS  # fmt: skip
+        held = positions[five].to_numpy()
+        assert (int((held != 0).sum()), int((held < 0).sum())) == (13, 9), AFTER_THE_RUNS
+        assert round(float(returns[five].to_numpy().sum()) * scale, 6) == 0.007524, AFTER_THE_RUNS
+        outside_cal = [s for s in returns.columns if s not in set(sources.universe("CAL"))]
+        assert round(float(returns[outside_cal].to_numpy().sum()) * scale, 6) == 0.012261
+        outside_u = [s for s in returns.columns if s not in set(sources.universe("U"))]
+        largest = returns[outside_u].where(positions[outside_u] != 0).stack().nlargest(5)
+        assert sorted(stock for _, stock in largest.index if stock in five) == ["AKS", "MWW", "WFR"]
+
     def test_the_contributions_by_why_a_stock_is_outside_u(self, sources, runs) -> None:
-        """The 13 whose ticker is not tied to the right company carry 0.64 of the universe effect.
+        """The 13 the checks cannot confirm as the right company carry 0.64 of the universe effect.
 
         They are the 9 outside CAL and the 4 reused tickers whose series holds
         another company's returns. The other 43 are the stocks of CAL whose
@@ -908,6 +938,49 @@ class TestTheWiring:
         pd.testing.assert_frame_equal(prices.raw_open, chans * 2)
         pd.testing.assert_frame_equal(prices.adjusted_close, sources.closes.loc[window, px])
         pd.testing.assert_frame_equal(prices.raw_close, sources.closes.loc[window, px] * 2)
+
+    def test_each_archive_run_reads_its_registered_prices_flags_and_stocks(
+        self, sources, monkeypatch
+    ):
+        """C, D, E1 and E5 each get the prices, the flags and the stocks issue 251 fixed.
+
+        The archive pins are what otherwise catch a run wired to the wrong
+        frame, and CI skips them. The raw frames here are twice the adjusted
+        ones, so a run handed the wrong basis gives the wrong opens.
+        """
+        prices = stand_in_prices(sources)
+        prices = replace(prices, raw_open=prices.raw_open * 2, raw_close=prices.raw_close * 2)
+        handed = []
+
+        def record(opens, closes, flags):
+            handed.append((opens, closes, flags))
+            return len(handed) - 1
+
+        # The stand-in carries no archive entries, and the guard has its own test above.
+        monkeypatch.setattr(pead_rerun, "guard_archive", lambda entries, frames, window: None)
+        monkeypatch.setattr(pead_rerun, "pead", record)
+        runs = pead_rerun.archive_runs(sources, prices)
+        assert sorted(runs) == ["C", "D", "E1", "E5"]
+        flags = {
+            "C": sources.flags,
+            "D": sources.flags,
+            "E1": sources.calendar_flags("R1"),
+            "E5": sources.calendar_flags("R5"),
+        }
+        bases = {
+            "C": (prices.adjusted_open, prices.adjusted_close),
+            "D": (prices.raw_open, prices.raw_close),
+            "E1": (prices.adjusted_open, prices.adjusted_close),
+            "E5": (prices.adjusted_open, prices.adjusted_close),
+        }
+        universes = {"C": "PX", "D": "PX", "E1": "U", "E5": "U"}
+        for name, call in runs.items():
+            opens, closes, got = handed[call]
+            stocks = sources.universe(universes[name])
+            assert list(opens.columns) == list(stocks), name
+            pd.testing.assert_frame_equal(opens, bases[name][0][stocks], obj=f"{name} opens")
+            pd.testing.assert_frame_equal(closes, bases[name][1][stocks], obj=f"{name} closes")
+            pd.testing.assert_frame_equal(got, flags[name][stocks], obj=f"{name} flags")
 
 
 class TestTheCalendarsAgainstChans:

@@ -10727,9 +10727,10 @@ here.
 
 ### The registration
 
-The comparison was registered on the issue before any number on these
-sources was seen, in
-[the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515).
+The comparison was registered on the issue before any of its runs, in
+[the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515),
+and that audit had already read both sources while planning, as its own
+"Already seen" list records.
 It fixes four universes.
 
 1. `ALL`, Chan's 497 stocks.
@@ -10967,8 +10968,8 @@ nothing.
    The 47 stocks of CAL with no checked series are the last two groups,
    with 103 trades adding 0.010803. With U's 441 stocks, 949 trades and
    0.043678, the groups sum to A's 0.066743. The stocks outside U carry 0.35
-   of it. The 13 whose ticker is not tied to the right company, the first two
-   groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
+   of it. The 13 whose tie to the right company the checks cannot confirm,
+   the first two groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
    2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of the
    universe effect on one day, and the largest of those trades is WFR short
    at 0.1108. Their mean trade is 0.007367 over 123 against 0.001808 over

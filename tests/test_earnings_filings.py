@@ -638,6 +638,38 @@ class TestTheCommittedTable:
         assert (max(passing), min(failing)) == (2, 72)
         assert max(passing) <= DAYS_ALLOWED < min(failing)
 
+    def test_five_left_out_left_the_fund_during_the_window(self, schedule) -> None:
+        """AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule of 2012-03-31.
+
+        Each company's own name, as the schedule of 2011-09-30 prints it, meets
+        exactly one holding there and none at 2011-12-31 or 2012-03-31, so all
+        five left the fund inside the window. ``check_cik`` returns "name" both
+        for a missing holding and for a name that matches none, so the outcome
+        codes alone cannot say which.
+        """
+        own = {
+            "AKS": "AK Steel Holding Corp.",
+            "CPWR": "Compuware Corp.",
+            "MWW": "Monster Worldwide Inc.",
+            "TLAB": "Tellabs Inc.",
+            "WFR": "MEMC Electronic Materials Inc.",
+        }
+
+        def holdings(report_date: str) -> list[str]:
+            path = earnings_filings.FILINGS_DIR / "ivv" / f"{report_date}.csv"
+            ivv = pd.read_csv(path, dtype=str, keep_default_na=False)
+            return list(ivv["name"])
+
+        def meets(name: str, names: list[str]) -> int:
+            return sum(bool(name_keys(name) & name_keys(other)) for other in names)
+
+        before, after = holdings("2011-09-30"), holdings("2011-12-31")
+        on_the_day = [name for name, _ in schedule]
+        counts = {
+            t: (meets(n, before), meets(n, after), meets(n, on_the_day)) for t, n in own.items()
+        }
+        assert counts == {t: (1, 0, 0) for t in own}
+
 
 class TestTheCommittedIndex:
     """``index.jsonl`` as the fetch of 2026-10-10 wrote it, from EDGAR that day."""

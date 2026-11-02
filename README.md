@@ -8125,8 +8125,9 @@ exploratory, and the runs on the archive's prices cannot be rerun by a reader.
 
 1. A filer check against EDGAR and a price-series check against Alpha
    Vantage drop 56 stocks, and they carry 0.023065 of A's 0.066743, 0.35 of
-   it, exactly A against A_U. The 13 whose ticker cannot be tied to the right
-   company, the 9 that fail the filer check and 4 reused tickers, carry
+   it, exactly A against A_U. The 13 whose tie to the right company the
+   checks cannot confirm, the 9 that fail the filer check and 4 reused
+   tickers, carry
    0.014787 of that, 0.64 of it. The other 43 fail because the archive does
    not hold their prices for the whole window under the ticker. Close to half
    of the 0.023065 comes on 2011-08-04.
@@ -8191,7 +8192,9 @@ for 2011-08-04 as the high A's longest drawdown starts from, or to
 figure's own numbers. The C, D, E1 and E5 figures, the vendor and basis
 effects, the interaction and every number in Lesson 4 are asserted only where
 the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
-them. Eight had no pin before it, and all were measured after the runs.
+them. `TestTheWiring` holds in CI that each of those runs reads its
+registered prices, flags and stocks. Nine had no pin before it, and all were
+measured after the runs.
 
 1. That A less A_U is exactly the trades of the 56 stocks outside U, and A
    less A_CAL exactly those of the 9 outside CAL, 0.012261 rounded from the
@@ -8226,9 +8229,17 @@ them. Eight had no pin before it, and all were measured after the runs.
    its returns differ from those of Chan's closes on 181 of the 294 days both
    hold, so it is another company's series. The 7 have no line in the
    archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
-   43 take 95 adding 0.008278, and the 13 that cannot be tied to the right
-   company, the 4 and the 9 outside CAL, take 28 adding 0.014787, 0.64 of
-   the universe effect.
+   43 take 95 adding 0.008278, and the 13 the checks cannot confirm, the 4
+   and the 9 outside CAL, take 28 adding 0.014787, 0.64 of the universe
+   effect.
+9. The five of the nine outside CAL that left the fund during the window,
+   AKS, CPWR, MWW, TLAB and WFR. Chan's closes for them fell 27 to 69
+   percent over it, A's 13 trades in them include 9 shorts, and they add
+   0.007524 of the nine's 0.012261. Three of the five largest trades outside
+   U are theirs, and
+   [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds
+   that each was in the fund's schedule of 2011-09-30 and in neither later
+   one.
 
 Its one figure is drawn from committed files only by
 [src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
