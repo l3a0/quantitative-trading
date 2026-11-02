@@ -6895,7 +6895,8 @@ lessons from Entry 36 of the replication log.
    volatility falls.
 3. No saved series reaches the window, so the front contract is rebuilt from
    the strip, and every change that differs from the save falls on the roll
-   row where the save's back-adjustment jumps.
+   row, where the save's change matches neither contract's own on 29 of 32
+   rolls.
 4. The rule was declared after about 90 scratch readings, and the
    fifth-contract reading that lands two of the book's figures is set aside.
 
@@ -6916,20 +6917,28 @@ Five groups of what it says are not pinned here.
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
    would be leveraged, and that Example 6.1's line moves up in some of the
-   figure's shaded stretches and down in others.
+   figure's shaded stretches and down in others, that a fit whose three
+   farthest prices are equal finds no roll among them, and that the strip
+   cannot say whether the exchange or the data vendor set those prices.
 4. Arithmetic the post takes between pinned figures in words: the 1.80 and
    1.20 that average return over volatility gives, the 64 window rows the
    2012-05-11 save does not cover, a third of γ as three times the month
    reading, 341 of 913 as the rows outside the 572, and the APR margins of
    0.000304 and 0.000225 over the save's 849 rows, each the difference of two
-   pinned APRs.
+   pinned APRs. The post also reads, in words, the three months between that
+   save's last day and the window's end, the change of about a quarter
+   between those two margins, and the margin of 0.000348 as far smaller than
+   the gap between the printed 2.5 and 1.7 percent.
    The figure's alt text reads its curves approximately too.
 5. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
-[tests/test_roll_momentum.py](tests/test_roll_momentum.py) or to
+[tests/test_roll_momentum.py](tests/test_roll_momentum.py), to
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, or to `TestTheWindow::test_its_figures` in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py) for Example 6.1's 1.4069
+percent, 1.187438 and 0.9851 percent on the 2012-05-11 save. Three had no pin
+before it.
 
 1. Example 6.1 holds all 25 tranches long on every one of the 913 window rows,
    so its returns are the rebuilt series' own.
@@ -6940,7 +6949,17 @@ for the figure's own numbers. Three had no pin before it.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) pins all three, and
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-pins the figure's lines and labels.
+pins the figure's lines and labels. The review before publishing pinned four
+more in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
+
+1. The spot's first day, 1995-08-10.
+2. The 185 window days, 2009-01-02 to 2009-09-29, on which the three farthest
+   contracts γ is fitted on share one price, and the 169 flat rows whose
+   position was set on one of them.
+3. The 29 of 32 rolls on which the save's change on row L − 7 matches neither
+   contract's own, and the 1.366491 percent and 1.789044 that a roll on row
+   L − 8 gives the declared rule.
+4. The APR margin turning negative at thresholds of 0.029 and 0.032.
 
 Its one figure is drawn from the committed strip by
 [src/chan/roll_momentum_figures.py](src/chan/roll_momentum_figures.py), which

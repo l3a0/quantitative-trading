@@ -1,9 +1,11 @@
 """The pins for TU momentum traded on the lagged roll return, *Algorithmic Trading*'s location 2690.
 
 This file is the single authority for every number a prose surface quotes
-about this experiment and the rows beside it, with one exception.
+about this experiment and the rows beside it, with two exceptions.
 ``blog/roll-momentum-lessons.md`` also quotes its figure's numbers, which
-``tests/test_roll_momentum_figures.py`` holds, and claims no test asserts,
+``tests/test_roll_momentum_figures.py`` holds, and Example 6.1's figures on
+the 2012-05-11 save, which ``TestTheWindow::test_its_figures`` in
+``tests/test_tu_momentum.py`` holds. It also quotes claims no test asserts,
 which README lists. ``docs/replication-log.md``
 Entry 36 carries the verdicts and points here row by row. The rows are the ones
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353) declared
@@ -14,8 +16,8 @@ unless it names the second vintage, so both are stated once here and carried
 in each figure's failure message as :data:`SPEC`.
 
 - **Vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
-  2012-08-14, 93 contracts and ``TU-SPOT`` over 5,565 days from 1990-06-22 to
-  2012-08-13, read through ``chan.roll_returns.load_strip``. Its identity is
+  2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to 2012-08-13 and
+  ``TU-SPOT`` from 1995-08-10, read through ``chan.roll_returns.load_strip``. Its identity is
   its row of ``LIFTED_SOURCES`` in ``tests/support/committed_vintages.py``.
 - **The second vintage.** ``inputdataohlcdaily_20120511/tu.csv``, chan-mat,
   adjusted, saved 2012-05-12, 2,000 days from 2004-06-01 to 2012-05-11, read
@@ -279,10 +281,12 @@ class TestTheVintage:
         assert strip.contracts.shape[1] == 93
         assert strip.spot.name == "TU-SPOT"
 
-    def test_it_holds_5565_days_from_1990_06_22(self, result) -> None:
+    def test_it_holds_5565_days_from_1990_06_22(self, strip, result) -> None:
+        """The contracts start on 1990-06-22 and the spot only on 1995-08-10."""
         assert len(result.days) == 5565
         assert str(result.days[0].date()) == "1990-06-22"
         assert str(result.days[-1].date()) == "2012-08-13"
+        assert str(strip.spot.first_valid_index().date()) == "1995-08-10"
 
     def test_the_window_is_913_rows_to_the_file_s_last(self, result) -> None:
         days = result.window_days
@@ -361,6 +365,36 @@ class TestTheRebuildAgainstTheSave:
             found = check_against_save(strip, result, moved)
             assert found.beyond_rounding == 32
             assert found.beyond_rounding_on_jump_row == 30
+
+    def test_the_save_does_not_say_which_contract_earns_row_l_minus_7(
+        self, strip, result, save
+    ) -> None:
+        """On 29 of the 32 rolls the save's change on row L − 7 matches neither contract's own.
+
+        So the save fixes rows L − 8 and L − 6 and leaves row L − 7 open. Giving
+        that row to the new contract, a roll 8 rows before the last price, moves
+        the declared rule to 1.366491 percent and 1.789044.
+        """
+        closes = save[1]
+        contracts = strip.contracts
+        prices = contracts.to_numpy(dtype=float)
+        span = np.asarray(result.days.isin(closes.index))
+        rows = np.flatnonzero(span)[1:]
+        change = dict(zip(rows, np.diff(closes.to_numpy(dtype=float))))
+        held = module._held_columns(contracts, ROLL_ROWS)
+        last = module._last_priced_rows(contracts)
+        jump = [t for t in rows if held[t] >= 0 and last[held[t]] - t == ROLL_ROWS]
+        neither = sum(
+            all(
+                abs(change[t] - (prices[t, c] - prices[t - 1, c])) > SAVE_ROUNDING
+                for c in (held[t], held[t] + 1)
+            )
+            for t in jump
+        )
+        assert (len(jump), neither) == (32, 29)
+        eight = roll_momentum(strip, roll_rows=8)
+        assert 100 * eight.figures.apr == pytest.approx(1.366491, abs=5e-7), SPEC
+        assert eight.figures.sharpe == pytest.approx(1.789044, abs=5e-7), SPEC
 
     def test_the_save_s_span_holds_32_rolls(self, strip, save) -> None:
         """The held contract changes 32 times, so 30 of the 32 jump rows differ beyond rounding.
@@ -442,6 +476,14 @@ class TestTheComparisonMargins:
         assert apr == pytest.approx(0.000348, abs=5e-7), SPEC
         assert sharpe == pytest.approx(0.606606, abs=5e-7), SPEC
         assert drawdown == pytest.approx(0.001868, abs=5e-7), SPEC
+
+    def test_the_apr_margin_turns_negative_at_2_9_and_3_2_percent(self, result) -> None:
+        """Only the APR margin's sign is at stake, so a threshold either side of 0.03 is enough."""
+        example = result.example_figures.apr
+        for threshold in (0.029, 0.032):
+            position = roll_position(*roll_signals(result.gamma, threshold))
+            moved = rule_returns(position, result.market)[result.window]
+            assert tu_momentum.figures(moved).apr < example, threshold
 
     def test_row_4_s_margin_is_about_the_rebuild_s_own_error(self, check) -> None:
         """0.035 points of APR, against the 0.031 the rebuild and the save part by over 849 rows."""
@@ -541,6 +583,26 @@ class TestTheRowsBeside:
         for day in ("2009-01-02", "2009-01-05", "2009-01-06"):
             assert abs(gamma.loc[day]) < 1e-13
         assert result.held_position[0] == 0
+
+    def test_the_far_three_contracts_share_one_price_on_185_days(self, strip, result) -> None:
+        """The 3rd, 4th and 5th fitted contracts carry one price on 185 window days.
+
+        They run from 2009-01-02 to 2009-09-29, and 169 of the 341 flat rows take
+        their position, set the row before, from a γ fitted on one of those days.
+        """
+        prices = strip.contracts.to_numpy(dtype=float)
+        one = np.zeros(len(prices), dtype=bool)
+        for t, row in enumerate(prices):
+            nearest = roll_returns._nearest_adjacent(row)
+            if nearest is not None:
+                third, fourth, fifth = row[nearest[2:]]
+                one[t] = third == fourth == fifth
+        window = result.window
+        assert int(one[window].sum()) == 185
+        days = result.days[window & one]
+        assert (str(days[0].date()), str(days[-1].date())) == ("2009-01-02", "2009-09-29")
+        set_on = one[np.flatnonzero(window) - 1]
+        assert int((set_on & (result.held_position == 0)).sum()) == 169
 
     def test_gamma_has_no_nan_in_the_window(self, result) -> None:
         """So the NaN-as-false comparison never decides a window row."""

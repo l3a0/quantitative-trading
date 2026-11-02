@@ -50,8 +50,9 @@ rebuilds it from the strip. With L a contract's last priced row, row t earns
 and has L − t ≥ 7, where a contract still priced on the file's last row counts
 as never expiring. The old contract therefore earns through row L − 7 and the
 new one from row L − 6. That roll row was read from the 2012-05-11 save, which
-follows the old contract through L − 8 and the new one from L − 6 and jumps by
-the adjustment on L − 7. :func:`adjusted_level` adds up the same contract's
+follows the old contract through L − 8 and the new one from L − 6. Its change
+on L − 7 matches neither contract's own on 29 of 32 rolls, so the save leaves
+that one row open. :func:`adjusted_level` adds up the same contract's
 price changes, which is what Example 6.1's signal reads.
 :func:`check_against_save` sets the rebuild against that save over the 1,999
 changes they share, and ``tests/test_roll_momentum.py`` pins how closely they
@@ -71,8 +72,8 @@ arithmetic.
 the day before, the farthest of the five γ is fitted on, lands nearer the
 book than the declared rule does. It came out of the scratch search, and a
 scratch fit of γ on the four nearest contracts, which no test here repeats,
-lowered its Sharpe ratio. So the match leans on γ moving against the traded
-contract's own price that day. :func:`fifth_contract_returns` computes it for
+lowered its Sharpe ratio. So the match may lean on γ moving against the traded
+contract's own price that day, a candidate explanation rather than a finding. :func:`fifth_contract_returns` computes it for
 one row beside the replication, and it is never the verdict.
 
 **Nothing is ported.** No script ships for location 2690, and the sibling
@@ -80,8 +81,8 @@ search on the issue found no roll-return signal to bring over. Everything
 reused comes from this repo's own modules.
 
 **The vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
-2012-08-14, 93 contracts and ``TU-SPOT`` over 5,565 days from 1990-06-22 to
-2012-08-13, read through :func:`chan.roll_returns.load_strip`, which runs the
+2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to 2012-08-13 and
+``TU-SPOT`` from 1995-08-10, read through :func:`chan.roll_returns.load_strip`, which runs the
 scale-break guard on each member's own rows. The 2012-05-11 save is read
 through :func:`chan.tu_momentum.read_sources`, which guards TU over its span.
 Every return here is taken within one contract, so no window-level guard call
