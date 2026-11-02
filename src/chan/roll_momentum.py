@@ -11,16 +11,17 @@ from January 2, 2009, to August 13, 2012, with a reduced maximum drawdown of
 1.1 percent". No script ships for it, so the rule below is a declaration
 rather than a transcription. It landed here for
 [issue 353](https://github.com/l3a0/quantitative-trading/issues/353). The book
-prints no chart for it, and :mod:`chan.roll_momentum_figures` draws the post's
-figure from this run.
+prints no chart for it, so :mod:`chan.roll_momentum_figures` draws the post's
+figure from this run, and :mod:`chan.roll_momentum_whiteboard` its two
+whiteboard sketches.
 
 **The declared rule.** Five choices, each from the issue's plan.
 
 1. γ is :func:`chan.roll_returns.roll_returns` on the TU strip, Example 5.3's
    fit in the script's column units. :func:`chan.roll_returns.roll_returns_in_months`
    is a third of it on every row of TU, to rounding, because every contract is a quarter from the
-   next, and it never reaches 0.03 in the window. So the column units are what
-   the data allows rather than a preference.
+   next, and it never reaches 0.03 in the window. So the rule reads column units
+   because a rule on months would never trade in the window.
 2. :func:`roll_signals` reads today's γ: ``longs = γ > 0.03`` and
    ``shorts = γ < −0.03``, both strict, with a NaN comparison false.
 3. The position is ``longs − shorts`` and the return is
@@ -35,12 +36,14 @@ figure from this run.
    or less and is set against the book's 1.1 percent as −100 times itself.
 
 **The declaration came after the scratch runs.** The issue said these choices
-had to be declared before any figure was computed, and that did not happen.
-Two scratch runs read about 90 variants first, across lags, held contracts,
-units, thresholds and roll rules. The declaration therefore rests on prior
-grounds the runs did not choose: Example 6.1's convention for the lag, Example
-6.1's series for what the position earns, and the 2012-05-11 save for the roll
-row. Rows 1 to 3 miss the book under it, and the run tries no second rule.
+had to be declared before any figure was computed, and that did not happen. Two
+scratch runs read about 90 variants first, across lags, held contracts, units,
+thresholds and roll rules. The declaration therefore rests on prior grounds the
+runs did not choose: Example 6.1's convention for the lag, Example 6.1's series
+for what the position earns, and the 2012-05-11 save for the roll row, to
+within one row. The column units are not among those grounds, because point 1's
+reason for them is read from the strip the rule is tested on. Rows 1 to 3 miss
+the book under the declared rule, and the run tries no second rule.
 
 **The rebuild and its check.** The position earns Example 6.1's series, the
 continuous front-contract close. No committed save of that series covers the
@@ -49,10 +52,14 @@ rebuilds it from the strip. With L a contract's last priced row, row t earns
 ``close(t) / close(t−1) − 1`` of the nearest contract that was priced at t−1
 and has L − t ≥ 7, where a contract still priced on the file's last row counts
 as never expiring. The old contract therefore earns through row L − 7 and the
-new one from row L − 6. That roll row was read from the 2012-05-11 save, which
-follows the old contract through L − 8 and the new one from L − 6 and jumps by
-the adjustment on L − 7. :func:`adjusted_level` adds up the same contract's
-price changes, which is what Example 6.1's signal reads.
+new one from row L − 6. The 2012-05-11 save fixes that roll to within one row.
+Its changes are the old contract's own through L − 8 and the new one's from
+L − 6, and on L − 7 it already holds the new contract's close plus the shift it
+holds on L − 6. Its change on L − 7 matches neither contract's own on 29 of 32
+rolls, so the save leaves open which contract earns that row, and the rebuild
+gives it to the old contract.
+:func:`adjusted_level` adds up the same contract's price changes, which is what
+Example 6.1's signal reads.
 :func:`check_against_save` sets the rebuild against that save over the 1,999
 changes they share, and ``tests/test_roll_momentum.py`` pins how closely they
 agree and that every change differing by more than the save's rounding falls on
@@ -69,19 +76,23 @@ arithmetic.
 
 **The fifth-contract reading is set aside.** Holding the fifth contract priced
 the day before, the farthest of the five γ is fitted on, lands nearer the
-book than the declared rule does. It came out of the scratch search, and a
-scratch fit of γ on the four nearest contracts, which no test here repeats,
-lowered its Sharpe ratio. So the match leans on γ moving against the traded
-contract's own price that day. :func:`fifth_contract_returns` computes it for
-one row beside the replication, and it is never the verdict.
+book than the declared rule does. It came out of the scratch search. The match
+may lean on γ moving against the traded contract's own price that day, but a
+fit of γ on the four nearest contracts, which leaves that contract out, lowers
+the declared rule's Sharpe ratio more than this reading's, though the declared
+rule's contract stays in the fit. So that explanation is a candidate rather
+than a finding, and ``TestTheRowsBeside::test_a_fit_on_four_contracts_lowers_both_rules``
+holds both figures.
+:func:`fifth_contract_returns` computes it for one row beside the replication,
+and it is never the verdict.
 
 **Nothing is ported.** No script ships for location 2690, and the sibling
 search on the issue found no roll-return signal to bring over. Everything
 reused comes from this repo's own modules.
 
 **The vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
-2012-08-14, 93 contracts and ``TU-SPOT`` over 5,565 days from 1990-06-22 to
-2012-08-13, read through :func:`chan.roll_returns.load_strip`, which runs the
+2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to 2012-08-13 and
+``TU-SPOT`` from 1995-08-10, read through :func:`chan.roll_returns.load_strip`, which runs the
 scale-break guard on each member's own rows. The 2012-05-11 save is read
 through :func:`chan.tu_momentum.read_sources`, which guards TU over its span.
 Every return here is taken within one contract, so no window-level guard call
@@ -530,7 +541,10 @@ def report(
         f"{result.fifth_on_both_days_figures.sharpe:.6f}"
     )
     print()
-    print("  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices.")
+    print(
+        "  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices,"
+        " except the two lines marked on the save, which earn its adjusted close."
+    )
     print("  Exploratory. docs/replication-log.md Entry 36 carries the verdicts.")
 
 

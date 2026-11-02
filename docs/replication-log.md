@@ -831,7 +831,7 @@ one rebuilt series over one window with one arithmetic, was written on
 the scratch runs had measured it, though before the build, the order Entry
 13's row 10 allows when it is stated. The criterion reads the book's words
 with no margin, and a test pins each margin, because row 4's is about the
-size of the rebuild's own error. All three claims also hold on Chan's own
+size of the shift the rebuild puts in the declared rule's own APR. All three claims also hold on Chan's own
 2012-05-11 close over the rows it covers, under row 10. Rows 1 to 3 of the same entry are
 replications of printed figures under a rule declared after the scratch
 runs, so their verdicts name that rule.
@@ -8304,8 +8304,8 @@ Every row reads one vintage and one specification unless it names another, so
 both are stated once here.
 
 1. **The vintage.** `inputdatadaily_tu_20120813/`, vendor `chan-mat`, basis
-   `raw`, saved 2012-08-14, 93 contracts and `TU-SPOT` over 5,565 days from
-   1990-06-22 to 2012-08-13, read through `chan.roll_returns.load_strip`,
+   `raw`, saved 2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to
+   2012-08-13 and `TU-SPOT` from 1995-08-10, read through `chan.roll_returns.load_strip`,
    which runs the scale-break guard on each member's own rows. This strip is
    the only committed save that covers the book's window. Example 6.1 trades
    the continuous `TU` close of the OHLC saves, and those end in May 2012.
@@ -8332,15 +8332,17 @@ both are stated once here.
    on the rebuilt return. The level adds up the held contract's price changes,
    which is an additive back-adjustment.
 
-**The rule was declared after the scratch runs.** The issue said these
-choices had to be declared before any figure was computed. Two scratch runs
-read about 90 variants first, a count from the issue's disclosure that no
-test here pins, across lags, held contracts, units, thresholds
-and roll rules, and one of them came close to the book. The declaration rests
-on grounds the runs did not choose. The lag is Example 6.1's own convention,
-the series is the one the book says it revises, and the roll row was read off
-the 2012-05-11 save rather than chosen by any strategy figure. Row 14 is the
-reading that came close, and it is never the verdict.
+**The rule was declared after the scratch runs.** The issue said these choices
+had to be declared before any figure was computed. Two scratch runs read about
+90 variants first, a count from the issue's disclosure that no test here pins,
+across lags, held contracts, units, thresholds and roll rules, and one of them
+came close to the book. The declaration rests on grounds the runs did not
+choose. The lag is Example 6.1's own convention, the series is the one the
+book says it revises, and the 2012-05-11 save, rather than any strategy
+figure, fixes the roll to within one row. The unit of γ is not among those
+grounds, because row 13's reason for it is read from the strip the rule is
+tested on. Row 9 says which row the save leaves open and what the other choice
+gives. Row 14 is the reading that came close, and it is never the verdict.
 
 Every result here is **exploratory**. The declaration came after the
 readings, so this entry cannot count as a registered test of the roll-return
@@ -8373,49 +8375,56 @@ loaded.
 | 6 | Example 6.1's drawdown magnitude less the declared rule's, against −0.009167 | +0.001868 | the same |
 | 7 | none, the book's figures alone | n/a | `TestTheRowsBeside::test_the_book_s_own_comparison` |
 | 8 | Example 6.1's rule with the window cut before any series is computed | APR 0.008435, the signal live on 663 of 913 rows | `TestTheComparisonMargins::test_cutting_the_window_first_moves_example_6_1` |
-| 9 | the rebuild against `inputdataohlcdaily_20120511/tu.csv`, chan-mat, adjusted, saved 2012-05-12, over the 1,999 changes they share | return correlation 0.998359. 30 changes differ by more than 1.5e-4, all on row L − 7, and the span holds 32 rolls | `TestTheRebuildAgainstTheSave::test_the_two_agree_on_every_day_but_the_jump_row` and `::test_the_save_s_span_holds_32_rolls` |
+| 9 | the rebuild against `inputdataohlcdaily_20120511/tu.csv`, chan-mat, adjusted, saved 2012-05-12, over the 1,999 changes they share | return correlation 0.998359. 30 changes differ by more than 1.5e-4, all on row L − 7, and the span holds 32 rolls. On all 32, the save's close on row L − 7 is the new contract's plus the shift it holds on row L − 6. On 29 of the 32, the save's change on row L − 7 matches neither contract's own, and a roll on row L − 8 gives the declared rule 1.366491 percent and 1.789044 | `TestTheRebuildAgainstTheSave::test_the_two_agree_on_every_day_but_the_jump_row`, `::test_the_save_s_span_holds_32_rolls`, `::test_the_save_does_not_say_which_contract_earns_row_l_minus_7` and `::test_the_save_prints_the_new_contract_on_row_l_minus_7` |
 | 10 | both rules over the 849 window rows that save covers, on its own close and on the rebuild | the declared rule 1.437321 percent, 1.791969 and −0.807695 percent on the save, and 1.468184 percent, 1.870808 and −0.729860 percent on the rebuild. Example 6.1 1.445672 percent, 1.250783 and −0.916666 percent on the rebuild, and Entry 33's row 12 on the save | `TestTheRowsBeside::test_the_revised_rule_on_the_save_s_own_close`, `::test_both_rules_on_the_rebuild_over_the_same_rows` and `::test_example_6_1_on_the_save_is_entry_33_s_pin` |
 | 11 | the position each window row earns on | long on 572 of 913 rows, 62.65 percent, short on 0, 21 changes | `TestTheRowsBeside::test_the_rule_is_long_or_flat_and_never_short` |
-| 12 | γ on the last day before the window and its first three days | 0.0161092 on 2008-12-31, and below 1e-13 in size on 2009-01-02, 01-05 and 01-06 | `TestTheRowsBeside::test_the_window_starts_flat` |
+| 12 | γ on the last day before the window and its first three days, and the days the third, fourth and fifth fitted contracts share one price | 0.0161092 on 2008-12-31, and below 1e-13 in size on 2009-01-02, 01-05 and 01-06. The three farthest contracts share one price on 185 of the 187 window days from 2009-01-02 to 2009-09-29, and 169 of the 341 flat rows take their position from a γ fitted on a row where they share one price, 2008-12-31 or one of the 185. TU's annual volatility on those 169 rows is 0.016727, and from 2009-10-01, once no position rests on those prices, the declared rule's Sharpe ratio is 1.845682 against Example 6.1's 1.428115 | `TestTheRowsBeside::test_the_window_starts_flat` and `::test_the_far_three_contracts_share_one_price_on_185_days`, and `TestWhatTheMarginsAreMadeOf::test_the_flat_rows_set_on_shared_prices_swing_more` and `::test_from_2009_10_01_no_position_rests_on_shared_prices` |
 | 13 | `roll_returns_in_months` under the same threshold, and γ's window mean | a third of γ on every row where γ is defined, a peak of 0.02447, flat on all 913 rows. γ's mean is 0.035943 | `TestTheRowsBeside::test_the_month_unit_gamma_never_trades` and `::test_gamma_has_no_nan_in_the_window` |
-| 14 | the declared position held on the fifth contract priced the day before, and on the fifth of those priced on both days | 0.024712, 2.144165 and −0.011583, and a Sharpe ratio of 1.957852 | `TestTheRowsBeside::test_the_fifth_contract_reading` |
+| 14 | the declared position held on the fifth contract priced the day before, and on the fifth of those priced on both days, and both rules with γ fitted on the four nearest contracts | 0.024712, 2.144165 and −0.011583, and a Sharpe ratio of 1.957852, with the six window rows where no fifth contract is priced on both days earning 0, three of them on a long position (leaving them out gives 1.964416), and Sharpe ratios of 1.802262 for it and 1.429338 for the declared rule under the four-contract fit | `TestTheRowsBeside::test_the_fifth_contract_reading` and `::test_a_fit_on_four_contracts_lowers_both_rules` |
 
 ### The verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
-| 1 | −1.1 percent | did not reproduce | Under the declared rule, 1.3725 percent against 2.5. Chan's own close covers 849 of the 913 rows and lands near the rebuild under row 10, so the vintage explanation is not available. The 64 rows that save does not cover would have to carry the rest, and Entry 33's row 13 found TU's close the same on every day two saves share. A miss also cannot tell a different number from a different reading of location 2690, and the reading is part of the method. |
+| 1 | −1.1 percent | did not reproduce | Under the declared rule, 1.3725 percent against 2.5. Chan's own close covers 849 of the 913 rows and lands near the rebuild under row 10, so the vintage explanation is not available. The 64 rows that save does not cover would need about 4.2 percent between them to carry the rest, and earn 0.03 percent on the rebuild, which `TestTheRowsBeside::test_the_64_uncovered_days_cannot_carry_the_gap` holds. Entry 33's row 13 found TU's close the same on every day two saves share. A miss also cannot tell a different number from a different reading of location 2690, and the reading is part of the method. |
 | 2 | −0.3 | did not reproduce | Under the declared rule, 1.803348 against 2.1, for the reason row 1 gives. |
 | 3 | −0.4 percent | did not reproduce | Under the declared rule, a drawdown of 0.7299 percent against 1.1, for the reason row 1 gives. This miss runs the other way from rows 1 and 2, a shallower drawdown than the book printed. |
-| 4 | none, a claim | reproduced | 0.013725 against 0.013377. The margin, +0.000348, is about the size of the rebuild's own error, since the rebuild's APR over row 10's 849 rows sits 0.000309 above the save's, which `TestTheComparisonMargins::test_row_4_s_margin_is_about_the_rebuild_s_own_error` holds. The claim holds on the save's own close as well, 1.437321 percent against Entry 33's 1.4069. |
-| 5 | none, a claim | reproduced | 1.803348 against 1.196742, and 1.791969 against 1.187438 on the save. |
-| 6 | none, a claim | reproduced | −0.007299 against −0.009167, and −0.807695 percent against −0.9851 percent on the save. |
+| 4 | none, a claim | reproduced | 0.013725 against 0.013377. The margin, +0.000348, is about the size of the shift the rebuild puts in the declared rule's own APR, 0.000309 over row 10's 849 rows, which `TestTheComparisonMargins::test_row_4_s_margin_is_about_the_rebuild_s_shift_in_the_apr` holds. The margin itself moves less, from 0.000304 on the save to 0.000225 on the rebuild, since both rules earn the same prices. A threshold of 0.029 or 0.032 instead of 0.03 turns it negative, which `::test_the_apr_margin_turns_negative_at_2_9_and_3_2_percent` holds. The claim holds on the save's own close as well, 1.4373 percent against Entry 33's 1.4069. |
+| 5 | none, a claim | reproduced | 1.803348 against 1.196742, and 1.791969 against 1.187438 on the save. A threshold of 0.028 turns it negative, and rows 4 and 6 with it, which `TestTheComparisonMargins::test_all_three_margins_turn_negative_at_2_8_percent` holds. At 0.027 and 0.029 it is positive again, which `::test_the_sharpe_margin_is_positive_either_side_of_2_8_percent` holds. |
+| 6 | none, a claim | reproduced | −0.007299 against −0.009167, and −0.8077 percent against −0.9851 percent on the save. |
 | 7 | none | none, not a replication | The book's 2.5 percent, 2.1 and 1.1 percent are higher, higher and smaller than Example 6.1's printed 1.7 percent, 1 and 2.5 percent. Those sit on 2004-06-01 to 2012-05-11 rather than this window, so the book's own sentence compares two windows, which is why rows 4 to 6 run both rules on one. |
 | 8 | none | none, not a replication | Cutting first leaves Example 6.1's 250-day signal off for the window's first 250 rows, so rows 4 to 6 would compare against a rule that is not trading for much of the window. |
-| 9 | none | none, not a replication | The save follows the same contracts as the rebuild on every row but row L − 7, where its back-adjustment jumps and the rebuild takes a return within one contract instead. |
-| 10 | none | none, not a replication | The rebuild's error over these rows is a small part of the gap to the book. |
+| 9 | none | none, not a replication | The save's daily changes match the rebuild's within rounding on every row but 30 of the 32 rows L − 7, where the rebuild takes the old contract's return. On 29 of the 32 rolls the save's change on that row matches neither contract's own, so the save fixes rows L − 8 and L − 6 and leaves open which contract earns row L − 7. |
+| 10 | none | none, not a replication | The rebuild moves each figure over these rows by a small part of the gap to the book. |
 | 11 | none | none, not a replication | γ stays above about 0 in the window, so the rule is long or flat and never short. |
-| 12 | none | none, not a replication | All five contracts share one price on the three days, so γ is about 0 there and the window opens flat. |
+| 12 | none | none, not a replication | All five contracts share one price on the three days, so γ is about 0 there and the window opens flat. Those days fall inside a longer pattern, from before the window through 2009-09-29, in which the three farthest of the five share one price on all but two of the window days in it, and that price changes from day to day, so the fit finds no roll among them. The strip cannot say whether the exchange or the vendor priced them so. |
 | 13 | none | none, not a replication | Every contract is a quarter from the next, so the month reading divides γ by 3 and never reaches the threshold. That is why the declared rule reads γ in column units. |
-| 14 | none | none, not a replication | Lands 2.5 percent and 2.1 at the book's precision, and misses the 1.1 percent drawdown. It came out of the scratch search, and a scratch fit of γ on the four nearest contracts, which no test here repeats, gave it a Sharpe ratio of 1.801. So the match leans on γ moving against the held contract's own price. |
+| 14 | none | none, not a replication | Lands 2.5 percent and 2.1 at the book's precision, and misses the 1.1 percent drawdown. It came out of the scratch search. A fit of γ on the four nearest contracts, which leaves the held contract out of the fit, lowers its Sharpe ratio to 1.802262 and the declared rule's further, from 1.803348 to 1.429338, though the front contract is in both fits. So the fall does not single out the held contract, and the fit's own use of the held contract's price stays a candidate explanation rather than a finding. |
 
 ### What the entry concludes
 
 Three things.
 
-1. **The roll-return signal beats Example 6.1's on TU, by little on the
-   APR.** Rows 4 to 6 hold on the rebuild and on Chan's own close. The Sharpe
-   ratio's margin is the large one. Row 4's margin is about the size of the
-   rebuild's own error, so the APR half of the claim is the weakest of the
-   three. In this window Example 6.1 holds all 25 tranches long on every
+1. **The declared rule beats Example 6.1's on TU over this window, by
+   little on the APR.** Rows 4 to 6 hold on the rebuild and on Chan's own
+   close. The Sharpe ratio's margin is the large one at the book's threshold,
+   and at 0.028 all three margins turn negative, the Sharpe ratio's included,
+   though at 0.027 and 0.029 the Sharpe ratio's margin is positive again.
+   Row 4's margin moves by
+   about a quarter between the save and the rebuild over row 10's rows, and a
+   threshold of 0.029 or 0.032 turns it negative, so the APR half of the
+   claim is the weakest of the three. No test here asks whether any margin
+   is larger than day-to-day noise could produce. In this window Example 6.1 holds all 25 tranches long on every
    row, so it is holding TU, and the declared rule is that position with 341
    rows taken out, which `TestWhatTheMarginsAreMadeOf` holds.
-2. **The declared rule lands none of the book's figures, and the reading
-   that comes close is suspect.** Row 14 lands two of rows 1 to 3 by holding a
-   contract γ is fitted on. A scratch fit that left that contract out fell to
-   a Sharpe ratio of 1.801, which no test here repeats. So the fit's own use
-   of the held contract's price is a candidate for what lifts row 14, not a
-   finding, and the entry cannot say which reading Chan held.
+2. **The declared rule lands none of the book's figures, and the reading that
+   comes close came out of the scratch search.** Row 14 lands two of rows 1 to
+   3 by holding the fifth contract, the farthest of the five γ is fitted on. A
+   fit that leaves that contract out lowers its Sharpe ratio to 1.802262, but
+   lowers the declared rule's further, to 1.429338, though the declared rule's
+   contract stays in the fit. So the fit's own use of the held contract's
+   price is a candidate for what lifts row 14, not a finding, and the entry
+   cannot say which reading Chan held.
 3. **The book's comparison spans two windows.** Example 6.1's printed figures
    run from 2004 and these from 2009. On one window the declared rule's APR
    margin is 0.000348, far smaller than the gap between the printed 2.5 and
@@ -8430,9 +8439,10 @@ Three things.
 test would fix the rule first and read data this search never loaded.
 
 **What Chan held.** No script ships for location 2690, and the book does not
-say how far the roll return is lagged or which price the position earns. Row
-14 shows a reading that lands near the book, and choosing it after its number
-was seen would be a search.
+say how far the roll return is lagged, which series the position earns, or
+whether its annualized threshold applies to γ in the script's column units or
+in months. Row 14 shows a reading that lands near the book, and choosing it
+after its number was seen would be a search.
 
 **What a trader would earn.** The returns are on the notional value of one
 contract with no cost and no margin, as in Entry 33.
@@ -8442,6 +8452,17 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/roll-momentum-lessons.md](../blog/roll-momentum-lessons.md) moves with
 it, since that post quotes most of these figures. So does its one figure,
 which `uv run python -m chan.roll_momentum_figures` redraws.
+Its two whiteboard sketches move too, and
+`uv run python -m chan.roll_momentum_whiteboard` redraws them. The one in
+Lesson 2 prints the 341 flat and 572 long rows, TU's compounded −0.001244 and
+0.050629 over them, and each rule's average annual return over its annual
+volatility, 0.013661 / 0.007575 = 1.80 and 0.013351 / 0.011156 = 1.20. Its
+ticks are schematic. The one in Lesson 3 draws the March 2012 roll. The
+rebuild earns March through 2012-03-21 and June from 2012-03-22. The
+2012-05-11 save sits 0.1407 below March's close on 2012-03-20 and equals
+June's close on 2012-03-21, where its change of +0.0625 matches neither
+March's own +0.0547 nor June's own +0.0546. It closes on the 30 of 1,999
+changes that differ beyond rounding, all at 7 trading days to a last price.
 
 ## Entry 37: three hypothesis tests on TU momentum, Chan's *Algorithmic Trading*
 

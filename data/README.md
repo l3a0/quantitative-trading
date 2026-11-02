@@ -1437,7 +1437,7 @@ the measurements below.
    ```
 
 2. **The series are rewritten between saves, and recorded as `adjusted`.**
-   How they are rewritten was measured for CL alone. On 2008-05-19 the 2012-05-04 save's CL closes at 175.48, where the CL front
+   How they are rewritten was measured for CL and TU. On 2008-05-19 the 2012-05-04 save's CL closes at 175.48, where the CL front
    contract in Chan's `inputDataDaily_CL_20120502.mat` settles at 127.05, and
    by 2012-04-10 the gap is 0.51. Of the 998 days the two share, the save
    equals the front contract on 8. The contract file is committed above as
@@ -1445,7 +1445,14 @@ the measurements below.
    in [tests/test_continuous_futures.py](../tests/test_continuous_futures.py)
    pins all four figures against it. That is the price back-adjustment Chan's
    Chapter 5 describes, which shifts the history by each roll's gap rather
-   than rescaling it. Between the 2012-05-07 and 2012-05-11 saves, CL and QM
+   than rescaling it. TU's 2012-05-11 save is each contract's close plus one
+   constant per contract, within rounding, and it takes the new contract's
+   price on the seventh trading day before the old contract's last price. On
+   29 of its 32 rolls the change on that day matches neither contract's own,
+   so the step from one constant to the next is not the gap between the two
+   contracts on that day or the day before. `TestTheRebuildAgainstTheSave` in
+   [tests/test_roll_momentum.py](../tests/test_roll_momentum.py) pins both.
+   Between the 2012-05-07 and 2012-05-11 saves, CL and QM
    each move by one constant on every shared day, which is what a roll falling
    between two saves does to such a series. 46 of the other symbols do not move
    at all. C, ES, GC and VX change by neither one constant nor one factor, so

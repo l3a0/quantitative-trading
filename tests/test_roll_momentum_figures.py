@@ -8,8 +8,8 @@ labels are prose and the suite is the authority for every number prose quotes.
 No test compares bytes, for the reason ``tests/test_regime_figure.py`` gives.
 
 - **Vintage.** ``inputdatadaily_tu_20120813/``, chan-mat, raw, saved
-  2012-08-14, 93 contracts and ``TU-SPOT`` over 5,565 days from 1990-06-22 to
-  2012-08-13, read through ``chan.roll_returns.load_strip``. The figure reads
+  2012-08-14, 93 contracts over 5,565 days from 1990-06-22 to 2012-08-13 and
+  ``TU-SPOT`` from 1995-08-10, read through ``chan.roll_returns.load_strip``. The figure reads
   no second vintage.
 - **Specification.** The declared rule in :mod:`chan.roll_momentum`'s
   docstring, as ``tests/test_roll_momentum.py`` states it. γ is

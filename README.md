@@ -1257,8 +1257,10 @@ each claim's margin, the rebuild against the 2012-05-11 save, both rules on
 that save's own close, and the month-unit and fifth-contract readings. It
 also holds the declared rule and the roll's off-by-one on synthetic strips,
 the March 2012 roll, and the scale-break guard on every member's own rows.
-The blog post about it is the exception, and what it says that nothing here
-asserts is listed below.
+`TestWhatThePostQuotes` reads at least one copy in the post of each run figure
+the post quotes outside the sketches' alt texts, and both of its tables whole,
+so editing a copy it reads fails. What the post says that nothing here asserts
+is listed below.
 
 [tests/test_tu_hypothesis_tests.py](tests/test_tu_hypothesis_tests.py) does it
 for Example 1.1's three hypothesis tests on TU. It pins every count exactly at
@@ -6889,47 +6891,72 @@ lessons from Entry 36 of the replication log.
 1. The declared rule misses all three printed figures, and Chan's 2012-05-11
    save lands near the rebuilt series, so the vintage does not explain the
    miss on the 849 window days that save covers.
-2. It beats Example 6.1 on all three on one series, by stepping aside. Example
-   6.1 is fully long on every window row, so it is holding TU, and the 341
-   rows the declared rule sits out compound to about nothing while its
-   volatility falls.
-3. No saved series reaches the window, so the front contract is rebuilt from
-   the strip, and every change that differs from the save falls on the roll
-   row where the save's back-adjustment jumps.
-4. The rule was declared after about 90 scratch readings, and the
-   fifth-contract reading that lands two of the book's figures is set aside.
+2. It beats Example 6.1 on all three on one series, by stepping aside, at the
+   book's 3 percent threshold. At 2.8 percent it loses all three, though at 2.7
+   and 2.9 percent its Sharpe ratio still wins. Example 6.1 is fully long on
+   every window row, so it is holding TU, and the 341 rows the declared rule
+   sits out compound to about nothing while its volatility falls.
+3. No file this repository keeps follows the front contract to the window's
+   end, so a front-contract series is rebuilt from the strip, and every change
+   that differs from the save by more than rounding falls on the roll row,
+   where the save's change matches neither contract's own on 29 of 32 rolls.
+4. The rule was declared after about 90 scratch readings, so every result is
+   exploratory, and the fifth-contract reading that lands two of the book's
+   figures is set aside.
 
 Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   Example 5.3's regression on "time to maturity" is at 2399. "A respectable
-   1", the 1.7 and 2.5 percent, and TU's notional value of about $200,000
-   against a margin of about $400 are at 2668. "The sign of roll returns does
-   not vary very often" is at 2683. "A cleaner and potentially better momentum
-   signal", the 3 percent threshold, and the 2.5 percent, 2.1 and 1.1 percent
-   are at 2690. The book's figures are pinned, and its words are not.
-2. Facts from the run's own disclosure rather than the data: the count of
-   about 90 scratch readings, and the 1.801 a scratch fit of γ on the four
-   nearest contracts gave the fifth-contract reading. No test repeats either.
+   Example 5.3's regression on "time to maturity" is at 2399. Example 6.1's
+   window of June 1, 2004, to May 11, 2012, "a respectable 1", the 1.7 and 2.5
+   percent, and TU's notional value of about $200,000 against a margin of
+   about $400 are at 2668. "The sign of roll returns does not vary very often"
+   is at 2683. "A cleaner and potentially better momentum signal", the 3
+   percent threshold, and the 2.5 percent, 2.1 and 1.1 percent from January 2,
+   2009, to August 13, 2012, are at 2690. The book's figures are pinned, and
+   its words are not.
+2. Facts from the run's own disclosure rather than the data: the two scratch
+   runs, their count of about 90 readings, that they had already found the
+   declared rule beating Example 6.1's on all three figures, and that the
+   fifth-contract reading came out of them. No test repeats any of them.
 3. Readings no test asserts: that a low close on the fifth contract would
    raise γ and put the rule long the same contract, that Example 6.1 would go
    short in a window where TU fell, that a position on TU's notional value
    would be leveraged, and that Example 6.1's line moves up in some of the
-   figure's shaded stretches and down in others.
-4. Arithmetic the post takes between pinned figures in words: the 1.80 and
-   1.20 that average return over volatility gives, the 64 window rows the
-   2012-05-11 save does not cover, a third of γ as three times the month
-   reading, 341 of 913 as the rows outside the 572, and the APR margins of
-   0.000304 and 0.000225 over the save's 849 rows, each the difference of two
-   pinned APRs.
-   The figure's alt text reads its curves approximately too.
-5. Its references, cited rather than computed.
+   figure's shaded stretches and down in others, that a fit whose three
+   farthest prices are equal finds no roll among them, and that the strip
+   cannot say whether the exchange or the data vendor set those prices, and
+   that the strip is the only TU file in the repository's data that reaches
+   the window's end. Of the post's words for how the rebuild and the
+   fifth-contract variant pick a contract, only the rebuild's seven trading
+   days are read, though tests on the code hold both rules. The counts of the
+   post's own lists, such as its four lessons and three grounds, are read by
+   no test either.
+4. Arithmetic the post takes between pinned figures in words: the three
+   months between the 2012-05-11 save's last day and the window's end. The
+   post reads the APR margins' move from 0.000304 to 0.000225 as about a
+   quarter, as a fair share of the 0.000348, and as less than the 0.000309 by
+   which the rebuild moves the declared rule's own APR. It reads the margin of
+   0.000348 as far smaller than the gap between the printed 2.5 and 1.7
+   percent. The figure's alt text reads its curves approximately along the
+   way too, such as about 3.9 percent by late 2010, and only the curves' end
+   values and γ's rounded peak are checked.
+5. Its references, cited rather than computed, and what it says about them:
+   that *Algorithmic Trading* is Chan's second book, and that the roll returns
+   post reproduces the fit of γ on TU and four other futures.
 
 Every other number in the post traces to an assertion in
-[tests/test_roll_momentum.py](tests/test_roll_momentum.py) or to
+[tests/test_roll_momentum.py](tests/test_roll_momentum.py), to
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-for the figure's own numbers. Three had no pin before it.
+for the figure's own numbers, to
+[tests/test_roll_momentum_whiteboard.py](tests/test_roll_momentum_whiteboard.py)
+for the sketches' dates, price changes and twelve-second hold, and for the
+1.80 and 1.20 that average return over volatility gives, or to
+`TestTheWindow::test_its_figures` in
+[tests/test_tu_momentum.py](tests/test_tu_momentum.py) for Example 6.1's 1.4069
+percent, 1.187438 and 0.9851 percent on the 2012-05-11 save. Three had no pin
+before the post.
 
 1. Example 6.1 holds all 25 tranches long on every one of the 913 window rows,
    so its returns are the rebuilt series' own.
@@ -6940,7 +6967,40 @@ for the figure's own numbers. Three had no pin before it.
 
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py) pins all three, and
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
-pins the figure's lines and labels.
+pins the figure's lines and labels. The review before publishing pinned seven
+more groups of facts in [tests/test_roll_momentum.py](tests/test_roll_momentum.py).
+
+1. The spot's first day, 1995-08-10.
+2. The 185 of the 187 window days from 2009-01-02 to 2009-09-29 on which the
+   three farthest contracts γ is fitted on share one price, and the 169 flat
+   rows whose position was set on a row where they share one price, 2008-12-31
+   or one of the 185.
+3. TU's annual volatility of 0.016727 on those 169 rows, and the Sharpe ratios
+   of 1.845682 and 1.428115 from 2009-10-01, once no position rests on those
+   prices.
+4. The 29 of 32 rolls on which the save's change on row L − 7 matches neither
+   contract's own, the one on which it matches only the new contract's, the
+   save's close on row L − 7 being the new contract's plus its row L − 6
+   shift on all 32, and the 1.366491 percent and 1.789044 that a roll on row
+   L − 8 gives the declared rule.
+5. The APR margin turning negative at thresholds of 0.029 and 0.032, all
+   three margins at 0.028, and the Sharpe ratio's margin positive again at
+   0.027 and 0.029.
+6. The 64 days the 2012-05-11 save does not cover needing about 4.2 percent
+   between them to reach the book's APR, and earning 0.03 percent on the
+   rebuild.
+7. The Sharpe ratios of 1.802262 for the fifth-contract reading and 1.429338
+   for the declared rule when γ is fitted on the four nearest contracts. The
+   related reading takes the fifth contract priced both the day before and the
+   day it earns. No such contract exists on six window rows, three of them on
+   a long position, and leaving those six out raises its Sharpe ratio from
+   1.957852 to 1.964416.
+
+It also added `TestWhatThePostQuotes`, which reads from the post itself one
+copy of each run figure the post quotes outside the sketches' alt texts, at
+the precision the post prints, builds each fact of the declared rule the post
+states from the constant the run uses, and reads both of its tables whole.
+Its docstring names the copies it leaves unread.
 
 Its one figure is drawn from the committed strip by
 [src/chan/roll_momentum_figures.py](src/chan/roll_momentum_figures.py), which
@@ -6960,6 +7020,45 @@ uv run python -m chan.roll_momentum_figures
 [tests/test_roll_momentum_figures.py](tests/test_roll_momentum_figures.py)
 holds what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/roll_momentum_whiteboard.py](src/chan/roll_momentum_whiteboard.py)
+on the USD.CAD post's sketch machinery. Each sits after the text it draws. Both
+build more slowly than the USD.CAD post's sketches and hold their finished
+drawings for twelve seconds. Both draw in the post chart's colours. The first
+uses brown for Example 6.1's rule and green for the declared rule, and the
+second uses brown for Chan's continuous close, the series Example 6.1 trades.
+
+1. `roll_momentum_sketch_less_swing.gif`, in Lesson 2, draws a row of TU's
+   daily returns as ticks for Example 6.1's rule holding TU every day, and the
+   same row for the declared rule flattened in the stretches it sits out. Its
+   ticks and the number and places of its stretches are schematic, and the
+   share of ticks drawn flat is the nearest to the 341 of 913 window days that
+   48 ticks allow. It prints TU's compounded
+   −0.001244 over those 341 days and 0.050629 over the 572 long ones, and each
+   rule's average annual return over its annual volatility, 0.013661 /
+   0.007575 = 1.80 and 0.013351 / 0.011156 = 1.20.
+2. `roll_momentum_sketch_switch_day.gif`, in Lesson 3, draws the March 2012
+   roll on TU's trading days from 2012-03-19 to the March contract's last
+   price on 2012-03-30. The rebuild reads March through 2012-03-21 and June
+   from 2012-03-22. Chan's continuous close sits 0.1407 below March's close on
+   2012-03-20 and equals June's close on 2012-03-21, where its change of
+   +0.0625 matches neither March's own +0.0547 nor June's own +0.0546. It
+   closes on the 30 of 1,999 changes that differ beyond rounding, all at 7
+   trading days to a last price. Its days and numbers come from the run, and its rows
+   say which contract each series reads rather than drawing prices to scale.
+
+Redraw both with:
+
+```bash
+uv run python -m chan.roll_momentum_whiteboard
+```
+
+[tests/test_roll_momentum_whiteboard.py](tests/test_roll_momentum_whiteboard.py)
+holds what each draws, derives every count, date, price change and figure
+again from the run, and holds that each GIF follows its text in the post. Four
+of the second sketch's figures had no pin before it: the 0.1407 and the three
+changes on 2012-03-21.
 
 [blog/vx-calendar-spread-lessons.md](blog/vx-calendar-spread-lessons.md) is a
 thirty-second post, about the VIX futures calendar spread at location 2502 of
