@@ -3,8 +3,9 @@
 This file is the single authority for every number any prose surface quotes
 about [issue 526](https://github.com/l3a0/quantitative-trading/issues/526).
 ``docs/replication-log.md`` Entry 49 carries the verdict and points here.
-``blog/low-beta-holdout-lessons.md`` quotes most of these figures, so a change
-to an assertion here moves that post too. ``TestWhatThePostCounted`` and
+``blog/low-beta-holdout-lessons.md`` quotes most of these figures, and ``TestThePostQuotesTheRun`` reads one copy
+of each from the post, so a change to an assertion here fails until the post
+moves too. ``TestWhatThePostCounted`` and
 ``TestWhatThePostMeasured`` hold the numbers it added after the run.
 
 Every archive pin reads one set of vintages under one specification, so both
@@ -52,6 +53,7 @@ import dataclasses
 import hashlib
 import json
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -91,7 +93,16 @@ from chan.paths import DATA_DIR
 from chan.series import row_month_ends
 from chan.vintage import VintageUnavailable
 from tests.conftest import archive_skip_reason
-from tests.test_low_beta_leverage import DAYS, month_return, panel, rates, spy
+from tests.test_low_beta_leverage import (
+    DAYS,
+    by_formation,
+    dates,
+    month_return,
+    panel,
+    prose,
+    rates,
+    spy,
+)
 
 ENDS = DAYS[row_month_ends(DAYS)]
 FORMED = pd.Timestamp("2000-12-29")
@@ -600,30 +611,7 @@ class TestWhatThePostCounted:
         earlier company's prices stop inside the holding month and whose symbol
         resumes more than a year later with a different company.
         """
-        _, closes, _, spy, _, bills = read_sources()
-        p = build_portfolios(closes, spy, bills)
-        cut = closes.loc[closes.index.isin(spy.index)]
-        assert (cut.apply(pd.Series.last_valid_index) == cut.index[-1]).all(), AFTER_THE_RUN
-        stock = daily_excess(cut, bills).to_numpy()
-        market = daily_excess(spy.loc[cut.index].to_frame(), bills).to_numpy()[:, 0]
-        left_out = {}
-        resumed_late = {}
-        for formed, held_to, eligible in zip(p.formed, p.held_to, p.eligible, strict=True):
-            end = cut.index.get_loc(formed)
-            window = slice(end - BETA_DAYS + 1, end + 1)
-            gone = [
-                j
-                for j in np.flatnonzero(cut.loc[formed].notna() & cut.loc[held_to].isna())
-                if np.isfinite(fit_beta(stock[window, j], market[window]))
-            ]
-            if gone:
-                after_it = cut.iloc[cut.index.get_loc(held_to) + 1 :, gone]
-                assert after_it.notna().any().all(), formed
-                left_out[str(formed.date())] = (eligible + len(gone), eligible)
-                for j in gone:
-                    last = cut.iloc[: cut.index.get_loc(held_to), j].last_valid_index()
-                    if after_it.iloc[:, gone.index(j)].first_valid_index() - last > pd.Timedelta(days=365):
-                        resumed_late[cut.columns[j]] = str(formed.date())
+        left_out, resumed_late = chans_close_at_t_plus_1()
         assert left_out == {
             "2000-11-30": (454, 453),
             "2001-01-31": (455, 444),
@@ -638,6 +626,40 @@ class TestWhatThePostCounted:
             "DFS": "2005-10-31",
             "SE": "2005-10-31",
         }, AFTER_THE_RUN
+
+
+def chans_close_at_t_plus_1() -> tuple[dict[str, tuple[int, int]], dict[str, str]]:
+    """Each formation where issue 275's close at t + 1 left a stock out, and the late restarts.
+
+    The first map gives each such formation's eligible count with and without
+    the stocks left out. The second names each stock whose symbol resumes more
+    than a year after the close it lacked, with its formation.
+    """
+    _, closes, _, spy, _, bills = read_sources()
+    p = build_portfolios(closes, spy, bills)
+    cut = closes.loc[closes.index.isin(spy.index)]
+    assert (cut.apply(pd.Series.last_valid_index) == cut.index[-1]).all(), AFTER_THE_RUN
+    stock = daily_excess(cut, bills).to_numpy()
+    market = daily_excess(spy.loc[cut.index].to_frame(), bills).to_numpy()[:, 0]
+    left_out = {}
+    resumed_late = {}
+    for formed, held_to, eligible in zip(p.formed, p.held_to, p.eligible, strict=True):
+        end = cut.index.get_loc(formed)
+        window = slice(end - BETA_DAYS + 1, end + 1)
+        gone = [
+            j
+            for j in np.flatnonzero(cut.loc[formed].notna() & cut.loc[held_to].isna())
+            if np.isfinite(fit_beta(stock[window, j], market[window]))
+        ]
+        if gone:
+            after_it = cut.iloc[cut.index.get_loc(held_to) + 1 :, gone]
+            assert after_it.notna().any().all(), formed
+            left_out[str(formed.date())] = (eligible + len(gone), eligible)
+            for i, j in enumerate(gone):
+                last = cut.iloc[: cut.index.get_loc(held_to), j].last_valid_index()
+                if after_it.iloc[:, i].first_valid_index() - last > pd.Timedelta(days=365):
+                    resumed_late[cut.columns[j]] = str(formed.date())
+    return left_out, resumed_late
 
 
 # --- the archive pins ------------------------------------------------------------
@@ -1054,3 +1076,285 @@ class TestTheReport:
         assert "quite wary of using too much leverage" in out
         assert "skip amendment" in out and "this is a holdout" in out
         assert "as long as that edition prints it" in out
+
+
+POST = Path(__file__).resolve().parents[1] / "blog" / "low-beta-holdout-lessons.md"
+WORDS = {2: "two", 4: "four", 6: "six", 14: "Fourteen"}
+
+
+def big(n: int) -> str:
+    """A count as the post's math tables print it, 107{,}115."""
+    return f"{n:,}".replace(",", "{,}")
+
+
+def chan():
+    """Chan's file, its portfolios and its verdict, as Entry 45's run reads them."""
+    sources = read_sources()
+    _, closes, _, spy, _, bills = sources
+    p = build_portfolios(closes, spy, bills)
+    return sources, p, verdict(p)
+
+
+class TestThePostQuotesTheRun:
+    """One copy of each figure ``blog/low-beta-holdout-lessons.md`` quotes, read from the post.
+
+    The pins above run from the run to a number, and nothing there opens the
+    post, so a changed figure in it failed no test. Each assertion here formats
+    the run's value the way the post prints it and finds it in the post. The
+    first three tests read committed files and run everywhere. The rest read
+    the archive through the ``holdout`` fixture and skip without it.
+
+    One copy of each figure is the affordable bound. The italic summary, the
+    lessons list, a figure's repeats in later sections, the alt texts, the
+    caption, the Kindle pages and figures stated in words are not read here.
+    The title's gap is, because it is the figure a reader sees first.
+    """
+
+    text = POST.read_text("utf-8")
+
+    # --- committed files, runs everywhere ------------------------------------
+
+    def test_chans_file(self) -> None:
+        sources, p, result = chan()
+        k = by_formation(p, p.leverage)
+        low = by_formation(p, p.low_beta)
+        high = by_formation(p, p.high_beta)
+        peak = k.idxmax()
+        assert low.idxmin() == peak
+        rows = {
+            "\\text{Formations kept}": f"{len(p.formed)}",
+            "\\text{Highest k}": f"{k.max():.4f}",
+            "\\text{Formed}": f"\\text{{{peak.date()}}}",
+            "\\text{Low beta there, lowest}": f"{low[peak]:.4f}",
+            "\\text{High beta there}": f"{high[peak]:.4f}",
+            "\\text{Low beta below 0.10}": f"{int((low < 0.10).sum())}",
+            "\\text{Low beta below 0.05}": f"{int((low < 0.05).sum())}",
+            "\\text{Mean k}": f"{p.leverage.mean():.4f}",
+            "\\text{Months ruined}": f"{len(result.ruined)}",
+        }
+        for label, cell in rows.items():
+            assert f"{label} & {cell} & " in self.text, label
+        june = result.ruined[0].held_to
+        line = ruin_line(p.rf, p.leverage)
+        needed = ruinous_leverage(p.low, p.rf)
+        for label, value in {
+            "\nk": p.leverage[june],
+            "\\text{Ruin line}": line[june],
+            "\\text{Low fifth}": p.low[june],
+            "\\text{Levered}": p.levered[june],
+            "\\text{Ruinous k}": needed[june],
+        }.items():
+            assert f"{label} & {value:.4f} & " in self.text, label
+        assert f"asked {june:%B %Y} for {p.leverage[june] / needed[june]:.2f} times" in self.text
+        assert (
+            f"at {growth(p.low):.4f} a year against the high fifth’s {growth(p.high):.4f}."
+        ) in self.text
+        assert f"Chan’s SPY column was saved on {sources[2].obtained}" in self.text
+
+    def test_chans_file_close_at_t_plus_1(self) -> None:
+        left_out, resumed_late = chans_close_at_t_plus_1()
+        removed = sum(before - kept for before, kept in left_out.values())
+        late = list(resumed_late)
+        assert (
+            f"rule removed {removed} stocks across {WORDS[len(left_out)]} formations" in self.text
+        )
+        assert f"{WORDS[removed - len(late)]} had closes again" in self.text
+        assert f"Their symbols, {late[0]}, {late[1]} and {late[2]}," in self.text
+
+    def test_lesson_4_and_the_panel(self) -> None:
+        rows = sp500_panel.load()
+        args = (rows, sp500_panel.spans(), sp500_panel.read_holes(), sp500_panel.calendar())
+        coverage = sp500_panel.monthly_coverage(*args, previous={}, rank=False)
+        gap = survivor_gap(tuple(rows), tuple(coverage))
+        months = Counter(r for m in coverage for r in m.reasons)
+        failing = Counter(row.check for row in rows if row.check != "pass")
+        early = sum(
+            1
+            for m in coverage
+            for r in m.reasons
+            if r not in sp500_panel.MISSES and "2009" <= m.month[:4] <= "2015"
+        )
+        table = [
+            ("In the panel", big(gap.member_months), big(len(rows))),
+            ("Failing the row check", big(gap.failed_member_months), big(gap.failed_rows)),
+            ("failing, no series", big(months["no-series"]), big(failing["no-series"])),
+            ("failing, no close", big(months["no-row"]), big(failing["no-row"])),
+            ("failing, a wrong price", big(months["price"]), big(failing["price"])),
+            ("failing, not in last schedule", big(gap.absent_member_months), ""),
+            ("failing, in last schedule", "", big(gap.still_listed)),
+            ("failing, from 2009 to 2015", big(early), ""),
+        ]
+        for label, a, b in table:
+            row = f"\\text{{{label}}} & {a} & {b}".replace("&  &", "& &").rstrip()
+            assert row in self.text, label
+        last = sp500_panel.schedule_months()[-1][0]
+        listed = {row.ticker for row in rows if row.report_date == last and row.ticker}
+        every = sum(1 for row in rows if row.ticker in listed)
+        assert f"The last schedule is IVV’s of {gap.last_schedule}." in self.text
+        assert (
+            f"{every:,} carry a ticker still in that schedule, {100 * every / len(rows):.1f} "
+            f"percent. Of the {gap.failed_rows:,} failing rows, only {gap.still_listed} do, "
+            f"{100 * gap.still_listed / gap.failed_rows:.1f} percent."
+        ) in self.text
+        assert f"it leaves out {gap.left_out:,}, and once" in self.text
+        schedules = sp500_panel.schedule_months()
+        assert (
+            f"Its {len(schedules)} schedules, the filed lists of holdings, from "
+            f"{schedules[0][0]} to {schedules[-1][0]}"
+        ) in self.text
+        days = formation_days(sp500_panel.calendar())
+        assert (
+            f"The span allows {len(days)} formations, the month-ends where the stocks are sorted "
+            f"by beta, from {days[0].date()} to {days[-1].date()}."
+        ) in self.text
+        assert "the 2013-06-30 schedule carries forward five months" in self.text
+
+    # --- the archive, behind the holdout fixture -----------------------------
+
+    def test_the_verdict_and_the_bound(self, holdout) -> None:
+        r = holdout.verdict
+        error = r.standard_error * 12
+        assert f"trailed the unlevered high-beta one by {-r.gap:.4f} a year" in self.text
+        for row in (
+            f"\\text{{Months}} & {r.months} \\\\",
+            f"\\text{{Gap a year, levered minus high}} & {r.gap:.4f} \\\\",
+            f"\\text{{Newey-West t, lag {r.lag}}} & {r.t:.4f} \\\\",
+            f"\\text{{Y, found four times in five}} & {r.detectable:.4f}",
+            f"\\text{{Standard error of the gap a year}} & {error:.4f} \\\\",
+            f"\\text{{One-sided 95 percent upper bound}} & {r.gap + 1.645 * error:.4f}",
+        ):
+            assert row in self.text, row
+
+    def test_one_month_sets_the_sign(self, holdout) -> None:
+        p = holdout.portfolios
+        d = differences(p)
+        dec, mar = pd.Timestamp("2024-12-31"), pd.Timestamp("2026-03-31")
+        assert (
+            f"In December 2024, d was {prose(d[dec])}. Without that month, twelve times the mean "
+            f"of d over the other {len(d) - 1} months is {d.drop(dec).mean() * 12:+.4f}"
+        ) in self.text
+        assert (
+            f"where d was {prose(d[mar])}, the figure is {d.drop([dec, mar]).mean() * 12:+.4f}. "
+            f"In March 2026 the leverage was {p.leverage[mar]:.4f}. The low fifth lost "
+            f"{-p.low[mar]:.4f} and the high fifth lost {-p.high[mar]:.4f}. Levered, that was a "
+            f"loss of {-p.levered[mar]:.4f} of the capital"
+        ) in self.text
+        feb = d.idxmax()
+        assert (
+            f"Without {feb:%B %Y}, where d was {d[feb]:+.4f}, the figure is "
+            f"{prose(d.drop(feb).mean() * 12)}, and without both {feb:%B %Y} and December 2024 "
+            f"it is {prose(d.drop([feb, dec]).mean() * 12)}."
+        ) in self.text
+
+    def test_the_side_table(self, holdout) -> None:
+        p = holdout.portfolios
+        series = (p.levered, p.low, p.high)
+        g = " & ".join(f"{growth(s):.4f}" for s in series)
+        s_ = " & ".join(f"{sharpe(s, p.rf):.4f}" for s in series)
+        b = " & ".join(f"{realised_beta(s, p):.4f}" for s in series)
+        assert f"\\text{{Growth}} & {g} & {growth(p.spy):.4f} \\\\" in self.text
+        assert f"\\text{{Sharpe ratio}} & {s_} & \\\\" in self.text
+        assert f"\\text{{Beta}} & {b} &" in self.text
+        assert f"out-compounded it by {growth(p.high) - growth(p.low):.4f} a year" in self.text
+
+    def test_lesson_2s_table_and_the_ruin_table(self, holdout) -> None:
+        _, c, cr = chan()
+        p = holdout.portfolios
+        ck, ik = by_formation(c, c.leverage), by_formation(p, p.leverage)
+        cl, il = by_formation(c, c.low_beta), by_formation(p, p.low_beta)
+        ch, ih = by_formation(c, c.high_beta), by_formation(p, p.high_beta)
+        cp, ip = ck.idxmax(), ik.idxmax()
+        rows = {
+            "Formations kept": (len(c.formed), len(p.formed)),
+            "Highest k": (f"{ck.max():.4f}", f"{ik.max():.4f}"),
+            "Formed": (f"\\text{{{cp.date()}}}", f"\\text{{{ip.date()}}}"),
+            "Low beta there, lowest": (f"{cl[cp]:.4f}", f"{il[ip]:.4f}"),
+            "High beta there": (f"{ch[cp]:.4f}", f"{ih[ip]:.4f}"),
+            "Low beta below 0.10": (int((cl < 0.10).sum()), int((il < 0.10).sum())),
+            "Low beta below 0.05": (int((cl < 0.05).sum()), int((il < 0.05).sum())),
+            "Mean k": (f"{c.leverage.mean():.4f}", f"{p.leverage.mean():.4f}"),
+            "Months ruined": (len(cr.ruined), len(holdout.verdict.ruined)),
+        }
+        for label, (a, b) in rows.items():
+            assert f"\\text{{{label}}} & {a} & {b}" in self.text, label
+        below = dates(il[il < 0.10].index)
+        assert (
+            f"at the formations of {below[0]} and {below[1]}, at {il[below[0]]:.4f} and "
+            f"{il[below[1]]:.4f}."
+        ) in self.text
+        june = cr.ruined[0].held_to
+        dec, apr = p.levered.idxmin(), p.leverage.idxmax()
+        assert (
+            f" & \\text{{{june:%B %Y}}} & \\text{{{dec:%b %Y}}} & \\text{{{apr:%b %Y}}}"
+            in self.text
+        )
+        cline, iline = ruin_line(c.rf, c.leverage), ruin_line(p.rf, p.leverage)
+        cneed, ineed = ruinous_leverage(c.low, c.rf), ruinous_leverage(p.low, p.rf)
+        for label, a, b in (
+            ("\nk", c.leverage, p.leverage),
+            ("\\text{Ruin line}", cline, iline),
+            ("\\text{Low fifth}", c.low, p.low),
+            ("\\text{Levered}", c.levered, p.levered),
+            ("\\text{Ruinous k}", cneed, ineed),
+        ):
+            assert f"{label} & {a[june]:.4f} & {b[dec]:.4f} & {b[apr]:.4f}" in self.text, label
+
+    def test_how_close_each_month_came_to_ruin(self, holdout) -> None:
+        p = holdout.portfolios
+        line, needed = ruin_line(p.rf, p.leverage), ruinous_leverage(p.low, p.rf)
+        dec, apr = p.levered.idxmin(), p.leverage.idxmax()
+        rank = list(p.low.sort_values().index).index(dec) + 1
+        margin = p.low - line
+        assert f"for {p.leverage[dec] / needed[dec]:.2f} of it, the largest share" in self.text
+        assert (
+            f"was the {({7: 'seventh'})[rank]}-worst of the low fifth’s {len(p.low)} months, and "
+            f"it sat {margin[dec]:.4f} above its line."
+        ) in self.text
+        assert f"so the month stayed {margin[apr]:.4f} above it." in self.text
+        assert int((margin <= 0).sum()) == 0
+        assert f"None of the {len(p.low)} months fell at or below its own line." in self.text
+        mar = p.low.idxmin()
+        assert (
+            f"In {mar:%B %Y} it lost {-p.low[mar]:.4f}, but the leverage then was "
+            f"{p.leverage[mar]:.4f}, so the line sat far below at {prose(line[mar])}. Levered, "
+            f"the month lost {-p.levered[mar]:.4f}, and only a leverage of {needed[mar]:.4f} "
+            "would have ruined it."
+        ) in self.text
+
+    def test_lesson_3s_table(self, holdout) -> None:
+        p = holdout.portfolios
+        for s in p.skipped:
+            assert (
+                f"\\text{{{s.formed.date()}}} & \\text{{{s.held_to.date()}}} & "
+                f"{s.low_beta:.4f} & {s.high_beta:.4f}"
+            ) in self.text, s.formed
+        assert (
+            f"the test reads {len(p.formed)} months rather than {len(p.formed) + len(p.skipped)}."
+        ) in self.text
+
+    def test_the_window_the_counts_and_the_vintages(self, holdout) -> None:
+        p = holdout.portfolios
+        sizes = [len(held) for held in p.low_members]
+        assert (
+            f"The skip amendment leaves out {WORDS[len(p.skipped)]}, so the test reads "
+            f"{len(p.formed)} holding months, from {p.held_to[0]:%B %Y} to {p.held_to[-1]:%B %Y}. "
+            f"Between {min(p.eligible)} and {max(p.eligible)} stocks are eligible at each "
+            f"formation, and each fifth holds {min(sizes)} to {max(sizes)} of them."
+        ) in self.text
+        assert (
+            f"once the run cuts each series at its last day of trading it leaves out "
+            f"{holdout.survivors.left_out:,}."
+        ) in self.text
+        reads = holdout.reads_next
+        assert (
+            f"At the {len(p.formed)} formations kept they leave out {len(reads.last_row_at_t)} and "
+            f"{len(reads.hole_at_t1)} member-months, against the {sum(holdout.covered):,} the "
+            "monthly rule kept"
+        ) in self.text
+        (downloaded,) = {e.download_date for e in holdout.entries}
+        assert (
+            f"are {len(holdout.entries)} Alpha Vantage series downloaded {downloaded}." in self.text
+        )
+        assert (
+            f"as an Alpha Vantage series downloaded {holdout.spy_entry.download_date} for this run"
+        ) in self.text

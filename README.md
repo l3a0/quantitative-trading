@@ -9443,7 +9443,10 @@ figures on Chan's file, to
 [tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
 for the figure's own numbers, or to
 [tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
-for the sketches'. Two classes hold the ones that had no pin
+for the sketches'. `TestThePostQuotesTheRun` reads one copy of each of
+those figures from the post itself, so a changed number in the post fails a
+test. Its first three tests read committed files and run everywhere, and the
+rest need the archive. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
 `TestWhatThePostCounted` item 2.
 `TestWhatThePostCounted` reads committed files and runs everywhere.
@@ -9471,8 +9474,9 @@ before the post, all measured after the run except the five months in
    bound of 0.1360.
 2. The unlevered fifths' gap of 0.0543, from the unrounded growth rates.
 3. The high fifth's beta of 1.5738 where k peaked, and the low fifth's beta
-   below 0.10 at two formations, 0.0818 at 2025-02-28 and 0.0563 at
-   2025-03-31, and below 0.05 at none.
+   below 0.10 at two formations, 2025-02-28 at 0.0818 and 2025-03-31, and
+   below 0.05 at none. The 0.0563 at 2025-03-31 is the run's own pin, in
+   `TestTheSideFigures`.
 4. December 2024's ruin line of −0.0776, its margin of 0.0161 above it, its
    ruinous leverage of 15.4077, the match's 0.80 of it as the largest share of
    any month, and its rank as the seventh-worst of 208 low-fifth months.
