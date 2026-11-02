@@ -447,7 +447,7 @@ def result(cpo_result) -> cpo.Result:
 
 
 class TestExample71OnTheArchive:
-    """Rows 1 to 11 of Entry 16, all from one run, and three figures its post quotes.
+    """Rows 1 to 11 of Entry 16, all from one run, and four pins for figures its post quotes.
 
     The vintages are the archive's `gld_intraday_1min.csv.gz`, sha256
     `3611a8f7…0de7a`, downloaded 2026-07-17, and `gdx_intraday_1min.csv.gz`,
@@ -543,7 +543,8 @@ class TestExample71OnTheArchive:
 
     # The four pins below were added for the post on this example,
     # blog/conditional-parameter-optimization-lessons.md, so that every figure
-    # it quotes traces to an assertion rather than to prose. Entry 16 names them.
+    # it quotes from the corrected run traces to an assertion rather than to
+    # prose. Entry 16 names them.
 
     def test_rows_1_to_4_as_multiples_of_chan_s_figures(self, result):
         """Each computed figure over Chan's, which Entry 16 states and the post quotes.
