@@ -12,8 +12,8 @@ prices by the time the book printed the claim.
 issue 275's registered specification, with the changes the panel forces, on a
 panel that has neither problem in the same form: IVV's members at each
 month-end from 2008-12 to 2026-08, read through :mod:`chan.sp500_panel`. Its
-survivor gap is smaller and measured, and every holding month comes after Chan
-published.
+survivor gap is smaller and measured, and every holding month comes after the
+first edition's release in November 2008.
 
 Everything issue 275 registered carries over, its amendment of 2026-10-11
 reading a ruined month as the claim contradicted included, and
@@ -75,8 +75,9 @@ The result is **registered**, under issue 275's ruin amendment and issue 526's
 skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
 changes were written before any beta or return on this panel was computed.
 The skip rule was chosen after one non-positive formation was visible, and N is
-smaller by however many it skips. Every holding month comes after the book, so it is a
-holdout for the claim.
+smaller by however many it skips. Every holding month comes after the first edition's
+release in November 2008, so it is a holdout for the claim as long as that edition
+prints it, which this repository has not checked.
 
 ``tests/test_low_beta_holdout.py`` is the single authority for every number
 any prose surface quotes about this run. It first ran here on 2026-10-11.
@@ -576,7 +577,9 @@ def report(holdout: Holdout) -> None:
         "issue 275's plan, its ruin amendment and issue 526's skip amendment, both of 2026-10-11."
     )
     print(
-        "  Every holding month comes after the book, so this is a holdout. "
+        "  Every holding month comes after the first edition's release in November 2008, "
+        "so this is a holdout for the claim as long as that edition prints it, which this "
+        "repository has not checked. "
         "docs/replication-log.md Entry 49 carries the verdict."
     )
 

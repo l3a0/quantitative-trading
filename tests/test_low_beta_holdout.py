@@ -32,7 +32,8 @@ are stated once here and carried in every figure's failure message as
 The result is **registered**, under both amendments of 2026-10-11. The skip
 rule was chosen after the first non-positive formation, 2026-04-30, was
 visible, and before anything the criterion reads had been computed. Every
-holding month comes after the book, so the span is a holdout. Membership is
+holding month comes after the first edition's release in November 2008, so the
+span is a holdout as long as that edition prints the rule. Membership is
 only as complete as the monthly coverage rule allows, which the survivor label
 pins.
 
@@ -956,6 +957,28 @@ class TestWhatThePostMeasured:
         after(float(d.drop(dec).mean() * 12), 0.03132642815124604, "0.0313")
         after(float(d.drop([dec, mar]).mean() * 12), 0.09894474796376723, "0.0989")
 
+    def test_the_best_months_pull_the_other_way_less_far(self, holdout) -> None:
+        """The other tail, and where both tails sit.
+
+        Without February 2025, the month whose d is furthest above zero, the
+        gap turns more negative. The three lowest and three highest d all fall
+        inside the only stretch of holding months in which k exceeded 7.
+        """
+        p = holdout.portfolios
+        d = differences(p)
+        feb, dec = pd.Timestamp("2025-02-28"), pd.Timestamp("2024-12-31")
+        assert d.idxmax() == feb, f"{SPEC}; {AFTER_THE_RUN}"
+        after(float(d[feb]), 0.6117877844594116, "0.6118")
+        after(float(d.drop(feb).mean() * 12), -0.09471610660305997, "-0.0947")
+        after(float(d.drop([feb, dec]).mean() * 12), -0.004159625175752438, "-0.0042")
+        high = p.leverage[p.leverage > 7].index
+        start, end = pd.Timestamp("2024-10-31"), pd.Timestamp("2026-04-30")
+        assert (high.min(), high.max()) == (start, end), AFTER_THE_RUN
+        assert (p.leverage.loc[start:end] > 7).all(), AFTER_THE_RUN
+        ends = d.sort_values().index
+        tails = list(ends[:3]) + list(ends[-3:])
+        assert all(dec <= t <= pd.Timestamp("2026-03-31") for t in tails), AFTER_THE_RUN
+
     def test_march_2026_was_the_second_worst_levered_month(self, holdout) -> None:
         p = holdout.portfolios
         mar = pd.Timestamp("2026-03-31")
@@ -1013,3 +1036,4 @@ class TestTheReport:
         assert "12 member-months whose last row is t and 4 with a hole at t + 1" in out
         assert "quite wary of using too much leverage" in out
         assert "skip amendment" in out and "this is a holdout" in out
+        assert "as long as that edition prints it" in out

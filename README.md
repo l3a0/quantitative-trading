@@ -9377,7 +9377,8 @@ forty-seventh post, about the same rule at location 4709 tested on IVV's S&P
 500 members at each month-end from 2008-12, every holding month after the
 first edition's release in November 2008. Its verdict is registered under two
 amendments and every other figure is exploratory. Every figure computed from
-the prices of IVV's members reads the owner's archive, so a reader cannot
+the prices of IVV's members or from SPY's Alpha Vantage series reads the
+owner's archive, so a reader cannot
 rerun it, while the membership and coverage counts read committed files. The
 post links the levered low-beta post for the rule, the beta match, the ruin
 line and June 2001 rather than repeating them, and draws five lessons from
@@ -9412,8 +9413,9 @@ Six groups of what it says are not pinned here.
 2. The plan's history rather than the data: that the plan, the panel's
    changes and the criterion were written before any beta or return was
    computed on this panel, that the run stopped at the 2026-04-30 formation
-   before computing anything the criterion reads, that no earlier formation's
-   beta had been printed or read, that the owner then ruled to skip such
+   before computing anything the criterion reads, that the loop had computed
+   each earlier formation's beta, leverage and returns in memory and discarded
+   them before anyone printed or read any, that the owner then ruled to skip such
    formations, and that the three later formations were not yet known. Also
    the sorting of the ten points into five that change the computation, three
    that restate a rule, one that corrects the survivor label and one that
@@ -9422,15 +9424,16 @@ Six groups of what it says are not pinned here.
    fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
    means Chan's June 2001, levered that far, would still have lost the whole
    capital, that ruin needs a large k and a bad month at once, that the
-   panel's failures lean toward companies that left, that the Newey-West t
-   and the bound treat the monthly gaps as roughly normal, and what the row
+   panel's failures lean toward companies that left or tickers that changed,
+   that the Newey-West t and the bound treat the average monthly gap as
+   roughly normal, and what the row
    check compares.
 4. Figures the post states in words, such as a few hundredths a year, and the
    figure's alt text, which reads its curves approximately.
 5. Facts outside the committed data: the first edition's release in November
    2008, and that this repository has read the rule only in the 2021 revised
    edition and has not checked that the first edition prints it.
-6. Its reference, cited rather than computed.
+6. Its references, cited rather than computed.
 
 Every other number in the post traces to an assertion in
 [tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py), to
@@ -9479,6 +9482,10 @@ before the post, all measured after the run.
    and the gap of +0.0313 without December 2024 and +0.0989 without both.
 9. March 2026, the second-worst levered month at −0.7005, with k at 9.4342,
    the low fifth at −0.0716 and the high fifth at −0.0463.
+10. February 2025's d of +0.6118, the highest, the gap of −0.0947 without it
+    and −0.0042 without it and December 2024, and the three lowest and three
+    highest d all inside the only stretch of holding months, October 2024 to
+    April 2026, in which k exceeded 7.
 
 Its one figure is drawn by
 [src/chan/low_beta_holdout_figures.py](src/chan/low_beta_holdout_figures.py)

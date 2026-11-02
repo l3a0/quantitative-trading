@@ -11600,7 +11600,8 @@ remaining months and N counts them. The amendment lists what had been seen.
 So the skip rule was chosen after one such formation was visible, and N is
 208 rather than 212. Every holding month comes after the first edition's
 release in November 2008, so unlike Entry 45 this is a holdout for the claim,
-as long as that edition prints it. This repository has read the rule only in
+as long as that edition prints it, apart from the skip rule, which the owner
+wrote after seeing one formation's low-fifth beta on this panel. This repository has read the rule only in
 the 2021 revised edition. Rows 2 to 11 are **exploratory**.
 The plan declared them, and each is a point estimate that nothing tests.
 
@@ -11710,7 +11711,8 @@ its ticker. Which fifth they would have joined is not measured here.
 **Whether fat tails are the cause of the worst month.** In December 2024 a k
 of 12.3588 turned the low fifth's return of −0.0616 into a levered loss of
 0.8014 of the capital. Location 4700's caveat
-names the risk, and how near the run came to ruin depends on that month alone.
+names the risk, and how near the run came to ruin rests on a handful of
+months, and April 2025 came closer to its own line than December 2024 did.
 
 **What the model's half of the argument says.** Location 4684's equal average
 returns need market capitalisation and book value at each date, which
