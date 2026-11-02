@@ -45,7 +45,9 @@ from here.
 
 from __future__ import annotations
 
+import ast
 import hashlib
+import inspect
 import math
 import platform
 import re
@@ -495,6 +497,17 @@ class TestTheCommand:
             ARCHIVE_GIFS
         )
 
+    def test_it_catches_every_refusal_the_run_turns_into_one_line(self) -> None:
+        """The two tests above raise two of the refusals. This one holds that the
+        tuple the command catches is the one ``chan.low_beta_holdout.main``
+        catches, read from that function's source, so a refusal added there or
+        dropped here fails."""
+        tree = ast.parse(inspect.getsource(sketches.low_beta_holdout.main))
+        (handler,) = [node for node in ast.walk(tree) if isinstance(node, ast.ExceptHandler)]
+        caught = {getattr(sketches.low_beta_holdout, name.id) for name in handler.type.elts}
+        assert len(caught) == 9
+        assert set(sketches.REFUSALS) == caught
+
 
 class TestThePost:
     def test_the_footer_links_the_sketch_code_and_its_tests(self) -> None:
@@ -816,11 +829,14 @@ class TestTheDroppedMonthsSketch:
         highest = abs(_stroke(scene, "row-3").x[0] - start)
         assert lowest > 2 * highest
 
-    def test_the_dashed_upright_stands_at_0_through_every_row(self, every) -> None:
+    def test_the_dashed_upright_stands_at_0_through_every_row_over_its_label(self, every) -> None:
         upright = _stroke(every[1], "zero")
         assert np.ptp(upright.x) == 0
         assert _drop_of(upright.x[0]) == pytest.approx(0.0, abs=1e-12)
         assert upright.y.min() == DROP_AXIS_Y and upright.y.max() > max(ROWS_Y)
+        zero = _label(every[1], "0")
+        assert (zero.x, zero.ha) == (pytest.approx(upright.x[0]), "center")
+        assert zero.y < DROP_AXIS_Y
 
     def test_the_axis_runs_along_the_bottom(self, every) -> None:
         axis = _stroke(every[1], "axis")

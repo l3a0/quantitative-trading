@@ -11550,8 +11550,10 @@ section "What the panel forces", written on 2026-10-11 before any beta, or
 any return of a portfolio sorted on beta, was computed on this panel, lists
 the changes this panel makes necessary. Entry 7's rows 41 to 49 had already
 computed the same members' monthly returns for Example 7.7, which ranks on
-past returns rather than beta. Four of the changes carry
-the result, so they are stated here.
+past returns rather than beta. [Issue 336](https://github.com/l3a0/quantitative-trading/issues/336)
+fixed that run's rule for a stock whose price stops, which point 3 carries
+over, before it computed any return. Four of the changes carry the result, so
+they are stated here.
 
 1. **The vintages.** The members, `research/filings/ivv/members.csv` and its
    holes file, read from IVV's 70 quarter-end schedules from 2008-12-31 to
@@ -11717,11 +11719,15 @@ its ticker. Which fifth they would have joined is not measured here.
 of 12.3588 turned the low fifth's return of −0.0616 into a levered loss of
 0.8014 of the capital. Location 4700's caveat
 names the risk, and how near the run came to ruin rests on a handful of
-months, and April 2025 came closer to its own line than December 2024 did.
+months, and April 2025 came closer to its own line than December 2024 did. A
+rule these figures suggest, such as a cap on k, would be exploratory on this
+panel, and would need months after August 2026 or another index to meet a
+holdout.
 
-**What the model's half of the argument says.** Location 4684's equal average
-returns need market capitalisation and book value at each date, which
-[issue 273](https://github.com/l3a0/quantitative-trading/issues/273) carries.
+**What the Fama-French model's half of the argument says.** Location 4684's
+equal average returns need market capitalisation and book value at each date,
+which [issue 273](https://github.com/l3a0/quantitative-trading/issues/273)
+carries.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

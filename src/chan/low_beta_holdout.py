@@ -77,8 +77,10 @@ skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
 changes were written before any beta, or any return of a portfolio sorted on
 beta, was computed on this panel. Issue 336's run of Example 7.7 had already
 computed the same members' monthly returns, ranked on past returns rather than
-beta. The skip rule was chosen after one non-positive formation was visible, and N is
-smaller by however many it skips. Every holding month comes after the first edition's
+beta. Issue 336 fixed that run's rule for a stock whose price stops, which this
+run carries over, before it computed any return. The skip rule was chosen after
+one non-positive formation was visible, and N is smaller by however many it
+skips. Every holding month comes after the first edition's
 release in November 2008, so it is a holdout for the claim as long as that edition
 prints it, apart from the skip rule. This repository has not checked that edition.
 

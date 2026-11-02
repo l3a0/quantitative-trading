@@ -1172,8 +1172,13 @@ class TestTheReport:
         assert "12 member-months whose last row is t and 4 with a hole at t + 1" in out
         assert "quite wary of using too much leverage" in out
         assert "skip amendment" in out and "this is a holdout" in out
-        assert "as long as that edition prints it" in out
-        assert "apart from the skip rule" in out
+        assert (
+            "  Every holding month comes after the first edition's release in November 2008, "
+            "so this is a holdout for the claim as long as that edition prints it, apart from "
+            "the skip rule, which the owner wrote after seeing one formation's low-fifth beta "
+            "on this panel and knowing every earlier one was positive. This repository has not "
+            "checked that edition. docs/replication-log.md Entry 49 carries the verdict.\n" in out
+        )
         assert (
             "before any beta, or any return of a portfolio sorted on beta, was computed on "
             "this panel." in out

@@ -427,10 +427,10 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: being tested. The run instead counts the stock-months in either portfolio
 #: with a flagged day between the first return of the beta window and the end
 #: of the holding month: 36 of the low portfolio's and 186 of the high
-#: portfolio's, against 7,908 each. WYN and DFS give no return on the day the
-#: second company starts, because the panel frame holds no close the day
+#: portfolio's, against 7,908 each. WYN, DFS and SE give no return on the day
+#: the second company starts, because the panel frame holds no close the day
 #: before. ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_leverage.py``
-#: holds the 43 flagged closes in 34 stocks, both counts and both restarts.
+#: holds the 43 flagged closes in 34 stocks, both counts and all three restarts.
 #:
 #: [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) decided
 #: the same for ``chan.low_beta_holdout``, which runs that rule on the archive's

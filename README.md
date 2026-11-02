@@ -1484,9 +1484,12 @@ and the stocks the earlier test's close at the next month-end left out on
 Chan's file. `TestWhatThePostMeasured` reads the archive: the upper bound on
 the levered advantage, the unlevered fifths' gap, the formations with the
 lowest low-fifth betas, December 2024, April 2025 and March 2020 against
-their ruin lines, March 2026's levered loss, and the gap with one or two
-months dropped. The blog post about it is the exception, and what it says that
-nothing here asserts is listed below.
+their ruin lines, March 2026's levered loss, the gap with one or two months
+dropped, the stretch in which k exceeded 7, and what the cut and the earlier
+test's rule do to series that stop. `TestThePostQuotesTheRun` reads the blog
+post itself against the run, and two tests hold that the run gives the
+sketches' frozen figures. The section on the post below says which copies it
+leaves unread, and what the post says that nothing here asserts.
 
 [tests/test_usdcad_holdout.py](tests/test_usdcad_holdout.py) does it for
 Example 2.5's rule on USD/CAD after 2012. It pins H1's cumulative P&L and

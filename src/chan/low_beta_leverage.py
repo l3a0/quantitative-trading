@@ -117,8 +117,9 @@ claim.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526) runs
 issue 275's registered specification on IVV's S&P 500 from 2008 to 2026, with
 the changes that panel forces and under both amendments of 2026-10-11, the
-ruin amendment and its own skip amendment. That run is a holdout, and
-[issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
+ruin amendment and its own skip amendment. That run is a holdout for the claim
+as long as the first edition prints it, apart from its skip amendment.
+[Issue 516](https://github.com/l3a0/quantitative-trading/issues/516) tests the
 rule on this file at leverage a broker would lend, as an exploratory run,
 because the ruin had been seen.
 
