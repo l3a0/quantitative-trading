@@ -167,7 +167,7 @@ The declaration rests on three grounds the trial runs did not choose.
 2. **The series** is Example 6.1’s front contract, since the rule on p. 206 revises Example 6.1.
 3. **The roll day** comes from Chan’s continuous close to within one day, as Lesson 3 describes. Lesson 3 also gives the figures for a switch one day earlier.
 
-The unit of γ is not among them. Chan’s script computes γ in column units, but the rule reads γ in that unit for a reason drawn from the same data it is tested on. A rule on γ in months never trades in this window. The book’s own usage also points to column units, though the declaration did not rest on it. Chan’s Table 5.1 labels its average roll returns annualized, and the roll returns post shows that those are averages of γ in column units.
+The unit of γ is not among them. Chan’s script computes γ in column units, but the rule reads γ in that unit for a reason drawn from the same data it is tested on. A rule on γ in months never trades in this window.
 
 ### The fifth-contract variant
 

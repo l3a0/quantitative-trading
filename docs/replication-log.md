@@ -8341,11 +8341,8 @@ choose. The lag is Example 6.1's own convention, the series is the one the
 book says it revises, and the 2012-05-11 save, rather than any strategy
 figure, fixes the roll to within one row. The unit of γ is not among those
 grounds, because row 13's reason for it is read from the strip the rule is
-tested on. Entry 27 found that Table 5.1 labels the script's column-unit
-averages annualized, so the book's own usage also points to column units, but
-the declaration did not rest on it. Row 9 says which row the save leaves open
-and what the other choice gives. Row 14 is the reading that came close, and it
-is never the verdict.
+tested on. Row 9 says which row the save leaves open and what the other choice
+gives. Row 14 is the reading that came close, and it is never the verdict.
 
 Every result here is **exploratory**. The declaration came after the
 readings, so this entry cannot count as a registered test of the roll-return

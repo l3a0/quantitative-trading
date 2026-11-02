@@ -6908,11 +6908,10 @@ Five groups of what it says are not pinned here.
 
 1. Chan's words, cited by Kindle page in the post and traced here by Kindle
    location in *Algorithmic Trading* through [its committed notes](research/book-notes/algorithmic-trading.md).
-   Example 5.3's regression on "time to maturity" and Table 5.1's label of
-   its averages as annualized are at 2399. Example 6.1's window of June 1,
-   2004, to May 11, 2012, "a respectable 1", the 1.7 and 2.5 percent, and
-   TU's notional value of about $200,000 against a margin of about $400 are
-   at 2668. "The sign of roll returns does not vary very often"
+   Example 5.3's regression on "time to maturity" is at 2399. Example 6.1's
+   window of June 1, 2004, to May 11, 2012, "a respectable 1", the 1.7 and 2.5
+   percent, and TU's notional value of about $200,000 against a margin of
+   about $400 are at 2668. "The sign of roll returns does not vary very often"
    is at 2683. "A cleaner and potentially better momentum signal", the 3
    percent threshold, and the 2.5 percent, 2.1 and 1.1 percent from January 2,
    2009, to August 13, 2012, are at 2690. The book's figures are pinned, and
@@ -6944,8 +6943,7 @@ Five groups of what it says are not pinned here.
    values and γ's rounded peak are checked.
 5. Its references, cited rather than computed, and what it says about them:
    that *Algorithmic Trading* is Chan's second book, and that the roll returns
-   post reproduces the fit of γ on TU and four other futures and shows that
-   Table 5.1's roll returns are averages of γ in column units.
+   post reproduces the fit of γ on TU and four other futures.
 
 Every other number in the post traces to an assertion in
 [tests/test_roll_momentum.py](tests/test_roll_momentum.py), to

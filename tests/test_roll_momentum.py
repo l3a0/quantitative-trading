@@ -738,6 +738,7 @@ class TestTheRowsBeside:
         assert round(100 * added, 2) == 0.03
 
     def test_both_rules_on_the_rebuild_over_the_same_rows(self, check) -> None:
+        """Both rules on the rebuild, over the 849 window rows the second vintage covers."""
         revised, example = check.revised_on_rebuild, check.example_on_rebuild
         assert 100 * revised.apr == pytest.approx(1.468184, abs=5e-7), SPEC
         assert revised.sharpe == pytest.approx(1.870808, abs=5e-7), SPEC
@@ -1393,6 +1394,7 @@ class TestTheReport:
         assert "inputdataohlcdaily_20120511/tu.csv" in printed
         assert "Exploratory." in printed
         assert "Entry 36" in printed
+        assert "except the two lines marked on the save, which earn its adjusted close." in printed
 
     def test_it_prints_the_rows_beside(self, printed) -> None:
         assert "return correlation 0.998359, 30 changes" in printed

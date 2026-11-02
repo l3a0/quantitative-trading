@@ -543,7 +543,7 @@ def report(
     print()
     print(
         "  Annualised over 252 days with no risk-free rate and no cost, on raw contract prices,"
-        " except the lines on the save, which earn its adjusted close."
+        " except the two lines marked on the save, which earn its adjusted close."
     )
     print("  Exploratory. docs/replication-log.md Entry 36 carries the verdicts.")
 
