@@ -172,7 +172,11 @@ class TestTheBars:
         assert list(regular_session(bars)["close"]) == [2.0, 3.0]
 
     def test_an_early_close_ends_the_session_at_1259(self):
-        """2019-11-29 closed at 13:00, so its 13:00 to 15:59 bars are extended hours."""
+        """2019-11-29 closed at 13:00.
+
+        Its 13:00 bar holds the closing auction's print, and the bars after it are
+        extended hours.
+        """
         index = pd.to_datetime(
             ["2019-11-29 12:59", "2019-11-29 13:00", "2019-11-29 14:57", "2019-12-02 15:59"]
         )
@@ -969,9 +973,9 @@ class TestThePostQuotesWhatEveryCloneComputes:
         fixed, rechosen = cpo.BOOK_UNCONDITIONAL, cpo.BOOK_CONDITIONAL
         _quotes(
             self.text,
-            f"At an arithmetic {_percent(fixed['annual'], 2)} a year, each year’s "
-            f"{cpo.TRADING_DAYS} daily returns sum to {fixed['annual']:g}, so three years’ "
-            f"returns sum to 3 × {fixed['annual']:g}, and the cap is a cumulative return of "
+            f"At an arithmetic {_percent(fixed['annual'], 2)} a year, the daily returns average "
+            f"{fixed['annual']:g} ÷ {cpo.TRADING_DAYS}, so three years of them sum to "
+            f"3 × {fixed['annual']:g}, and the cap is a cumulative return of "
             f"{_percent(math.exp(3 * fixed['annual']) - 1, 1)}, "
             f"still short of {_percent(fixed['cumulative'], 0)}",
         )
@@ -1051,8 +1055,9 @@ class TestThePostQuotesWhatEveryCloneComputes:
         )
         _quotes(
             self.text,
-            f"With {WORDS[held]} of those {WORDS[SEEDS_TRIED]} seeds re-choosing wins on all "
-            f"four metrics, and its Sharpe ratio runs from {low:.3f} to {high:.3f} across them",
+            f"With {WORDS[held]} of those {WORDS[SEEDS_TRIED]} seeds, re-choosing wins on all "
+            f"four metrics. The re-chosen arm’s Sharpe ratio runs from {low:.3f} to {high:.3f} "
+            f"across all {WORDS[SEEDS_TRIED]} seeds",
         )
         _quotes(
             self.text,

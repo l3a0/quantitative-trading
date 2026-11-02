@@ -74,8 +74,9 @@ SESSION_LAST = "15:59"
 EARLY_CLOSE_LAST = "12:59"
 #: NYSE's early closes from 2006 to 2020, every one at 13:00, from the XNYS
 #: calendar of ``exchange_calendars`` 4.13.2, which encodes the exchange's
-#: published schedule. On these days the bars from 13:00 to 15:59 are
-#: extended-hours bars, and reading 2 drops them.
+#: published schedule. On these days the 13:00 bar holds the closing auction's
+#: print and the bars from 13:01 to 15:59 are extended-hours bars, and reading 2
+#: drops them all.
 EARLY_CLOSES = frozenset(
     {
         "2006-07-03", "2006-11-24", "2007-07-03", "2007-11-23", "2007-12-24",
