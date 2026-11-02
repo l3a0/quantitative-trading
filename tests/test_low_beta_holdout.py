@@ -24,12 +24,13 @@ are stated once here and carried in every figure's failure message as
   2026-09-30. The bytes of the Alpha Vantage lines sit in the owner's archive.
 - **Specification.** Issue 275's plan, registered 2026-10-11, with its ruin
   amendment, as :mod:`chan.low_beta_leverage` computes it, and the changes
-  issue 526 registered the same day before any beta or return was computed on
-  this panel: IVV's covered members at t without Example 7.7's ``rank``
-  reason, each series cut at its last row that traded and earning its return
-  to its last close, SPY from the archive on the committed calendar, and
-  formations from 2008-12-31 to 2026-07-31. Issue 526's second amendment of
-  2026-10-11 skips a formation whose low group's mean beta is zero or below.
+  issue 526 registered the same day before any beta, or any return of a
+  portfolio sorted on beta, was computed on this panel: IVV's covered members
+  at t without Example 7.7's ``rank`` reason, each series cut at its last row
+  that traded and earning its return to its last close, SPY from the archive
+  on the committed calendar, and formations from 2008-12-31 to 2026-07-31.
+  Issue 526's second amendment of 2026-10-11 skips a formation whose low
+  group's mean beta is zero or below.
 
 The result is **registered**, under both amendments of 2026-10-11. The skip
 rule was chosen after the first non-positive formation, 2026-04-30, was
@@ -1118,6 +1119,10 @@ class TestTheReport:
         assert "as long as that edition prints it" in out
         assert "apart from the skip rule" in out
         assert (
+            "before any beta, or any return of a portfolio sorted on beta, was computed on "
+            "this panel." in out
+        )
+        assert (
             "came after the first skipped formation's low-group mean beta was seen and "
             "before d, its Newey-West t or Y had been computed." in out
         )
@@ -1125,6 +1130,9 @@ class TestTheReport:
         assert "2025-02-28       503     501      500   100    0.0818     1.5641  19.1106" in out
         assert "2025-03-31       504     502      500   100    0.0563     1.5738  27.9727" in out
         assert "2026-02-27       503     501      499    99    0.1705     1.6086   9.4342" in out
+        row = r"  \d{4}-\d{2}-\d{2} +\d+ +\d+ +\d+ +\d+ +-?\d+\.\d{4} +-?\d+\.\d{4} +-?\d+\.\d{4}"
+        rows = [line for line in out.splitlines() if re.fullmatch(row, line)]
+        assert len(rows) == len(holdout.portfolios.formed) == 208
 
 
 POST = Path(__file__).resolve().parents[1] / "blog" / "low-beta-holdout-lessons.md"
@@ -1162,12 +1170,13 @@ class TestThePostQuotesTheRun:
     One copy of each figure the run or Chan's file gives is the affordable
     bound, so changing that copy fails a test. Each assertion also quotes the
     words around its figure, and changing those fails a test too. Nothing else
-    in the post is read. Every other copy of a figure goes unread, and sometimes
-    that is the first copy the post prints. So do the italic summary, the
-    lessons list, the alt texts, the caption, the Kindle pages, approximate
+    in the post is read here. Every other copy of a figure goes unread here, and
+    sometimes that is the first copy the post prints. So do the italic summary,
+    the lessons list, the alt texts, the caption, the Kindle pages, approximate
     dates such as late 2007 and September 2001's ruin, and any figure stated in
-    words outside the quoted text. The title's gap is read, because it is the
-    figure a reader sees first.
+    words outside the quoted text. ``tests/test_low_beta_holdout_whiteboard.py``
+    reads the three sketches' alt texts instead. The title's gap is read,
+    because it is the figure a reader sees first.
     """
 
     text = POST.read_text("utf-8")
@@ -1436,8 +1445,8 @@ class TestThePostQuotesTheRun:
             f"formation, and each fifth holds {min(sizes)} to {max(sizes)} of them."
         ) in self.text
         assert (
-            f"once the run cuts each series at its last day of trading it leaves out "
-            f"{holdout.survivors.left_out:,}."
+            "once the run cuts each series at its last day that traded and moved the price, "
+            f"it leaves out {holdout.survivors.left_out:,}."
         ) in self.text
         reads = holdout.reads_next
         assert (

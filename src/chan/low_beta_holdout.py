@@ -18,8 +18,9 @@ first edition's release in November 2008.
 Everything issue 275 registered carries over, its amendment of 2026-10-11
 reading a ruined month as the claim contradicted included, and
 :mod:`chan.low_beta_leverage` computes it. Issue 526's section "What the panel
-forces", registered on 2026-10-11 before any beta or return was computed on
-this panel, states what changes and why. In short:
+forces", registered on 2026-10-11 before any beta, or any return of a portfolio
+sorted on beta, was computed on this panel, states what changes and why. In
+short:
 
 1. **The market** is SPY's ``adjusted_close`` from Alpha Vantage, recorded
    into the archive's ``sp500`` cross-section on 2026-10-11 for this run.
@@ -73,8 +74,10 @@ or five around the missing 2013-09-30 schedule.
 
 The result is **registered**, under issue 275's ruin amendment and issue 526's
 skip amendment, both of 2026-10-11. Issue 275's plan and issue 526's panel
-changes were written before any beta or return on this panel was computed.
-The skip rule was chosen after one non-positive formation was visible, and N is
+changes were written before any beta, or any return of a portfolio sorted on
+beta, was computed on this panel. Issue 336's run of Example 7.7 had already
+computed the same members' monthly returns, ranked on past returns rather than
+beta. The skip rule was chosen after one non-positive formation was visible, and N is
 smaller by however many it skips. Every holding month comes after the first edition's
 release in November 2008, so it is a holdout for the claim as long as that edition
 prints it, apart from the skip rule. This repository has not checked that edition.
@@ -575,7 +578,8 @@ def report(holdout: Holdout) -> None:
     )
     print(
         "  Registered on issue 526 with issue 275's plan and its ruin amendment of 2026-10-11, "
-        "before any beta or return was computed on this panel. Issue 526's skip amendment, of "
+        "before any beta, or any return of a portfolio sorted on beta, was computed on this "
+        "panel. Issue 526's skip amendment, of "
         "the same day, came after the first skipped formation's low-group mean beta was seen "
         "and before d, its Newey-West t or Y had been computed."
     )

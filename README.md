@@ -9413,8 +9413,8 @@ Six groups of what it says are not pinned here.
    the rule at 4709, the fat-tail caveat at 4700, and the equal average
    returns at 4684.
 2. The plan's history rather than the data: that the plan, the panel's
-   changes and the criterion were written before any beta or return was
-   computed on this panel, that the run stopped at the 2026-04-30 formation
+   changes and the criterion were written before any beta, or any return of
+   a portfolio sorted on beta, was computed on this panel, that the run stopped at the 2026-04-30 formation
    before computing d, its Newey-West t or Y, that the loop had computed
    each earlier formation's beta, leverage and returns in memory and discarded
    them before anyone printed or read any, that the owner then ruled to skip such
@@ -9428,9 +9428,9 @@ Six groups of what it says are not pinned here.
    means Chan's June 2001, levered that far, would still have lost the whole
    capital, that ruin needs a large k and a bad month at once, that the
    panel's failures lean toward companies that left or tickers that changed,
-   that the Newey-West t and the bound treat the average monthly gap as
-   roughly normal, what the row check compares, and who the monthly rule
-   lets be held.
+   that the Newey-West t, Y and the bound treat the average monthly gap as
+   roughly normal, what the row check compares, who the monthly rule lets be
+   held, and that the cut at each series' last traded day looks ahead.
 4. Figures the post states in words, such as a few hundredths a year. The
    chart's alt text reads its curves approximately, and it also quotes the
    chart's labels exactly, such as 69.0762, −0.8014 and 2024-12-31, along with
@@ -9451,12 +9451,17 @@ for the figure's own numbers, or to
 for the sketches'. `TestThePostQuotesTheRun` reads one copy of each figure
 the run or Chan's file gives from the post itself, together with the words
 each assertion quotes around it, so changing that copy or those words fails a
-test. It reads nothing else in the post. Every other copy of a figure goes
-unread, and sometimes that is the first copy the post prints. So do the
-italic summary, the lessons list, the alt texts, the caption, the Kindle
-pages, approximate dates such as late 2007 and September 2001's ruin, and any
-figure stated in words outside the quoted text, so a change there fails
-nothing. Its first four tests read committed
+test. It reads nothing else in the post. It leaves every other copy of a
+figure unread, and sometimes that is the first copy the post prints. It also
+leaves unread the italic summary, the lessons list, the alt texts, the
+caption, the Kindle pages, approximate dates such as late 2007 and September
+2001's ruin, and any figure stated in words outside the quoted text. Of
+those, only the three sketches' alt texts are read anywhere else.
+[tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
+holds that each quotes every label its sketch draws, in drawing order, says
+it is drawn slowly and held for twelve seconds, and says what its picture
+shows. A change anywhere else in that list fails nothing.
+`TestThePostQuotesTheRun`'s first four tests read committed
 files and run everywhere, and the rest need the archive. Two classes hold the ones that had no pin
 before the post, all measured after the run except the five months in
 `TestWhatThePostCounted` item 2 and four figures the run's table of

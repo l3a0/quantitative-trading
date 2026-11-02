@@ -904,7 +904,8 @@ rest on where a line sits.
 Entry 49's row 1 takes it for Entry 45's reason, on IVV's S&P 500 from 2008.
 It inherits Entry 45's criterion and amendment, and the changes the panel forces were
 written on [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)
-before any number on that panel was computed. The plan refuses a formation
+before any beta, or any return of a portfolio sorted on beta, was computed on
+that panel. The plan refuses a formation
 whose low group's mean beta is not positive and gave that case no verdict.
 The owner's second amendment of 2026-10-11 skips such a formation, and it
 was written after the first one, 2026-04-30, was visible, which Entry 49
@@ -11545,9 +11546,11 @@ the issue reports beside the verdict, which decide nothing.
 Everything [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)
 registered carries over, and Entry 45 states its five rules.
 [Issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
-section "What the panel forces", written on 2026-10-11 before any beta or
-return was computed on this panel, lists the changes this panel makes
-necessary. Four of them carry
+section "What the panel forces", written on 2026-10-11 before any beta, or
+any return of a portfolio sorted on beta, was computed on this panel, lists
+the changes this panel makes necessary. Entry 7's rows 41 to 49 had already
+computed the same members' monthly returns for Example 7.7, which ranks on
+past returns rather than beta. Four of the changes carry
 the result, so they are stated here.
 
 1. **The vintages.** The members, `research/filings/ivv/members.csv` and its
@@ -11638,7 +11641,7 @@ columns have nothing to hold in any row and are dropped, under
 
 | # | Verdict | Why |
 | --- | --- | --- |
-| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
+| 1 | did not reproduce | Not decided, which the plan maps to this value: "No gap in compounded growth detectable above about 0.2948 a year over 208 months, where the point estimate is -0.0590." The point estimate favours the unlevered high fifth, and 0.2948 a year is the true gap this test finds four times in five. Four formations, the first 2026-04-30, are skipped under [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s amendment of 2026-10-11, which was ruled after the first was visible. Membership is the members the monthly rule keeps, which leans toward companies still in the index. |
 | 2 | none, not a replication | The low fifth's Sharpe ratio is 0.8607 and the high fifth's 0.6770. Nothing tests the difference, so it neither confirms nor refutes location 4684's premise, and it decides nothing because the claim is about growth. |
 | 3 | none, not a replication | Unlevered, the high fifth compounded at 0.1613 a year, the low fifth at 0.1069 and SPY at 0.1378. Levered, the low fifth reached 0.1023, below its own unlevered growth. Nothing tests any of these gaps. |
 | 4 | none, not a replication | Over the formations kept, the low fifth's mean beta at formation bottomed at 0.0563 and k peaked at 27.9727, both at the formation of 2025-03-31, against Entry 45's 69.0762. |
@@ -11669,7 +11672,7 @@ write-up measured after the run, which `TestWhatThePostCounted` and
 1. **On IVV's S&P 500 from 2009, the rule is not decided.** Levered to
    the high fifth's beta, the low fifth's compounded growth trailed the
    unlevered high fifth's by 0.0590 a year, at a Newey-West t of −0.4974. The
-   test finds a gap of 0.2948 a year four times in five, so the run says
+   test finds a true gap of 0.2948 a year four times in five, so the run says
    little either way. That is Not decided, and it maps to
    `did not reproduce`.
 2. **The beta match did not ruin the portfolio here, and its worst levered
@@ -11694,13 +11697,13 @@ write-up measured after the run, which `TestWhatThePostCounted` and
    six formations. Fourteen had closes again within a few months, and the
    other three were the earlier companies under WYN, DFS and SE, whose
    prices stopped inside the holding month. Measured after the run, so
-   exploratory, and it decides nothing.
+   exploratory, and none of it is a verdict.
 
 ### What this entry cannot say
 
 Four things.
 
-**Whether a smaller gap exists.** This test finds a gap below 0.2948 a year
+**Whether a smaller gap exists.** This test finds a true gap below 0.2948 a year
 less than four times in five, and the point estimate of −0.0590 sits well
 inside that. The test already reads every month that its span and the skip
 rule allow.
