@@ -134,7 +134,7 @@ ANNUAL_LABELS = [
     "61.4%: 17.29% compounded",
     "at most 68.0%: 17.29% arithmetic",
     "73% printed",
-    "still short",
+    "68.0% still short of 73%",
     "re-chosen arm, 19.77% a year:",
     "71.8% compounded, at most 81.0% arithmetic,",
     "83% printed",
@@ -413,8 +413,10 @@ class TestThePost:
         caption opens on what the book leaves unstated."""
         paragraphs = _paragraphs()
         (index,) = [k for k, p in enumerate(paragraphs) if p.startswith(FOLLOWS[0])]
-        assert "\n7. **The bars.**" in paragraphs[index]
-        assert paragraphs[index + 3].startswith("The book leaves the bar grid")
+        assert "\n8. **The bars.**" in paragraphs[index]
+        assert paragraphs[index + 3].startswith(
+            "The book leaves which minutes and days the bars cover"
+        )
 
     def test_each_is_followed_by_a_one_sentence_italic_caption(self) -> None:
         """The post captions its chart, so each sketch gets a caption too."""
@@ -470,7 +472,7 @@ class TestTheRuleSketch:
         assert every[0].labels == RULE_LABELS
 
     def test_the_exit_is_minus_0_6_times_the_entry(self) -> None:
-        """The book's exit_threshold = −0.6 × entry_threshold, p. 140."""
+        """The book's exit_threshold = −0.6 × entry_threshold, pp. 140 to 141."""
         assert cpo.EXIT_FRACTION == -0.6
 
     def test_the_grids_lowest_entry_is_its_first(self) -> None:
@@ -694,7 +696,7 @@ class TestTheAnnualReturnsSketch:
     def test_the_words_sit_by_the_marks_they_name(self, every) -> None:
         scene, arm = every[1], fixed_arm()
         assert _label(scene, "61.4%: 17.29% compounded").y == growth_y(arm.compounded)
-        still = _label(scene, "still short").y
+        still = _label(scene, "68.0% still short of 73%").y
         assert growth_y(arm.ceiling) < still < growth_y(arm.printed) + 0.1
         assert _label(scene, "73% printed").y > growth_y(arm.printed)
         for year in (1, 2, 3):
@@ -734,7 +736,7 @@ class TestTheAnnualReturnsSketch:
             "33.1%: 10.00% compounded",
             "at most 35.0%: 10.00% arithmetic",
             "50% printed",
-            "still short",
+            "35.0% still short of 50%",
             "re-chosen arm, 20.00% a year:",
             "72.8% compounded, at most 82.2% arithmetic,",
             "90% printed",

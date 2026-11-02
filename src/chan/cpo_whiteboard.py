@@ -9,10 +9,10 @@ after the passage it draws.
 
 1. The entry and exit rule, under "The strategy, the grid and the bars", after
    the numbered list that ends on the bars and before the paragraph opening
-   "The book leaves the bar grid". A z-score path runs against dashed lines at
-   +entry and −entry, dashed brass lines at +0.6 and −0.6 times the entry,
-   and a grey line at 0. It falls below −entry and the rule buys GLD, rises
-   back above −0.6 times the entry and the rule exits the long, rises above
+   "The book leaves which minutes and days the bars cover". A z-score path
+   runs against dashed lines at +entry and −entry, dashed brass lines at +0.6
+   and −0.6 times the entry, and a grey line at 0. It falls below −entry and
+   the rule buys GLD, rises back above −0.6 times the entry and the rule exits the long, rises above
    +entry and the rule shorts GLD, and falls back below +0.6 times the entry
    and the rule exits the short. A dot on the path marks each of the four
    events, and a grey guide drops from each to a strip of the position held,
@@ -26,7 +26,8 @@ after the passage it draws.
    year 1 to year 3. A dashed brass ceiling at 68.0% is
    the most three years of daily returns averaging an arithmetic 17.29% a year
    can compound to. A red mark at the book's printed 73% sits above both, and
-   a red bracket from the ceiling to it says "still short". A grey note gives
+   a red bracket from the ceiling to it says how far the ceiling falls short,
+   as "68.0% still short of 73%". A grey note gives
    the re-chosen arm's three figures.
 
 The first sketch is schematic and carries no figures from the run. Its path is
@@ -468,7 +469,7 @@ def _annual_returns(fixed: Arm, rechosen: Arm) -> Scene:
             frames=3,
         ),
         Label(
-            "still short",
+            f"{_pct(fixed.ceiling, 1)} still short of {_pct(fixed.printed, 0)}",
             WORDS_X,
             (ceiling + printed) / 2 + 0.03,
             names="short",
