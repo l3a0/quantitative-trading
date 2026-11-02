@@ -96,7 +96,7 @@ GIFS = ["pead_rerun_sketch_where_the_56_go.gif", "pead_rerun_sketch_four_hours_l
 #: What each GIF follows: the last item of Lesson 1's list of why the 56 fail,
 #: and the last item of Lesson 2's list of what a late time does.
 UNIVERSE_ITEM = "2. **Forty-three lack the prices to check.**"
-LATE_ITEM = "3. **A filer during the session gains a wrong flag.**"
+LATE_ITEM = "3. **A filer that files during the session gains a wrong flag.**"
 
 UNIVERSE_LABELS = [
     "ALL 497",
@@ -430,7 +430,7 @@ class TestThePost:
         caption, then the paragraph or heading that followed the list."""
         paragraphs = _paragraphs()
         for item, name, after in (
-            (UNIVERSE_ITEM, GIFS[0], "Each stock trades on its own gap"),
+            (UNIVERSE_ITEM, GIFS[0], "### What the 56 stocks add to A’s return"),
             (LATE_ITEM, GIFS[1], "## Lesson 3:"),
         ):
             (index,) = [
