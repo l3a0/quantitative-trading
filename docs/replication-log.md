@@ -10748,9 +10748,10 @@ here.
 
 ### The registration
 
-The comparison was registered on the issue before any number on these
-sources was seen, in
-[the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515).
+The comparison was registered on the issue before any of its runs, in
+[the plan audit's comment](https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515),
+and that audit had already read both sources while planning, as its own
+"Already seen" list records.
 It fixes four universes.
 
 1. `ALL`, Chan's 497 stocks.
@@ -10801,8 +10802,9 @@ count.
       them also carry another company's proposed CIK. Compuware's is
       TetriDyn's, 827099, and Monster Worldwide's is Verisk's, 1442145.
    2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
-   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
-      fails on dates because it had filed nothing by 2012-03-30.
+   3. DuPont's proposed CIK, 1666700, belongs to today's DuPont, formed in
+      December 2015, which fails on dates because it had filed nothing by
+      2012-03-30.
    4. NYSE Euronext fails on the name, because EDGAR files it with no legal
       form.
    5. Leucadia's CIK filed no Item 2.02 8-K in the window.
@@ -10923,8 +10925,7 @@ nothing.
    exploratory sample.** On CAL, R1 lifts A_CAL's 0.054481 to 0.071050 and
    its Sharpe ratio from 1.3253 to 1.7045. It does so in two ways.
    1. R1 takes 1,291 trades against 1,052.
-   2. Each trade earns 6 percent more on average, 0.002162 against
-      0.002035.
+   2. The mean per trade is 6 percent higher, 0.002162 against 0.002035.
 
    The rule divides each day by a fixed 30, so more trades at the same mean
    raise the return in proportion. About three quarters of the +0.016568 is
@@ -10951,8 +10952,9 @@ nothing.
    rises over Chan's flags by +0.008661 only because it takes 1,477 trades
    against 1,052. Each of its trades earns 0.001679 on average, less than
    the 0.002035 on Chan's flags, and its Sharpe ratio is 0.0265 lower than
-   A_CAL's. E5 falls below A on both figures, in row 27. Its extra flags
-   come from two kinds of filing.
+   A_CAL's. E5 falls below A on both figures, in row 27, and nothing here
+   tests whether either Sharpe gap exceeds chance. Its extra flags come
+   from two kinds of filing.
    1. One was accepted during the session, so the gap at that day's open
       came before the release.
    2. The other was accepted after the date it reports. R5 flags the trading
@@ -10988,8 +10990,8 @@ nothing.
    The 47 stocks of CAL with no checked series are the last two groups,
    with 103 trades adding 0.010803. With U's 441 stocks, 949 trades and
    0.043678, the groups sum to A's 0.066743. The stocks outside U carry 0.35
-   of it. The 13 whose ticker is not tied to the right company, the first two
-   groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
+   of it. The 13 whose tie to the right company the checks cannot confirm,
+   the first two groups, take 28 trades and add 0.014787, 0.64 of the universe effect. On
    2011-08-04 the stocks outside U add 0.010702 through 8 trades, 0.46 of the
    universe effect on one day, and the largest of those trades is WFR short
    at 0.1108. Their mean trade is 0.007367 over 123 against 0.001808 over
@@ -11023,8 +11025,9 @@ rows 35 and 36. It moves E5 by −0.004566 and −0.1039, in row 37, through
 three trades.
 
 1. PNC on 2011-09-12 turns from long to short, worth −0.002261.
-2. MCO on 2012-02-08 stays short and earns less, worth −0.001751.
-3. TMK on 2011-10-27 stays long and earns less, worth −0.000554.
+2. MCO on 2012-02-08 stays short and loses more, worth −0.001751.
+3. TMK on 2011-10-27 stays long and turns a small gain into a loss, worth
+   −0.000554.
 
 The PNC flip alone moves E5 more than the vendor and basis effects of rows
 20 and 21 together. E1's move is the same MCO and TMK trades and CAM on
@@ -11044,7 +11047,27 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/pead-edgar-rerun-lessons.md](../blog/pead-edgar-rerun-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one
 figure, drawn from committed files only, which
-`uv run python -m chan.pead_rerun_figures` redraws.
+`uv run python -m chan.pead_rerun_figures` redraws. Its two whiteboard
+sketches move too, and `uv run python -m chan.pead_rerun_whiteboard` redraws
+them.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing. Both read only committed files, and the second also
+draws two constants from the Internet Archive's uncommitted copies of
+2026-10-07.
+
+1. **Where the 56 go**, in Lesson 1. It draws ALL's 497 stocks as a box
+   holding CAL's 488 and PX's 446 as two overlapping circles, with U's 441 in
+   the overlap. The 47 in CAL alone split into 4 reused tickers and 43
+   without prices for the whole window, and the 5 in PX alone and the 4
+   outside both are the 9 that fail the filer check. It is not drawn to
+   scale.
+2. **Four hours late**, in Lesson 2. On one clock from 6 a.m. to 10 p.m. it
+   moves three spans 4 hours later: the 1,460 filings accepted before the
+   open, from 06:00:43, into the session, Apple's releases at about 4:30 p.m.
+   to about 8:30 p.m., and noon to the close past the close. The 4 hours and
+   the 5 a winter time takes are what those copies show, so they are
+   constants in the module rather than figures read from a file.
 
 ## Entry 47: the VIX filter on buy on gap and the STOXX Europe 50 gap rule, Chan's *Algorithmic Trading*
 

@@ -903,16 +903,17 @@ def test_no_committed_post_escapes_a_character_inside_text() -> None:
     _assert_no_escape_inside_text({post.name: post.read_text(encoding="utf-8") for post in POSTS})
 
 
-def test_the_post_check_fails_on_the_entry_46_post_as_it_merged() -> None:
-    """The committed-post check catches the four cells it was written for.
+def test_the_post_check_fails_on_the_entry_46_post_with_its_escapes_restored() -> None:
+    """The committed-post check catches the kind of cell it was written for.
 
-    Putting the underscores back inside ``\\text{}`` rebuilds the Entry 46
-    post's tables as they merged from the committed post, so the check runs
-    against real content rather than only against posts that pass.
+    Putting the underscores back inside ``\\text{}`` rebuilds the escape the
+    Entry 46 post merged with in four cells, here in every run-name cell its
+    tables hold now, so the check runs against real content rather than only
+    against posts that pass.
     """
     post = REPO_ROOT / "blog" / "pead-edgar-rerun-lessons.md"
     unfixed = post.read_text(encoding="utf-8").replace("\\text{A}\\_\\text{", "\\text{A\\_")
-    expected = ["A\\_CAL", "A\\_PX", "A\\_U", "A\\_CAL, Chan's flags"]
+    expected = ["A\\_CAL", "A\\_PX", "A\\_U"] * 2 + ["A\\_CAL"]
     assert _escapes_inside_text(unfixed) == expected
     with pytest.raises(AssertionError):
         _assert_no_escape_inside_text({post.name: unfixed})

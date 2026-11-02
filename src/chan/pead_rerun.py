@@ -9,7 +9,7 @@ runs the same rule, :func:`chan.pead.pead`, unchanged, on four things that can
 differ from his: the stocks, the calendar, the vendor and the price basis.
 
 **The registration.** The comparison was registered on issue 251 before any
-number on these sources was seen, in the comment
+of its runs, in the comment
 https://github.com/l3a0/quantitative-trading/issues/251#issuecomment-6104973515.
 Every run is **exploratory**, because the plan audit had already spent part of
 the sample measuring how much of the return each vendor could serve. What the
@@ -114,8 +114,9 @@ Five choices it left open, each of which moves a figure or a count.
       also carry another company's proposed CIK: Compuware carries
       TetriDyn's, 827099, and Monster Worldwide carries Verisk's, 1442145.
    2. Cablevision's proposed CIK is BJ's Wholesale's, 1037461.
-   3. DuPont's proposed CIK is the DuPont formed after 2015, 1666700, which
-      had filed nothing by the price day and so fails on dates.
+   3. DuPont's proposed CIK, 1666700, belongs to today's DuPont, formed in
+      December 2015, which had filed nothing by the price day and so fails on
+      dates.
    4. NYSE Euronext fails on the name, because EDGAR files it with no legal
       form.
    5. Leucadia's CIK filed no Item 2.02 8-K in the window, so the fourth

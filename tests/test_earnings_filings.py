@@ -517,6 +517,33 @@ def schedule() -> list[tuple[str, float]]:
     return [(row["name"], holding_price(row["value"], row["shares"])) for _, row in ivv.iterrows()]
 
 
+#: The nine stocks outside CAL under their own companies' names, as IVV's
+#: schedule of 2011-09-30 prints them. ``tests/test_pead_rerun.py`` reads them
+#: too, to split the nine the way the post does.
+OWN_NAMES = {
+    "AKS": "AK Steel Holding Corp.",
+    "CPWR": "Compuware Corp.",
+    "CVC": "Cablevision NY Group Class A",
+    "DD": "E.I. du Pont de Nemours and Co.",
+    "LUK": "Leucadia National Corp.",
+    "MWW": "Monster Worldwide Inc.",
+    "NYX": "NYSE Euronext Inc.",
+    "TLAB": "Tellabs Inc.",
+    "WFR": "MEMC Electronic Materials Inc.",
+}
+
+
+def ivv_names(report_date: str) -> list[str]:
+    """Every holding's name in IVV's committed schedule of ``report_date``."""
+    path = earnings_filings.FILINGS_DIR / "ivv" / f"{report_date}.csv"
+    return list(pd.read_csv(path, dtype=str, keep_default_na=False)["name"])
+
+
+def meets(name: str, names: list[str]) -> int:
+    """How many of ``names`` share a key with ``name``, as the filer check matches them."""
+    return sum(bool(name_keys(name) & name_keys(other)) for other in names)
+
+
 class TestTheCommittedTable:
     """``tickers.csv`` as the build session wrote it on 2026-10-10."""
 
@@ -562,8 +589,8 @@ class TestTheCommittedTable:
 
         AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule, and
         CPWR and MWW carry another company's CIK besides: TetriDyn's and
-        Verisk's. CVC carries BJ's Wholesale's. DD carries the DuPont formed
-        after 2015, which had no name on the price day. NYX carries its own
+        Verisk's. CVC carries BJ's Wholesale's. DD carries today's DuPont,
+        formed in December 2015, which had no name on the price day. NYX carries its own
         CIK under a name with no legal form, and LUK its own, silent.
         """
         assert {row.ticker: (row.cik, row.edgar_name) for row in table if not row.calendar} == {
@@ -638,6 +665,40 @@ class TestTheCommittedTable:
         assert (max(passing), min(failing)) == (2, 72)
         assert max(passing) <= DAYS_ALLOWED < min(failing)
 
+    def test_five_left_out_left_the_fund_during_the_window(self, table, schedule) -> None:
+        """AKS, CPWR, MWW, TLAB and WFR have no holding in IVV's schedule of 2012-03-31.
+
+        Each company's own name, as the schedule of 2011-09-30 prints it, meets
+        exactly one holding there and none at 2011-12-31 or 2012-03-31, so all
+        five left the fund inside the window. The other four of the nine, CVC,
+        DD, LUK and NYX, meet exactly one holding in all three, so they fail
+        for another reason. ``check_cik`` returns "name" both for a missing
+        holding and for a name that matches none, so the outcome codes alone
+        cannot say which.
+        """
+        assert set(OWN_NAMES) == {row.ticker for row in table if not row.calendar}
+        before, after = ivv_names("2011-09-30"), ivv_names("2011-12-31")
+        on_the_day = [name for name, _ in schedule]
+        counts = {
+            t: (meets(n, before), meets(n, after), meets(n, on_the_day))
+            for t, n in OWN_NAMES.items()
+        }
+        left = {"AKS", "CPWR", "MWW", "TLAB", "WFR"}
+        assert counts == {t: (1, 0, 0) if t in left else (1, 1, 1) for t in OWN_NAMES}
+
+    def test_which_of_the_nine_carry_a_name_that_misses_their_own(self, table) -> None:
+        """CPWR, CVC, DD, MWW and NYX, read through ``name_keys``.
+
+        CPWR's EDGAR name is TetriDyn's, MWW's Verisk's and CVC's BJ's
+        Wholesale's, and DD's CIK had no name on the price day. NYX carries
+        its own CIK, and its name misses the schedule's only by the legal form
+        ``name_keys`` keeps, so that NYSE Euronext's filer is its own company's
+        is a reading of the two names rather than something the keys decide.
+        """
+        edgar = {row.ticker: row.edgar_name for row in table if not row.calendar}
+        misses = {t for t, own in OWN_NAMES.items() if not name_keys(edgar[t]) & name_keys(own)}
+        assert misses == {"CPWR", "CVC", "DD", "MWW", "NYX"}
+
 
 class TestTheCommittedIndex:
     """``index.jsonl`` as the fetch of 2026-10-10 wrote it, from EDGAR that day."""
@@ -669,9 +730,9 @@ class TestTheCommittedIndex:
         """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
 
         No filing was accepted before 06:00:43 Eastern on any day. So a time
-        read 4 or 5 hours late, as a check made while planning the rerun found
-        the submissions JSON reads some filers, would put every filing accepted before the open
-        inside the session, where R1 flags nothing for it.
+        read 4 or 5 hours late, as a check made on 2026-10-10 found the
+        submissions JSON reading some filers, would put every filing accepted
+        before the open inside the session, where R1 flags nothing for it.
         """
         times = sorted(release.accepted[11:] for release in index)
         assert (times[0], times[-1]) == ("06:00:43", "21:49:59")
@@ -688,8 +749,9 @@ class TestTheCommittedIndex:
     def test_apple_files_at_half_past_four_eastern(self, index) -> None:
         """About 4:30 p.m. Eastern, which a double conversion would read as 8:30 or 9:30 p.m.
 
-        A check made while planning the rerun found the submissions JSON
-        reading some filers' times as if converted from Eastern twice. The
+        A check made on 2026-10-10, while planning the rerun, found the
+        submissions JSON reading some filers' times, Apple's among them, as if
+        converted from Eastern twice, and on 2026-11-02 it read them true. The
         second conversion adds 4 hours under daylight saving time and 5 under
         standard time. So the JSON would read the four filed under daylight
         saving time as about 8:30 p.m., and the two in January, 2011-01-18 and
@@ -755,6 +817,27 @@ class TestTheArchive:
         if reason is not None:
             pytest.skip(reason)
         assert earnings_filings.check() == []
+
+    def test_the_series_under_ep_holds_another_companys_prices(self, closes) -> None:
+        """Measured for ``blog/pead-edgar-rerun-lessons.md`` after the runs, deciding nothing.
+
+        The check stops EP at its 35 missing days, so it counts among the
+        series that lack closes. On the days both series hold a return, the
+        archive's differs from that of Chan's closes on most of them, far past
+        the 2 days a series of the same company differs on.
+        """
+        reason = archive_skip_reason()
+        if reason is not None:
+            pytest.skip(reason)
+        from chan.archive import read_cross_section
+
+        _, archive = read_cross_section("sp500", symbols=["EP"])
+        window = read_sources()[4].index
+        chan = closes["EP"].loc[window]
+        theirs = archive["EP"].reindex(window)
+        difference = (chan.pct_change() - theirs.pct_change()).abs()
+        held = int(difference.notna().sum())
+        assert (held, int((difference > RETURN_TOLERANCE).sum())) == (294, 181)
 
     def test_which_days_the_passing_series_differ_on(self, table, closes) -> None:
         """88 series differ on 2011-10-27 and 86 on 2011-10-28. Ten differ on other days."""

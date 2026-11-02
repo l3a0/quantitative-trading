@@ -8217,21 +8217,22 @@ thirty-ninth post, about Example 7.2 of Chan's *Algorithmic Trading* rerun
 off his own files, on an announcement calendar read from EDGAR's Item 2.02
 filings and on Alpha Vantage prices from the owner's archive. Chan reports an
 APR of 6.7 percent and a Sharpe ratio of 1.5, which the post on post-earnings
-drift reproduces on his files. This post links that one for the rule, the
-fixed 30 and the flag counts rather than repeating them, and draws four
+drift reproduces on his files. This post states the rule and the fixed 30
+in brief, links that one for both in full and for the flag counts, and draws four
 lessons from Entry 46 of the replication log. Every result in it is
 exploratory, and the runs on the archive's prices cannot be rerun by a reader.
 
 1. A filer check against EDGAR and a price-series check against Alpha
    Vantage drop 56 stocks, and they carry 0.023065 of A's 0.066743, 0.35 of
-   it, exactly A against A_U. The 13 whose ticker cannot be tied to the right
-   company, the 9 that fail the filer check and 4 reused tickers, carry
+   it, exactly A against A_U. The 13 whose tie to the right company the
+   checks cannot confirm, the 9 that fail the filer check and 4 reused
+   tickers, carry
    0.014787 of that, 0.64 of it. The other 43 fail because the archive does
    not hold their prices for the whole window under the ticker. Close to half
    of the 0.023065 comes on 2011-08-04.
-2. EDGAR's submissions file reads some filers' acceptance times 4 or 5 hours
-   late, which would move every before-open release of a filer whose time
-   reads late into the session.
+2. EDGAR's submissions file read some filers' acceptance times 4 or 5 hours
+   late in October 2026 and true UTC on 2026-11-02, and a late reading would
+   move every before-open release of such a filer into the session.
 3. R1 lifts A_CAL's 0.054481 to 0.071050, and the extra trades are 0.75 of the
    gain at A_CAL's mean per trade and 0.79 at R1's own.
 4. The vendor and the price basis move the return by about a ten-thousandth
@@ -8245,44 +8246,68 @@ Five groups of what it says are not pinned here.
    open at 3002, the 4:00 p.m. and 9:30 a.m. times at 3010, and the book's
    6.7 percent and 1.5 at 3024. The figures at 3024 are pinned by
    [tests/test_pead.py](tests/test_pead.py), and the words are not.
-2. The sample of the submissions file's acceptance times taken while
-   planning the rerun, 175 of 248 filings from 38 filers true UTC and 73 a
-   further 4 or 5 hours late, with Apple among them. It is not committed, and
-   `chan.earnings_filings`'s docstring records it. That the extra shift is 4
-   hours under daylight saving time and 5 under standard time, and that a
-   filer read late was read late on every filing, are readings of it.
+2. The readings of the submissions file's acceptance times. The sample
+   taken on 2026-10-10 while planning the rerun found 175 of 248 filings from
+   38 filers true UTC and 73 a further 4 or 5 hours late, with Apple among
+   them, and `chan.earnings_filings`'s docstring records it. The Internet
+   Archive's copies of 2026-10-07, which show the late reading for Apple,
+   Amazon and JPMorgan, and a fetch on 2026-11-02 that found all 2,930
+   filings of the index true UTC, are recorded in
+   [docs/design.md](docs/design.md). None is committed. That the extra shift
+   is 4 hours under daylight saving time and 5 under standard time is read
+   from the archive's copies, and that a filer read late was read late on
+   every filing is a reading of the sample.
 3. Facts about EDGAR, the archive and the code read when the record was
    built rather than computed from committed files: that today's ticker table
    sends CB to Chubb Limited, which was ACE in 2012 and filed its own
    releases in the window, that the archive's CB series holds ACE's history,
    that the archive files UTX under RTX and adjusts only the close, that
-   DuPont's proposed filer was formed after 2015, that R5 matched Chan's
-   flags best on a sample of 32 stocks, and the check's 3 percent tolerance
-   on price, a constant in `chan.earnings_filings`.
+   DuPont's proposed filer was formed in December 2015, that R5 matched Chan's
+   flags best on a sample of 32 stocks, and that the vendor's terms grant
+   personal, non-commercial use, which keeps the archive's prices out of the
+   repository. That NYSE Euronext's proposed filer is its own company's is a
+   reading of the names too, since its EDGAR name misses the fund's by the
+   legal form. The post's five of the nine that carry their own company's
+   filer, and its five ways the nine fail, rest on that reading.
 4. Readings and figures the post states in words or rounds from pinned ones,
-   such as a third, about two thirds, close to half, three quarters and
-   nearer four fifths, Apple's times read after a double conversion as about
-   8:30 p.m. for the four filed under daylight saving time and 9:30 p.m. for
-   the two in January, about a ten-thousandth, the 54 disagreements on the
-   two days, that a filing from 11:00 a.m. in winter or noon in summer
-   onward moves past the close when read late, that two vendors defining the
-   open differently explains the two days, and that a release can precede
-   the filing that reports it. The figure's alt text reads its curves
-   approximately too.
+   such as a third, about two thirds, three quarters and nearer four fifths,
+   about a ten-thousandth, that two vendors defining the open differently
+   explains the two days, that a release can precede the filing that reports
+   it, and that a t of about 2 is the usual bar for ruling out chance. The
+   figure's alt text reads its curves approximately too. The counts of the
+   post's own lists, such as the four things a filer must pass and the five
+   questions it leaves open, are words of the same kind.
 5. Its references, cited rather than computed.
 
-Every other number in the post traces to an assertion in
-[tests/test_pead_rerun.py](tests/test_pead_rerun.py), to
+`TestWhatThePostQuotes` in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py) reads the post itself. It
+checks one copy of every other number the post quotes against the value the
+suite derives, at the precision the post prints it, and rebuilds the post's
+four tables whole, the second only where the archive is configured, so a typo in that copy or a re-pin that leaves the post
+behind fails. Its docstring names what it reads. A second copy of a figure, in
+another lesson, the alt text, the caption or the closing lists, is not read.
+Each value it checks is pinned in
+[tests/test_pead_rerun.py](tests/test_pead_rerun.py), in
 [tests/test_earnings_filings.py](tests/test_earnings_filings.py) for the
-universes' tickers and filers, the 398 series that pass under Chan's own
+universes' tickers and filers, the own names of the nine outside CAL and which
+of them left the fund, the 398 series that pass under Chan's own
 tickers and the 48 companies under a later ticker, the 2 and 72 to 194 days a
 series differs on, ACE's 5.92 percent, and the index's 2,930 filings, 1,460
 before the open and 405 in the session, Apple's times and the earliest and
-latest times of day, to [tests/test_pead_figures.py](tests/test_pead_figures.py)
-for 2011-08-04 as the high A's longest drawdown starts from, or to
+latest times of day, in [tests/test_pead_figures.py](tests/test_pead_figures.py)
+for 2011-08-04 as the high A's longest drawdown starts from, or in
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) for the
-figure's own numbers. Eight had no pin before it, and all were measured after
-the runs.
+figure's own numbers. The rule's constants, the counts of universes, calendars
+and runs, the 3 percent tolerance and the archive's download date come from
+`chan.pead`, `chan.pead_rerun`, `chan.earnings_filings` and the archive's
+committed manifest, and the hours a time read late moves by come from the tz
+database's offsets for New York.
+The C, D, E1 and E5 figures, the vendor and basis effects, the interaction, EP's
+294 and 181 days and every number in Lesson 4 are asserted and read only where
+the owner's archive is configured and `QT_ARCHIVE_RUN=1` is set, so CI skips
+them. `TestTheWiring` holds in CI that each of those runs reads its
+registered prices, flags and stocks. Nine had no pin before the post, and all were
+measured after the runs.
 
 1. That A less A_U is exactly the trades of the 56 stocks outside U, and A
    less A_CAL exactly those of the 9 outside CAL, 0.012261 rounded from the
@@ -8312,11 +8337,23 @@ the runs.
    JCI and LSI. 35 of the 36 lack all 330 closes, and the committed manifest
    of the archive dates each of those series' first row after 2012-04-24,
    ALTR's on 2017-11-01, DELL's on 2018-12-21 and DOW's on 2019-03-20. EP's
-   starts on 2011-02-23 and lacks 35, and the 7 have no line in the
+   starts on 2011-02-23 and lacks 35, and where the archive is configured
+   [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds that
+   its returns differ from those of Chan's closes on 181 of the 294 days both
+   hold a return, so it is another company's series. The 7 have no line in the
    archive's `sp500` cross-section. The 4 take 8 trades adding 0.002526, the
-   43 take 95 adding 0.008278, and the 13 that cannot be tied to the right
-   company, the 4 and the 9 outside CAL, take 28 adding 0.014787, 0.64 of
-   the universe effect.
+   43 take 95 adding 0.008278, and the 13 the checks cannot confirm, the 4
+   and the 9 outside CAL, take 28 adding 0.014787, 0.64 of the universe
+   effect.
+9. The five of the nine outside CAL that left the fund during the window,
+   AKS, CPWR, MWW, TLAB and WFR. Chan's closes for them fell 27 to 69
+   percent over it, and A's 13 trades in them, 9 of them shorts, average
+   0.022738, no more than the 0.026587 of the 7 trades in the other four,
+   CVC, DD, LUK and NYX.
+   [tests/test_earnings_filings.py](tests/test_earnings_filings.py) holds
+   that each of the five was in the fund's schedule of 2011-09-30 and in
+   neither later one, that each of the other four was in all three, and
+   which of the nine carry an EDGAR name that misses their own.
 
 Its one figure is drawn from committed files only by
 [src/chan/pead_rerun_figures.py](src/chan/pead_rerun_figures.py), which reads
@@ -8338,6 +8375,42 @@ uv run python -m chan.pead_rerun_figures
 [tests/test_pead_rerun_figures.py](tests/test_pead_rerun_figures.py) holds
 what it draws rather than its bytes, for the reason given above for the
 regime map.
+
+The post also carries two looping whiteboard sketches, drawn by
+[src/chan/pead_rerun_whiteboard.py](src/chan/pead_rerun_whiteboard.py) on the
+USD.CAD post's sketch machinery. Each sits after the list it draws.
+
+1. `pead_rerun_sketch_where_the_56_go.gif`, in Lesson 1, after the list of
+   why the 56 stocks outside U fail. A box of ALL's 497 holds CAL's 488 and
+   PX's 446 as two circles overlapping in U's 441. The 47 in CAL alone are
+   brass, the chart's colour for them, split into 4 reused tickers and 43
+   without prices for the whole window. The 5 in PX alone and the 4 outside
+   both are red, the chart's colour for the 9 that fail the filer check. It
+   is not drawn to scale, and every count comes from the committed table of
+   tickers.
+2. `pead_rerun_sketch_four_hours_late.gif`, in Lesson 2, after the list of
+   what a late time does. On one clock from 6 a.m. to 10 p.m., with the
+   session tinted, three rows move 4 hours later: the 1,460 filings accepted
+   before the open, from 06:00:43, land inside the session, Apple's releases
+   at about 4:30 p.m. stay after the close, and the span from noon to the
+   close lands past it. The tint carries the 405 accepted during the session.
+   The 4 hours, and the 5 a winter time takes, are what the Internet
+   Archive's copies of 2026-10-07 show, which are not committed, so the
+   module holds them as constants and the caption says so.
+
+Both build more slowly than the USD.CAD post's sketches and hold their
+finished drawings for twelve seconds. Redraw both with:
+
+```bash
+uv run python -m chan.pead_rerun_whiteboard
+```
+
+[tests/test_pead_rerun_whiteboard.py](tests/test_pead_rerun_whiteboard.py)
+holds what each draws, which region each count sits in, where each span and
+dot sits on the clock, that every count is read from the committed table and
+index, and that each GIF follows its list in the post. It also reads the two
+alt texts against the labels and the figures, and the two captions against
+the counts they name.
 
 [blog/opening-gap-lessons.md](blog/opening-gap-lessons.md) is a
 fortieth post, about the opening gap strategy on FSTX, the STOXX Europe
