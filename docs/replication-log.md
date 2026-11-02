@@ -8332,16 +8332,17 @@ both are stated once here.
    on the rebuilt return. The level adds up the held contract's price changes,
    which is an additive back-adjustment.
 
-**The rule was declared after the scratch runs.** The issue said these
-choices had to be declared before any figure was computed. Two scratch runs
-read about 90 variants first, a count from the issue's disclosure that no
-test here pins, across lags, held contracts, units, thresholds
-and roll rules, and one of them came close to the book. The declaration rests
-on grounds the runs did not choose. The lag is Example 6.1's own convention,
-the series is the one the book says it revises, and the 2012-05-11 save,
-rather than any strategy figure, fixes the roll to within one row. Row 9 says
-which row it leaves open and what the other choice gives. Row 14 is the
-reading that came close, and it is never the verdict.
+**The rule was declared after the scratch runs.** The issue said these choices
+had to be declared before any figure was computed. Two scratch runs read about
+90 variants first, a count from the issue's disclosure that no test here pins,
+across lags, held contracts, units, thresholds and roll rules, and one of them
+came close to the book. The declaration rests on grounds the runs did not
+choose. The lag is Example 6.1's own convention, the series is the one the
+book says it revises, and the 2012-05-11 save, rather than any strategy
+figure, fixes the roll to within one row. The unit of γ is not among those
+grounds, because row 13's reason for it is read from the strip the rule is
+tested on. Row 9 says which row the save leaves open and what the other choice
+gives. Row 14 is the reading that came close, and it is never the verdict.
 
 Every result here is **exploratory**. The declaration came after the
 readings, so this entry cannot count as a registered test of the roll-return
@@ -8416,13 +8417,14 @@ Three things.
    is larger than day-to-day noise could produce. In this window Example 6.1 holds all 25 tranches long on every
    row, so it is holding TU, and the declared rule is that position with 341
    rows taken out, which `TestWhatTheMarginsAreMadeOf` holds.
-2. **The declared rule lands none of the book's figures, and the reading
-   that comes close came out of the scratch search.** Row 14 lands two of rows 1 to 3 by holding a
-   contract γ is fitted on. A fit that leaves that contract out lowers its
-   Sharpe ratio to 1.802262, but lowers the declared rule's further, to
-   1.429338, though the declared rule's contract stays in the fit. So the
-   fit's own use of the held contract's price is a candidate for what lifts
-   row 14, not a finding, and the entry cannot say which reading Chan held.
+2. **The declared rule lands none of the book's figures, and the reading that
+   comes close came out of the scratch search.** Row 14 lands two of rows 1 to
+   3 by holding the fifth contract, the farthest of the five γ is fitted on. A
+   fit that leaves that contract out lowers its Sharpe ratio to 1.802262, but
+   lowers the declared rule's further, to 1.429338, though the declared rule's
+   contract stays in the fit. So the fit's own use of the held contract's
+   price is a candidate for what lifts row 14, not a finding, and the entry
+   cannot say which reading Chan held.
 3. **The book's comparison spans two windows.** Example 6.1's printed figures
    run from 2004 and these from 2009. On one window the declared rule's APR
    margin is 0.000348, far smaller than the gap between the printed 2.5 and
@@ -8437,9 +8439,9 @@ Three things.
 test would fix the rule first and read data this search never loaded.
 
 **What Chan held.** No script ships for location 2690, and the book does not
-say how far the roll return is lagged or which price the position earns. Row
-14 shows a reading that lands near the book, and choosing it after its number
-was seen would be a search.
+say how far the roll return is lagged, which price the position earns, or in
+which unit γ is compared with the threshold. Row 14 shows a reading that lands
+near the book, and choosing it after its number was seen would be a search.
 
 **What a trader would earn.** The returns are on the notional value of one
 contract with no cost and no margin, as in Entry 33.

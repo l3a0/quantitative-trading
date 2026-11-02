@@ -36,12 +36,14 @@ whiteboard sketches.
    or less and is set against the book's 1.1 percent as −100 times itself.
 
 **The declaration came after the scratch runs.** The issue said these choices
-had to be declared before any figure was computed, and that did not happen.
-Two scratch runs read about 90 variants first, across lags, held contracts,
-units, thresholds and roll rules. The declaration therefore rests on prior
-grounds the runs did not choose: Example 6.1's convention for the lag, Example
-6.1's series for what the position earns, and the 2012-05-11 save for the roll
-row, to within one row. Rows 1 to 3 miss the book under it, and the run tries no second rule.
+had to be declared before any figure was computed, and that did not happen. Two
+scratch runs read about 90 variants first, across lags, held contracts, units,
+thresholds and roll rules. The declaration therefore rests on prior grounds the
+runs did not choose: Example 6.1's convention for the lag, Example 6.1's series
+for what the position earns, and the 2012-05-11 save for the roll row, to
+within one row. The column units are not among those grounds, because point 1's
+reason for them is read from the strip the rule is tested on. Rows 1 to 3 miss
+the book under the declared rule, and the run tries no second rule.
 
 **The rebuild and its check.** The position earns Example 6.1's series, the
 continuous front-contract close. No committed save of that series covers the

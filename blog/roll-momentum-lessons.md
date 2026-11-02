@@ -79,9 +79,9 @@ A miss cannot say whether Chan computed a different number or read his own sente
 
 ### How the declared rule trades the window
 
-In this window the rule is long on 572 of the 913 days, 62.65 percent, and flat on the other 341. Because γ never falls below −3 percent, the rule is never short. It changes position 21 times. It opens the window flat, because the position that earns the window’s first day is set by γ on 2008-12-31, which is 1.61 percent, under the threshold. On the window’s first three days, the five nearest contracts close at the same price, so the fit’s slope and γ are zero to within 10⁻¹³.
+In this window the rule is long on 572 of the 913 days, 62.65 percent, and flat on the other 341. Because γ never falls below −3 percent, the rule is never short. It changes position 21 times. It opens the window flat, because the position that earns the window’s first day is set by γ on 2008-12-31, which is 1.61 percent, under the threshold.
 
-Those three days fall inside a longer pattern that began before the window. On 185 of the 187 window days from 2009-01-02 to 2009-09-29, the third, fourth and fifth nearest contracts close at one price, and that shared price changes from day to day. A fit whose three farthest prices are equal finds no roll among those contracts. The position on 169 of the 341 flat days was set on a γ fitted on a day whose three farthest prices were equal. The first of those positions was set on 2008-12-31, the day before the window. The strip cannot say whether the exchange or the data vendor priced those contracts that way.
+On the window’s first three days, the five nearest contracts close at the same price, so the fit’s slope and γ are zero to within 10⁻¹³. Those three days fall inside a longer pattern that began before the window. On 185 of the 187 window days from 2009-01-02 to 2009-09-29, the third, fourth and fifth nearest contracts close at one price, and that shared price changes from day to day. A fit whose three farthest prices are equal finds no roll among those contracts. The position on 169 of the 341 flat days was set on a γ fitted on a day whose three farthest prices were equal. The first of those positions was set on 2008-12-31, the day before the window. The strip cannot say whether the exchange or the data vendor priced those contracts that way.
 
 The figure below draws both rules on the rebuilt series. The book prints no chart for this experiment, so the figure is this repository’s own.
 
@@ -126,7 +126,7 @@ What differs is the risk. Sitting out 341 days that went nowhere removes their d
 
 The top panel of the figure in Lesson 1 shows the difference. The declared rule’s line goes flat through every shaded stretch, while Example 6.1’s line wanders up in some of them and down in others, and the two end close together.
 
-So on this window the roll-return signal’s advantage is that it was out of the market on 341 of the 913 days, and those days earned about nothing. This run cannot say whether the roll return picked those days, chance did, or the shared prices behind γ did. On 169 of the flat days the position was set by a γ fitted on a day when the three farthest of its five contracts shared one price, the pattern Lesson 1 describes. TU swung more on those 169 days than across the window, with an annual volatility of 0.016727 against 0.011156. From 2009-10-01, once no position rests on those prices, the declared rule’s Sharpe ratio is 1.85 against Example 6.1’s 1.43, so a smaller margin remains.
+So on this window the declared rule’s advantage is that it was out of the market on 341 of the 913 days, and those days earned about nothing. This run cannot say whether the roll return picked those days, chance did, or the shared prices behind γ did. On 169 of the flat days the position was set by a γ fitted on a day when the three farthest of its five contracts shared one price, the pattern Lesson 1 describes. TU swung more on those 169 days than across the window, with an annual volatility of 0.016727 against 0.011156. From 2009-10-01, once no position rests on those prices, the declared rule’s Sharpe ratio is 1.85 against Example 6.1’s 1.43, so a smaller margin remains.
 
 That advantage belongs to this window. It says nothing about a window where TU fell. There Example 6.1 would go short, while the declared rule goes short only if γ falls below −3 percent, which it never did here.
 
@@ -146,7 +146,7 @@ The question is which day to switch. The rebuild takes the nearest contract that
 
 Chan’s continuous close sets the rebuild’s switch to within one day. Its daily changes are the old contract’s own through the eighth trading day before that contract’s last price, and the new contract’s from the sixth. On the seventh, the day between, its price is already the new contract’s, shifted as on the days after. Its change that day still does not say which contract earned it. On 29 of the 32 rolls in its span, its change on that day matches neither contract’s own change, and on one it matches the new contract’s.
 
-The rebuild gives the day to the old contract. If the new contract gets it instead, a switch one day earlier, the declared rule gives an APR of 1.3665 percent and a Sharpe ratio of 1.789044, against 1.3725 percent and 1.803348.
+The rebuild gives the day between to the old contract. If the new contract gets it instead, a switch one day earlier, the declared rule gives an APR of 1.3665 percent and a Sharpe ratio of 1.789044, against 1.3725 percent and 1.803348.
 
 The check against Chan’s continuous close covers the 1,999 daily changes the two series share.
 
@@ -167,13 +167,15 @@ The declaration rests on three grounds the trial runs did not choose.
 2. **The series** is Example 6.1’s front contract, since the rule on p. 206 revises Example 6.1.
 3. **The roll day** comes from Chan’s continuous close to within one day, as Lesson 3 describes. Lesson 3 also gives the figures for a switch one day earlier.
 
-The unit of γ is not among them. Chan’s script computes γ in column units, but the rule reads them because γ in months never trades in this window, which is a fact read from the same data the rule is tested on.
+The unit of γ is not among them. Chan’s script computes γ in column units, but the rule reads γ in that unit because a rule on γ in months never trades in this window. That fact comes from the same data the rule is tested on.
 
 ### The fifth-contract variant
 
 One variant in the trial runs came close to the book. Instead of the front contract, it holds the fifth-nearest contract among those priced the day before, the farthest of the five that γ is fitted on. That gives an APR of 2.4712 percent, a Sharpe ratio of 2.144165 and a drawdown of 1.1583 percent. The first two match the book’s 2.5 percent and 2.1 at the book’s precision. The drawdown misses 1.1 percent.
 
-How it is built gives one reason to doubt it. The position is set by γ, and γ is fitted partly on that same fifth contract’s price. Suppose the fifth contract closes a little low one day. The slope steepens, γ rises, and the rule goes long that same contract. If the low close was noise that reverses the next day, the long position earns the reversal. So part of what the variant earns could come from the fit reading the held contract’s price, rather than from the roll return the book describes. A fit of γ on the four nearest contracts alone, which leaves the held contract out of the fit, lowers the variant’s Sharpe ratio from 2.144165 to 1.802262. The same fit lowers the declared rule’s Sharpe ratio further, from 1.803348 to 1.429338, though the front contract it holds is in both fits. So the fall does not single out the held contract, and that explanation stays a candidate rather than a finding.
+How it is built gives one reason to doubt it. The position is set by γ, and γ is fitted partly on that same fifth contract’s price. Suppose the fifth contract closes a little low one day. The slope steepens, γ rises, and the rule goes long that same contract. If the low close was noise that reverses the next day, the long position earns the reversal. So part of what the variant earns could come from the fit reading the held contract’s price, rather than from the roll return the book describes.
+
+A fit of γ on the four nearest contracts alone, which leaves the held contract out of the fit, lowers the variant’s Sharpe ratio from 2.144165 to 1.802262. The same fit lowers the declared rule’s Sharpe ratio further, from 1.803348 to 1.429338, though the front contract it holds is in both fits. So the fall does not single out the held contract, and that explanation stays a candidate rather than a finding.
 
 One related variant is checked by a test. It takes the fifth contract only from among those priced both the day before and the day it earns, so a nearer contract that stopped trading the day before drops out of the count. It gives a Sharpe ratio of 1.957852, short of the book’s 2.1.
 
@@ -186,8 +188,8 @@ The same reasoning is why every result here is exploratory. The declaration came
 Three things are beyond it.
 
 1. **Whether the signal works out of sample.** The rule was written down after about 90 variants on the same strip, so its margins are not a test.
-2. **Which version of the rule Chan ran.** No script ships for the rule on p. 206, and the book does not say how far Chan lagged the roll return or which price the position earns. The fifth-contract variant comes close to the book’s figures, and choosing it after its number was seen would fit the rule to the answer.
-3. **What a trader would earn.** The returns are on the market value of the notes one contract controls. They include no trading cost and no margin, the deposit a broker requires to hold the contract. Chan puts TU’s notional value, the face value of those notes, at about $200,000 against a margin of about $400 (pp. 204 to 205), so any real position would be leveraged, and the figures here say nothing about the leverage.
+2. **Which version of the rule Chan ran.** No script ships for the rule on p. 206, and the book does not say how far Chan lagged the roll return, which price the position earns, or in which unit γ is compared with the 3 percent. The fifth-contract variant comes close to the book’s figures, and choosing it after its number was seen would fit the rule to the answer.
+3. **What a trader would earn.** The returns are on the value of one contract at its quoted price, which Chan calls the contract’s notional value. They leave out trading costs, and they are not returns on the margin, the deposit a broker requires to hold the contract. Chan puts TU’s notional value at about $200,000 against a margin of about $400 (pp. 204 to 205), so any real position would be leveraged, and the figures here say nothing about the leverage.
 
 ## What this means for a trader
 

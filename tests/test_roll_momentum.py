@@ -625,7 +625,10 @@ class TestTheComparisonMargins:
     def test_row_4_s_margin_is_about_the_rebuild_s_own_error(self, check) -> None:
         """0.035 points of APR, against the 0.031 the rebuild and the save part by over 849 rows."""
         apr_error = check.revised_on_rebuild.apr - check.revised_on_save.apr
-        assert apr_error == pytest.approx(0.000309, abs=5e-7)
+        assert apr_error == pytest.approx(0.000309, abs=5e-7), (
+            SPEC
+            + "; less the same rule on inputdataohlcdaily_20120511/tu.csv over its 849 window rows"
+        )
 
     def test_the_claims_hold_on_the_save_too(self, check) -> None:
         revised, example = check.revised_on_save, check.example_on_save
@@ -810,7 +813,7 @@ class TestTheRowsBeside:
         np.testing.assert_allclose(
             result.gamma_in_months[window], result.gamma[window] / 3, rtol=1e-9, atol=1e-13
         )
-        assert np.nanmax(result.gamma_in_months[window]) == pytest.approx(0.02447, abs=5e-6)
+        assert np.nanmax(result.gamma_in_months[window]) == pytest.approx(0.02447, abs=5e-6), SPEC
         assert (result.month_position == 0).all()
 
     def test_the_month_unit_gamma_is_a_third_on_every_defined_row(self, result) -> None:
@@ -832,7 +835,7 @@ class TestTheRowsBeside:
         assert found.apr == pytest.approx(0.024712, abs=5e-7), SPEC
         assert found.sharpe == pytest.approx(2.144165, abs=5e-7), SPEC
         assert found.max_drawdown == pytest.approx(-0.011583, abs=5e-7), SPEC
-        assert result.fifth_on_both_days_figures.sharpe == pytest.approx(1.957852, abs=5e-7)
+        assert result.fifth_on_both_days_figures.sharpe == pytest.approx(1.957852, abs=5e-7), SPEC
         both = fifth_contract_returns(strip.contracts, on_both_days=True).to_numpy()[result.window]
         undefined = np.isnan(both)
         assert int(undefined.sum()) == 6
@@ -914,11 +917,13 @@ class TestWhatThePostQuotes:
     ``tests/test_tu_momentum.py``'s pin through
     ``test_example_6_1_on_the_save_is_entry_33_s_pin``. The copies left unread
     are the title's and the subtitle's words, the later repeats, the book's
-    figures where the prose restates them, the sketches' alt texts, which
-    ``tests/test_roll_momentum_whiteboard.py`` reads, the references, the alt
-    text's readings of the lines along the way, such as "about 3.9 percent by
-    late 2010", and the rounded readings ``README.md`` lists. Nothing checks
-    Chan's words against their source or the page numbers.
+    figures and windows where the prose restates them, Example 6.1's printed
+    figures among them, the sketches' alt texts, which
+    ``tests/test_roll_momentum_whiteboard.py`` reads, the references and what
+    the post says about them, the alt text's readings of the lines along the
+    way, such as "about 3.9 percent by late 2010", and the rounded readings
+    ``README.md`` lists. Nothing checks Chan's words against their source or
+    the page numbers.
     """
 
     @pytest.fixture(scope="class")
@@ -1012,6 +1017,8 @@ class TestWhatThePostQuotes:
         np.testing.assert_array_equal(result.daily, rule_returns(result.position, result.market))
         save_month = f"{pd.Timestamp(save[0].obtained):%B %Y}"
         fragments = [
+            "the roll return as Chan’s script computes it, which for TU is three times the "
+            "yearly rate,",
             f"reads γ in column units. Its {100 * THRESHOLD:.0f} percent threshold then means a "
             f"roll return of {100 * THRESHOLD / 3:.0f} percent a year on TU.",
             f"buys if TU’s price is above its level {LOOKBACK} trading days earlier and sells if "
