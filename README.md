@@ -4311,7 +4311,8 @@ holding them fixed on every metric he prints. The post draws four lessons from
 Entry 16 of the replication log.
 
 1. Neither of Chan's columns reproduces, and re-choosing daily wins on the
-   Calmar ratio alone, so his claim fails. The re-chosen column is reproduced
+   Calmar ratio alone, so his claim fails with the model's declared seed. Two
+   of ten seeds tried afterwards reverse it. The re-chosen column is reproduced
    only in kind, because his rests on PredictNow's model.
 2. The book's own annual returns do not compound to its cumulative ones, under
    either definition of annual return, which arithmetic alone shows.
@@ -4354,18 +4355,18 @@ Six groups of its figures are not pinned here.
 4. The first run's figures in Lesson 3. The archive pins at `cb30336`, the
    merge of the first run, asserted them, and no test that runs today does.
    `git show cb30336:tests/test_cpo.py` shows them.
-5. Arithmetic no test asserts: that three parameters and seven indicators on
-   each of two funds at seven lookbacks make 101 features, against the book's
-   115 at p. 141, that
+5. Arithmetic no test asserts: the book's 115 features at p. 141, that
    [issue 23](https://github.com/l3a0/quantitative-trading/issues/23) declared
    19 readings, that a fraction such as 3.40 is the percentage 340%, and that
    gaps of 2.67 and 0.4883 are 267 and 48.83 percentage points.
 6. Its references, cited rather than computed, and facts outside the data:
    that NYSE closes at 13:00 on some days such as the day after Thanksgiving,
-   and that a basis point is a hundredth of a percent.
+   that a basis point is a hundredth of a percent, that GLD holds gold and GDX
+   gold-mining stocks, and that the first edition lacks the method.
 
-Five of its figures had no pin before it, and each now has one. The first
-runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
+Eight of its figures had no pin before it, and each now has one. The first
+and the last two run on every clone, and the other five sit in
+`TestExample71OnTheArchive`.
 
 1. The cap on what Chan's annual returns, read as arithmetic, can compound to
    over three years: 68.0% and 81.0%, below his 73% and 83%.
@@ -4376,6 +4377,12 @@ runs on every clone, and the other four sit in `TestExample71OnTheArchive`.
    result was seen.
 5. Spearman's rank correlation between the 400 cells' round trips a day and
    their test Sharpe ratios, 0.95, added after the result was seen.
+6. That the claim holds for seeds 2 and 7 of 0 to 9, with the re-chosen Sharpe
+   ratio running from 5.166 to 6.353, added after the result was seen.
+7. That `ta`'s average true range and average directional index read 0 rather
+   than a missing value before their windows fill, in `TestTheWiring`.
+8. That the model reads 101 features a row, three parameters and seven
+   indicators on each of two funds at seven lookbacks, in `TestTheWiring`.
 
 Its one figure is drawn by
 [src/chan/cpo_figures.py](src/chan/cpo_figures.py) from one run of

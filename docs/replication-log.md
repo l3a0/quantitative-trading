@@ -4316,13 +4316,16 @@ machine that holds the owner's data archive. On any other machine those tests
 skip, which is the price of the exception `docs/design.md`'s premise records
 for these bars.
 
-**Neither of Chan's columns reproduces, and his claim does not hold.** Holding
+**Neither of Chan's columns reproduces, and his claim does not hold with the
+declared seed.** Holding
 the parameters the train years chose, the strategy earns a test Sharpe ratio of
 5.700 against his 1.947, about three times his figure. The other three figures
 overshoot by more: cumulative return about 4.7 times, annual return about 3.8
 times and the Calmar ratio about 15.5 times. Re-choosing the parameters each day
 beats holding them on the Calmar ratio alone and loses on the other three, so
-the claim that it improves every metric fails. At a cost of 1 basis point a
+the claim that it improves every metric fails with the declared seed. Refit
+with seeds 0 to 9 after the result was seen, the claim holds for seeds 2 and 7.
+At a cost of 1 basis point a
 round trip both arms lose money.
 
 **The first run broke a declared reading, and both runs are reported.** On
@@ -4440,7 +4443,7 @@ minutes, entry threshold.
 | 2 | did not reproduce | 0.6612 against 0.1729. |
 | 3 | did not reproduce | 5.700 against 1.947. |
 | 4 | did not reproduce | 15.249 against 0.984. |
-| 5 | did not reproduce | The claim needs all four. Re-choosing wins on Calmar, 18.637 against 15.249, and loses on Sharpe, 5.274 against 5.700, on cumulative return, 3.12 against 3.40, and on annual return. |
+| 5 | did not reproduce | The claim needs all four. Re-choosing wins on Calmar, 18.637 against 15.249, and loses on Sharpe, 5.274 against 5.700, on cumulative return, 3.12 against 3.40, and on annual return. Seed 0 is reading 14's. Seeds 2 and 7, tried afterwards, make the claim hold, which `test_the_claim_holds_for_2_of_10_seeds` pins and which decides nothing. |
 | 6 | none, not a replication | The issue declared before the run that this column rests on a model this repo cannot have, so its figures are set beside Chan's rather than judged against them. The model keeps the unconditional cell on 557 of the 736 days, so the arms differ less than their names suggest. |
 | 7 | none, not a replication | The arithmetic figures are lower than the compounded ones and still about three times Chan's. Neither definition rescues row 2. |
 | 8 | none, not a replication | A cost of 1 basis point a round trip, the figure reading 16 declared, turns both arms into heavy losses. |
@@ -4452,7 +4455,7 @@ minutes, entry threshold.
 
 Three things, and the first is the verdict.
 
-1. **Neither column reproduces, and the claim fails.** Selecting the parameters
+1. **Neither column reproduces, and the claim fails with the declared seed.** Selecting the parameters
    that maximise train return at no cost picks `2_30_0.2`, a cell that trades
    about 47 round trips a day, and it earns about three times Chan's Sharpe
    ratio on the test years. Re-choosing daily improves the Calmar ratio and
@@ -4479,8 +4482,10 @@ Four things.
 PredictNow's, its features lack the book's unnamed eighth indicator, and the
 features are read at the day's last bar rather than summarised over it. `ta`'s
 ATR and ADX also return 0 rather than nothing before their window fills, so the
-earliest rows carry zeros the model cannot tell from readings. A better model
-could win where this one did not. The test is of Chan's printed claim on this
+earliest rows carry zeros the model cannot tell from real values. A better
+model could win where this one did not, and even this model's verdict turns on
+its seed, since seeds 2 and 7 of 0 to 9 make re-choosing win on all four
+metrics. The test is of Chan's printed claim on this
 strategy, not of the method.
 
 **What would reproduce Chan's numbers.** Row 10 places his Sharpe ratio among
@@ -4495,7 +4500,7 @@ heavily. What a round trip in GLD actually costs is not measured here.
 only where the owner's archive is. The hashes say exactly which bytes were
 read, and nothing here can show them to anyone else.
 
-Four more pins in `TestExample71OnTheArchive` hold figures that post quotes
+Five more pins in `TestExample71OnTheArchive` hold figures that post quotes
 and the tables above do not, so they are named here.
 
 1. `test_rows_1_to_4_as_multiples_of_chan_s_figures`, the multiples above.
@@ -4505,8 +4510,10 @@ and the tables above do not, so they are named here.
    `2.5_30_0.2` trading more.
 4. `test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells`,
    Spearman's rank correlation of 0.95.
+5. `test_the_claim_holds_for_2_of_10_seeds`, the claim holding for seeds 2 and
+   7 of 0 to 9, with the re-chosen Sharpe ratio running from 5.166 to 6.353.
 
-The last three were added after the result was seen and decide nothing.
+The last four were added after the result was seen and decide nothing.
 
 Nothing checks this entry against the suite, for the reason Entry 1 states. A
 change to any assertion named above moves this entry in the same commit, and

@@ -1,6 +1,6 @@
 # Chan’s Conditional Parameter Optimization does not reproduce, and the cell it selects makes 47 round trips a day
 
-*A method can be tested where its model cannot be had. Here the test fails, and the selection underneath it lands on one of the busiest cells on the grid.*
+*A method can be tested where its model cannot be had. Here the test fails with the model’s seed fixed in advance, and the selection underneath it lands on one of the busiest cells on the grid.*
 
 ## Why test the method Chan added to the revised edition
 
@@ -13,7 +13,7 @@ Example 7.1 tests the method on a strategy that trades gold. Chan reports that h
 This repository ran the example on one-minute bars and checked Chan’s printed figures against each other. Four findings came of it.
 
 1. **Neither of Chan’s two sets of figures reproduces.** Holding the parameters fixed earns a Sharpe ratio of 5.700 on the test years before trading costs, against his 1.947.
-2. **His claim that re-choosing beats holding on every metric fails.** Re-choosing the parameters daily wins on one metric of the four he prints, and loses on the other three.
+2. **His claim that re-choosing beats holding on every metric fails, with the random seed the run fixed in advance.** A seed is a number that sets the model’s random choices. With that seed, re-choosing the parameters daily wins on one metric of the four he prints, and loses on the other three. Of ten seeds tried afterwards, two reverse that.
 3. **His own printed figures cannot all be right.** His annual returns do not compound to his cumulative ones.
 4. **The selection picks a cell that makes 46.7 round trips a day, and costs undo it.** At 1 basis point a round trip, a hundredth of a percent and the cost the readings name, both versions of the strategy lose most of their capital over the test years.
 
@@ -23,9 +23,9 @@ Where the book leaves a choice open, the run follows a written interpretation, c
 
 ### Which figures are checked, and where
 
-This post is the first on this blog whose figures a reader cannot re-run from a copy of the repository. The minute bars are licensed for personal use, so the repository keeps a fingerprint of each file, called a hash, and not the bars themselves, which stay in its owner’s archive. A hash identifies the exact bytes read without revealing them. The figures come in four kinds.
+This post’s figures cannot be re-run from a copy of the repository. The minute bars are licensed for personal use, so the repository keeps a fingerprint of each file, called a hash, and not the bars themselves, which stay in its owner’s archive. A hash identifies the exact bytes read without revealing them. The figures come in four kinds.
 
-1. **Checked in every copy of the repository.** Chan’s own arithmetic in Lesson 2, the count of early-closing days and the fix in Lesson 3, and the grid and rules below need no bars.
+1. **Checked in every copy of the repository.** Chan’s own arithmetic in Lesson 2, the count of early-closing days and the fix in Lesson 3, and the grid and rules below need no bars. The early-closing dates were copied from a published exchange calendar, and a copy of the repository checks how many there are, not which days.
 2. **Checked where the archive is.** Every computed figure from the run is checked there. The hashes in `data/archive_vintages.jsonl` say which files were read, though a reader cannot read the files themselves.
 3. **Checked by an earlier version of the code.** The figures of the first run in Lesson 3 were checked by tests that a later fix replaced.
 4. **Not checked at all.** Chan’s words and printed results, a third party’s figures, a few facts about the market, and the references are cited rather than computed.
@@ -40,13 +40,13 @@ The strategy is a mean-reversion trade on a spread between two gold funds, trade
 4. **The grid.** The strategy has three parameters: the weight, the lookback and the entry threshold. The book’s grid has five weights from 2 to 4, eight lookbacks from 30 to 720 minutes, and ten entry thresholds from 0.2 to 2.5, so 5 × 8 × 10 = 400 combinations (p. 140). This post calls each combination a **cell** and labels it the way Chan’s output on p. 145 does, with the three numbers in that order joined by underscores. So `2_30_0.2` is a weight of 2, a lookback of 30 minutes and an entry threshold of 0.2. The book’s list of entry thresholds prints eleven numbers where it states ten, ending “1.5, 2, 2, 5”, and the run reads the final “2, 5” as 2.5.
 5. **The two arms.** The run trades the strategy two ways, called arms here. Chan calls them unconditional and conditional, and this post calls them fixed and re-chosen. The fixed arm holds the cell with the highest compounded return on the training years, the first 80% of the days. The re-chosen arm asks a model each evening for the cell with the highest predicted return the next day, and trades that cell (pp. 140 to 141).
 6. **The model.** Chan uses PredictNow’s commercial service, which he describes as “random forest with boosting” (p. 142). The book’s code reaches that model only through a trial account at predictnow.ai. The book prints the few options that code sets, and not the model’s hyperparameters, the settings that decide how it fits. So this repository uses a gradient-boosted tree model from the scikit-learn library, `HistGradientBoostingRegressor`, with default settings. Its inputs, called features, are the three parameters and seven named technical indicators for each fund, each computed over seven windows of its own, separate from the strategy’s lookback. That makes 3 + 7 × 2 × 7 = 101 features. The book counts 115 from eight indicators, and it names only seven.
-7. **The bars.** Alpha Vantage supplies the bars, one per minute, not adjusted for splits or dividends. GLD was downloaded on 2026-07-17 and GDX on 2026-10-03. They are kept in the owner’s archive and verified against their hashes before parsing. Chan’s stated start of January 1, 2006 (p. 140) cannot hold for the pair, because GDX did not trade until 2006-05-22. From then to 2020-12-31 there are 3,680 days on which both funds traded. The test is the last 736 of those days, from 2018-01-31 to 2020-12-31.
+7. **The bars.** Alpha Vantage supplies the bars, one per minute, not adjusted for splits or dividends. GLD was downloaded on 2026-07-17 and GDX on 2026-10-03. The download includes extended-hours bars, and the run keeps only the regular session. They are kept in the owner’s archive and verified against their hashes before parsing. Chan’s stated start of January 1, 2006 (p. 140) cannot hold for the pair, because GDX did not trade until 2006-05-22. From then to 2020-12-31 there are 3,680 days on which both funds traded. The test is the last 736 of those days, from 2018-01-31 to 2020-12-31.
 
 The book leaves the bar grid, the order of the rules, the definition of annual return, how a minute’s indicators become a day’s features, the model and the costs unstated. All 19 readings that fill those gaps were written down before any return on the minute bars was computed. [Entry 16 of the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-16-conditional-parameter-optimization-chans-quantitative-trading) lists them, and records each figure below beside the assertion that computes it.
 
 ## Lesson 1: neither column reproduces, and re-choosing daily wins on one metric of four
 
-A method’s claim can be tested even where its published figures cannot be reproduced. Chan’s claim is that re-choosing beats holding on every metric. That claim can be checked with any reasonable model, because it compares two arms of one run. His figures for the re-chosen arm rest on PredictNow’s model, which the book’s code reaches only through a trial account and whose hyperparameters the book does not print. So this repository’s re-chosen column reproduces his only in kind: it runs the same method with a different model, and its four figures stand beside his for comparison.
+A method’s claim can be tested even where its published figures cannot be reproduced. Chan’s claim is that re-choosing beats holding on every metric. Any model can test whether the claim survives a change of model, which is a weaker question than whether it holds with Chan’s. His figures for the re-chosen arm rest on PredictNow’s model, which the book’s code reaches only through a trial account and whose hyperparameters the book does not print. So this repository’s re-chosen column reproduces his only in kind: it runs the same method with a different model, and its four figures stand beside his for comparison.
 
 ```math
 \begin{array}{l|r|r}
@@ -73,10 +73,10 @@ Each computed figure is before trading costs and quoted at the precision Chan pr
 Three things follow from the tables.
 
 1. **The fixed column overshoots on every metric.** The gaps between computed and printed figures are +267 and +48.83 percentage points on the two returns, and +3.753 and +14.265 on the two ratios. As multiples of Chan’s figures, that is about 4.7 times on cumulative return, 3.8 times on annual return, 2.9 times on the Sharpe ratio and 15.5 times on the Calmar ratio.
-2. **The claim fails.** Re-choosing beats holding on the Calmar ratio, 18.637 against 15.249. It loses on the Sharpe ratio, on cumulative return and on annual return.
-3. **The two arms differ less than their names suggest.** On 557 of the 736 test days, the model picked the same cell the fixed arm holds. Over the test it used 44 different cells and switched 254 times. These counts were added after the result was seen, so they describe the run and play no part in any verdict.
+2. **The claim fails with the seed fixed in advance.** Re-choosing beats holding on the Calmar ratio, 18.637 against 15.249. It loses on the Sharpe ratio, on cumulative return and on annual return. The model’s seed decides which tenth of the training rows it sets aside to judge its own fit, so each seed fits on a different nine tenths. The run fixed seed 0 in advance. Refit with seeds 0 to 9, a check added after the result was seen that plays no part in any verdict, re-choosing wins on all four metrics for two of them, and its Sharpe ratio runs from 5.166 to 6.353.
+3. **The two arms differ less than their names suggest.** With the seed fixed in advance, on 557 of the 736 test days the model picked the same cell the fixed arm holds. Over the test it used 44 different cells and switched 254 times. These counts were added after the result was seen, so they describe the run and play no part in any verdict.
 
-The model is a stand-in, so the claim fails here on this model only. That limit heads the list of what this replication cannot say.
+The model is a stand-in, so the claim fails here only for this model with the seed fixed in advance. That limit heads the list of what this replication cannot say.
 
 ## Lesson 2: the book’s own figures cannot all be right
 
@@ -148,7 +148,7 @@ The figure below draws those 400 cells.
 
 Every result above is exploratory, for the reason the opening gives. Five questions are beyond it.
 
-1. **Whether Conditional Parameter Optimization works.** The model here is not PredictNow’s. Its features lack the book’s unnamed eighth indicator, and they are read at the day’s last bar rather than summarised over the day. The technical-indicator library `ta` also returns 0 rather than a missing value for its average true range and average directional index before their windows fill, so the earliest rows carry zeros the model cannot tell from real values. A better model could win where this one did not.
+1. **Whether Conditional Parameter Optimization works.** The model here is not PredictNow’s. Its features lack the book’s unnamed eighth indicator, and they are read at the day’s last bar rather than summarised over the day. The technical-indicator library `ta` also returns 0 rather than a missing value for its average true range and average directional index before their windows fill, so the earliest rows carry zeros the model cannot tell from real values. A better model could win where this one did not. Even this model’s verdict turns on its seed: two of ten seeds make re-choosing win on all four metrics.
 2. **What would reproduce Chan’s numbers.** Lesson 4 places his Sharpe ratio among cells that trade far less, and shows the chosen cell losing once trading costs something. Searching costs and fill delays until one matched is the search that writing the readings down first rules out, so it was not run.
 3. **Whether the strategy pays.** At 1 basis point a round trip both arms lose heavily. What a round trip in GLD actually costs, with its spread and its fees, is not measured here.
 4. **Whether a copy of the repository can check the run’s figures.** The bars are licensed, so the checks on the run’s figures run only where the owner’s archive is. The hashes say exactly which bytes were read, and nothing here can show those bytes to anyone else.
@@ -158,18 +158,18 @@ Every result above is exploratory, for the reason the opening gives. Five questi
 
 One habit from each lesson.
 
-1. **Test the claim where the figures cannot be reproduced.** A proprietary model blocks a reproduction of its numbers, and it does not block a test of the claim that one arm beats another. Run both arms with the best model available, and report the comparison.
+1. **Test the claim where the figures cannot be reproduced.** A proprietary model blocks a reproduction of its numbers, and it does not block a test of the claim that one arm beats another. Run both arms with more than one model, or more than one seed of one, and report the comparison.
 2. **Check a source’s figures against each other first.** An annual return that does not compound to its own cumulative return is a defect found before any data is read.
 3. **Fix the code to the reading, and publish both runs.** A run that breaks its own reading is fixed by making it follow the reading. Rewording the reading to fit the result is how a backtest drifts toward the answer it wants.
-4. **Put the cost into the selection, or price it straight after.** A rule that maximises return before costs favours cells that trade often, and here it chose one of the two busiest on the grid. Divide each arm’s return by its trades and set the result beside a realistic cost before reading any Sharpe ratio.
+4. **Put the cost into the selection, or price it straight after.** A rule that maximises return before costs favours cells that trade often, and here it chose one of the two busiest on the grid, a ranking made after the result was seen. Divide each arm’s return by its trades and set the result beside a realistic cost before reading any Sharpe ratio.
 
-On these bars, Chan’s method does not beat holding the parameters fixed, his fixed column overshoots by a multiple, and the strategy under both loses money at a basis point a round trip. All of it is exploratory.
+On these bars and with the seed fixed in advance, Chan’s method does not beat holding the parameters fixed, though two of ten seeds would have said it does. His fixed column overshoots by a multiple, and the strategy under both arms loses money at a basis point a round trip. All of it is exploratory.
 
 ## References
 
 1. Chan, E. P. (2021). *Quantitative Trading: How to Build Your Own Algorithmic Trading Business* (2nd ed.). Wiley. Example 7.1 and the passage before it that introduces the method, at pp. 138 to 146, with pages 138, 140 to 142 and 145 to 146 cited. The page numbers are the Kindle edition’s, read in the Kindle Cloud Reader, and match the print edition’s.
 2. Chan, E. P. (2021, April). A post on Conditional Parameter Optimization on his blog, at [epchan.blogspot.com](http://epchan.blogspot.com/2021/04/conditional-parameter-optimization.html). It prints the same annual return, Sharpe ratio and Calmar ratio for each of the two arms as the book, and states no window, grid or costs.
 3. jeffmcphail/mctheory-praxis at commit `b7c5b5d`, a third-party reproduction on Kibot bars, cited for its own figures.
-4. Alpha Vantage, `TIME_SERIES_INTRADAY` at one-minute intervals and `adjusted=false`, the source of the bars. Their hashes are in [data/archive_vintages.jsonl](https://github.com/l3a0/quantitative-trading/blob/main/data/archive_vintages.jsonl).
+4. Alpha Vantage, `TIME_SERIES_INTRADAY` with `interval=1min`, `adjusted=false` and `extended_hours=true`, one request per month, the source of the bars. Their hashes are in [data/archive_vintages.jsonl](https://github.com/l3a0/quantitative-trading/blob/main/data/archive_vintages.jsonl).
 
 *Not investment advice. Code: [the strategy, the selection and the model](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/cpo.py) and [the chart](https://github.com/l3a0/quantitative-trading/blob/main/src/chan/cpo_figures.py), with the checks behind [the numbers](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_cpo.py) and [what the chart draws](https://github.com/l3a0/quantitative-trading/blob/main/tests/test_cpo_figures.py), [the book notes](https://github.com/l3a0/quantitative-trading/blob/main/research/book-notes/quantitative-trading.md) that record each quoted passage at its Kindle location, except p. 146’s “all other metrics”, and [the replication log](https://github.com/l3a0/quantitative-trading/blob/main/docs/replication-log.md#entry-16-conditional-parameter-optimization-chans-quantitative-trading) that records each verdict.*

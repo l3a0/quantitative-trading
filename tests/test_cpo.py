@@ -447,7 +447,7 @@ def result(cpo_result) -> cpo.Result:
 
 
 class TestExample71OnTheArchive:
-    """Rows 1 to 11 of Entry 16, all from one run, and four pins for figures its post quotes.
+    """Rows 1 to 11 of Entry 16, all from one run, and the pins its post added.
 
     The vintages are the archive's `gld_intraday_1min.csv.gz`, sha256
     `3611a8f7…0de7a`, downloaded 2026-07-17, and `gdx_intraday_1min.csv.gz`,
@@ -541,7 +541,7 @@ class TestExample71OnTheArchive:
         assert sharpes[nearest] == pytest.approx(1.9311, abs=5e-5)
         assert result.cell_trips[nearest] == pytest.approx(1.19, abs=0.005)
 
-    # The four pins below were added for the post on this example,
+    # The five pins below were added for the post on this example,
     # blog/conditional-parameter-optimization-lessons.md, so that every figure
     # it quotes from the corrected run traces to an assertion rather than to
     # prose. Entry 16 names them.
@@ -587,6 +587,37 @@ class TestExample71OnTheArchive:
         chosen = cells().index(result.unconditional)
         busier = np.flatnonzero(result.cell_trips > result.cell_trips[chosen])
         assert [cells()[i].label for i in busier] == ["2.5_30_0.2"]
+
+    def test_the_claim_holds_for_2_of_10_seeds(self, result):
+        """Added after the result was seen. How far row 5 rests on reading 14's seed.
+
+        With over 10,000 rows the model's early stopping is on, so its seed
+        picks the tenth of the train rows held out to judge it, and the sample
+        its bins are cut from. Reading 14 declared seed 0, which row 5 pins.
+        Seeds 2 and 7 make re-choosing beat holding on all four metrics. This
+        decides nothing.
+        """
+        from sklearn.ensemble import HistGradientBoostingRegressor
+
+        features, returns, n_train = result.features, result.label_returns, result.n_train
+        n_days = len(result.days)
+        decided = np.arange(n_train - 1)
+        x = design_rows(features, decided)
+        y = returns[decided + 1].reshape(-1).astype(np.float64)
+        unconditional = metrics(result.unconditional_returns)
+        rows = np.arange(n_train, n_days)
+        held, sharpes = [], []
+        for seed in range(10):
+            model = HistGradientBoostingRegressor(random_state=seed).fit(x, y)
+            chosen = conditional_choices(model, features, n_train, n_days)
+            conditional = metrics(returns[rows, chosen])
+            sharpes.append(conditional["sharpe"])
+            if claim_holds(unconditional, conditional):
+                held.append(seed)
+        assert held == [2, 7]
+        assert sharpes[0] == pytest.approx(5.274377985680034, abs=1e-9)
+        assert round(min(sharpes), 3) == 5.166
+        assert round(max(sharpes), 3) == 6.353
 
     def test_turnover_and_sharpe_ratio_rise_together_across_the_400_cells(self, result):
         """Added after the result was seen. Spearman's rank correlation, deciding nothing."""
@@ -742,6 +773,52 @@ class TestTheWiring:
         pd.testing.assert_series_equal(got["bbz"], (close - mean) / spread, check_names=False)
         slow = AwesomeOscillatorIndicator(bars["high"], bars["low"], 50, 340).awesome_oscillator()
         pd.testing.assert_series_equal(got["ao"], slow, check_names=False)
+
+    def test_atr_and_adx_read_0_rather_than_nothing_before_their_windows_fill(self):
+        """``ta`` 0.11.0 fills the unfilled rows with 0, which reading 12 leaves alone.
+
+        The post's first limit and Entry 16 state it. At a lookback of 50 the ATR
+        reads 0 on its first 49 rows and the ADX on its first 99, while the other
+        five indicators leave those rows missing.
+        """
+        rng = np.random.default_rng(9)
+        close = pd.Series(100 * np.exp(rng.normal(0, 1e-3, 600).cumsum()))
+        bars = pd.DataFrame(
+            {"high": close + 0.05, "low": close - 0.05, "close": close, "volume": 1000}
+        )
+        got = cpo.indicators(bars, 50)
+        assert got["atr"].notna().all() and got["adx"].notna().all()
+        assert (got["atr"].iloc[:49] == 0).all() and (got["atr"].iloc[49:] != 0).all()
+        assert (got["adx"].iloc[:99] == 0).all() and (got["adx"].iloc[99:] != 0).all()
+        assert got[["bbz", "mfi", "donchian"]].iloc[:49].isna().all().all()
+
+    def test_the_model_reads_101_features_a_row(self):
+        """Reading 12: three parameters, then seven indicators on each fund at seven lookbacks.
+
+        The post's item on the model and README quote 101 against the book's 115.
+        This builds the design rows the way :func:`chan.cpo.run` does, so an
+        indicator dropped or added anywhere on that path changes the width.
+        """
+        # ``ta``'s ADX needs twice its window of bars, so 17 days of 390 cover 3,200.
+        days = pd.date_range("2006-06-01", periods=17, freq="B")
+        index = pd.DatetimeIndex([])
+        for day in days:
+            index = index.append(
+                pd.date_range(day + pd.Timedelta("9h30min"), periods=390, freq="min")
+            )
+        close = pd.Series(
+            100 * np.exp(np.random.default_rng(4).normal(0, 1e-3, len(index)).cumsum()),
+            index=index,
+        )
+        bars = pd.DataFrame(
+            {"high": close + 0.05, "low": close - 0.05, "close": close, "volume": 1000},
+            index=index,
+        )
+        features = pd.concat(
+            [cpo.daily_features(bars, "gld", days), cpo.daily_features(bars, "gdx", days)],
+            axis=1,
+        ).to_numpy(dtype=np.float32)
+        assert design_rows(features, np.arange(2)).shape == (800, 101)
 
     def test_run_selects_on_train_days_and_reports_test_days(self, monkeypatch):
         """Column 0 wins on the train days, column 1 over all days, and the model picks 2."""

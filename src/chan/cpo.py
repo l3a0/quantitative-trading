@@ -356,7 +356,7 @@ def indicators(bars: pd.DataFrame, lookback: int) -> pd.DataFrame:
     population standard deviation ``ta``'s Bollinger bands use, because ``ta``
     gives the bands and their width rather than the z-score. ``ta``'s ATR and ADX
     return 0 rather than NaN before their window fills, so the earliest rows
-    carry zeros the model cannot tell from readings. Reading 12 takes ``ta`` as
+    carry zeros the model cannot tell from real values. Reading 12 takes ``ta`` as
     it is, so that is left alone and stated.
     """
     from ta.momentum import AwesomeOscillatorIndicator
@@ -448,6 +448,11 @@ class Result:
     #: among them. It decides nothing.
     cell_sharpes: NDArray[np.float64]
     cell_trips: NDArray[np.float64]
+    #: The model's inputs, every day's features and every cell's daily return,
+    #: kept so a test can refit the model with another seed without rebuilding
+    #: them. Added after the result was seen. They decide nothing.
+    features: NDArray[np.float32] | None = None
+    label_returns: NDArray[np.float64] | None = None
 
     @property
     def test_days(self) -> pd.DatetimeIndex:
@@ -491,6 +496,8 @@ def run(data_dir: Path | None = None, directory: Path | None = None) -> Result:
             [metrics(labels.returns[test, i])["sharpe"] for i in range(len(cells()))]
         ),
         cell_trips=labels.trips[test].mean(axis=0),
+        features=features,
+        label_returns=labels.returns,
     )
 
 
