@@ -11586,7 +11586,7 @@ quarter-end schedule carried forward, so a change between schedules is dated
 up to two months late, or five around the missing 2013-09-30 schedule.
 
 Row 1 is **registered**, under two amendments, both of 2026-10-11. The first
-is [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s, which reads a levered month losing more than its capital as
+is [issue 275](https://github.com/l3a0/quantitative-trading/issues/275)'s, which reads a levered month at −1 or below, the whole capital lost, as
 the claim contradicted, and which this run inherits as part of the
 specification. No month here triggers it. The second is
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s. The
@@ -11671,8 +11671,8 @@ write-up measured after the run, which `TestWhatThePostCounted` and
    test finds a gap of 0.2948 a year four times in five, so the run says
    little either way. That is Not decided, and it maps to
    `did not reproduce`.
-2. **The beta match did not ruin the portfolio here, and it came closest in
-   December 2024.** Over the formations kept, the low fifth's mean beta at
+2. **The beta match did not ruin the portfolio here, and its worst levered
+   month was December 2024.** Over the formations kept, the low fifth's mean beta at
    formation bottomed at 0.0563 and k peaked at 27.9727, against Entry 45's
    69.0762. The worst levered month lost 0.8014 of the capital. In the
    last four formations the match had no leverage to offer at all. The low

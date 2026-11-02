@@ -9419,7 +9419,8 @@ Six groups of what it says are not pinned here.
    formations, and that the three later formations were not yet known. Also
    the sorting of the ten points into five that change the computation, three
    that restate a rule, one that corrects the survivor label and one that
-   gates the tests. Entry 49 of the replication log and its plan record each.
+   gates the tests. Entry 49 of the replication log and its plan record the
+   history, and the sorting is the post's own reading of the plan's ten points.
 3. Readings no test asserts: that a negative k would mean selling the low
    fifth short, that the peak of 27.9727 above June 2001's ruinous 23.2017
    means Chan's June 2001, levered that far, would still have lost the whole
@@ -9441,13 +9442,15 @@ Every other number in the post traces to an assertion in
 figures on Chan's file, or to
 [tests/test_low_beta_holdout_figures.py](tests/test_low_beta_holdout_figures.py)
 for the figure's own numbers. Two classes hold the ones that had no pin
-before the post, all measured after the run.
+before the post, all measured after the run except the five months in
+`TestWhatThePostCounted` item 2.
 `TestWhatThePostCounted` reads committed files and runs everywhere.
 
 1. 5,891 of the 6,816 member-months failing the row check fall in 2009 to
    2015.
 2. The 70 schedules each carry forward two months, except 2013-06-30, which
-   carries five. The last, 2026-06-30, carries two, to 2026-08.
+   carries five. The last, 2026-06-30, carries two, to 2026-08. The plan
+   stated the five months before the run, and this pins them.
 3. The 2,187 failing member rows split 1,186 with no close, 697 with a wrong
    price and 304 with no series.
 4. 26,353 of all 35,205 member rows carry a ticker still in the 2026-06-30

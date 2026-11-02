@@ -517,7 +517,9 @@ AFTER_THE_RUN = "measured by the write-up after the run, so exploratory, and it 
 class TestWhatThePostCounted:
     """Counts ``blog/low-beta-holdout-lessons.md`` quotes from committed files alone.
 
-    The write-up counted every one of them after the run. Those on IVV's
+    The write-up counted every one of them after the run, except the five
+    months the 2013-06-30 schedule carries, which the plan stated before it.
+    Those on IVV's
     members read the members file and holes file whose sha256s
     :data:`MEMBERS_SHA256` and :data:`HOLES_SHA256` hold, the manifest's spans
     and the committed SPY calendar, with Example 7.7's ``rank`` reason left out
