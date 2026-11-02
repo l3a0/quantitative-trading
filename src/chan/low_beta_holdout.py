@@ -527,7 +527,8 @@ def report(holdout: Holdout) -> None:
         )
     reading = kelly(p)
     print(
-        f"  Kelly, location {PREMISE_LOCATION}, look-ahead: the low portfolio's full-sample m / s^2 "
+        f"  Kelly, location {PREMISE_LOCATION}, look-ahead: the low portfolio's full-sample "
+        "m / s^2 "
         f"{reading.leverage:.4f}, Gaussian growth there r + S^2/2 = {reading.bill:.4f} + "
         f"{reading.moments.levered_growth:.4f} = {reading.growth:.4f}, against the high "
         f"portfolio's realised {growth(p.high):.4f}."

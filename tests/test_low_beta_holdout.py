@@ -3,9 +3,9 @@
 This file is the single authority for every number any prose surface quotes
 about [issue 526](https://github.com/l3a0/quantitative-trading/issues/526).
 ``docs/replication-log.md`` Entry 49 carries the verdict and points here.
-``blog/low-beta-holdout-lessons.md`` quotes most of these figures, and ``TestThePostQuotesTheRun`` reads one copy
-of each from the post, so a change to an assertion here fails until the post
-moves too. ``TestWhatThePostCounted`` and
+``blog/low-beta-holdout-lessons.md`` quotes most of these figures, and
+``TestThePostQuotesTheRun`` reads one copy of each from the post, so a change to
+an assertion here fails until the post moves too. ``TestWhatThePostCounted`` and
 ``TestWhatThePostMeasured`` hold the numbers it added after the run.
 
 Every archive pin reads one set of vintages under one specification, so both
