@@ -731,7 +731,12 @@ class TestWhatThePostQuotes:
         apr, sharpe, drawdown = margins(result)
         expected = [
             ["", "APR", "Sharpe", "Drawdown"],
-            ["Declared", f"{revised.apr:.6f}", f"{revised.sharpe:.6f}", f"{revised.max_drawdown:.6f}"],
+            [
+                "Declared",
+                f"{revised.apr:.6f}",
+                f"{revised.sharpe:.6f}",
+                f"{revised.max_drawdown:.6f}",
+            ],
             ["6.1", f"{example.apr:.6f}", f"{example.sharpe:.6f}", f"{example.max_drawdown:.6f}"],
             ["Margin", f"{apr:.6f}", f"{sharpe:.6f}", f"{drawdown:.6f}"],
         ]
@@ -749,9 +754,9 @@ class TestWhatThePostQuotes:
             f"the {int(result.window.sum())} trading days of the window Chan names on p. 206.",
             f"Its signal would then exist on only {int(result.window.sum()) - 250} of the 913, and "
             f"its APR would fall to {result.example_cut_first_figures.apr:.6f}.",
-            f"This strip holds {contracts.shape[1]} TU contracts over {len(contracts):,} days, from "
-            f"{contracts.index[0].date()} to {contracts.index[-1].date()}, and TU’s spot price from "
-            f"{strip.spot.first_valid_index().date()}.",
+            f"This strip holds {contracts.shape[1]} TU contracts over {len(contracts):,} days, "
+            f"from {contracts.index[0].date()} to {contracts.index[-1].date()}, and TU’s spot "
+            f"price from {strip.spot.first_valid_index().date()}.",
         ]
         assert not_found_once(text, fragments) == []
 
@@ -794,7 +799,9 @@ class TestWhatThePostQuotes:
         flat = np.prod(1 + market[held == 0]) - 1
         long = np.prod(1 + market[held > 0]) - 1
         for threshold in (0.029, 0.032):
-            moved = rule_returns(roll_position(*roll_signals(result.gamma, threshold)), result.market)
+            moved = rule_returns(
+                roll_position(*roll_signals(result.gamma, threshold)), result.market
+            )
             assert tu_momentum.figures(moved[result.window]).apr < example.apr, "negative"
         fragments = [
             f"There the declared rule gives an APR of {100 * on_save.apr:.4f} percent against "

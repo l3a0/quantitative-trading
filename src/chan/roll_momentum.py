@@ -74,8 +74,9 @@ the day before, the farthest of the five γ is fitted on, lands nearer the
 book than the declared rule does. It came out of the scratch search, and a
 scratch fit of γ on the four nearest contracts, which no test here repeats,
 lowered its Sharpe ratio. So the match may lean on γ moving against the traded
-contract's own price that day, a candidate explanation rather than a finding. :func:`fifth_contract_returns` computes it for
-one row beside the replication, and it is never the verdict.
+contract's own price that day, a candidate explanation rather than a finding.
+:func:`fifth_contract_returns` computes it for one row beside the replication,
+and it is never the verdict.
 
 **Nothing is ported.** No script ships for location 2690, and the sibling
 search on the issue found no roll-return signal to bring over. Everything
