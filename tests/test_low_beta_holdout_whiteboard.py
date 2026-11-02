@@ -1,4 +1,4 @@
-"""The pins for the low-beta holdout post's two whiteboard GIFs, in Lessons 1 and 5.
+"""The pins for the low-beta holdout post's three whiteboard GIFs, two in Lesson 1 and one in 5.
 
 1. The bound sketch draws, on one axis of the yearly gap, a black bracket from
    the measured gap to the one-sided upper bound and a brass bracket from 0 to
@@ -8,7 +8,16 @@
    the axis's end. Also pinned are that the black bracket is exactly as long as
    the brass bracket's first piece, the two brackets sit on opposite sides of
    the axis, the join carries no figure, and the words it prints.
-2. The look-ahead sketch is schematic. What is pinned is its order of events:
+2. The dropped-month sketch draws, on its own axis of the yearly gap, five
+   rows: the gap over every month, then the gap without the lowest month, the
+   second lowest, the highest, and the lowest and highest together. What is
+   pinned is that each dot sits at its figure under one affine map, each
+   arrow starts at the gap and points at its row's dot, the dashed upright
+   stands at 0 through every row, a dot's ink and its printed figure follow
+   its sign, and the row labels name the months the run read. Figures whose
+   lowest or second-lowest month leaves the gap's sign unchanged are refused,
+   since the title would then be false.
+3. The look-ahead sketch is schematic. What is pinned is its order of events:
    stock A runs past both dates, stock B's series stops strictly between them,
    the old rule's arrow points from the next month-end back to the formation,
    and the new rule's cash line runs flat from B's last close to the month-end.
@@ -16,15 +25,17 @@
    date, since the post names two exclusions that still read the next
    month-end.
 
-The bound sketch's figures need the owner's archive, so they are pinned here
-as :data:`PINNED`, every test here runs without the archive, and
-``test_the_whiteboard_draws_this_runs_figures`` in
-``tests/test_low_beta_holdout.py`` holds that the run gives them. A made-up
-second set of figures checks that the words and marks follow the data.
+The first two sketches' figures need the owner's archive, so they are pinned
+here as :data:`PINNED` and :data:`PINNED_DROPPED`, every test here runs
+without the archive, and ``test_the_whiteboard_draws_this_runs_figures`` and
+``test_the_whiteboard_draws_this_runs_dropped_months`` in
+``tests/test_low_beta_holdout.py`` hold that the run gives them. A made-up
+second set of figures for each checks that the words and marks follow the
+data.
 
 The rules every sketch shares are pinned here too: labels clear of ink in the
-hand font and the fallback, each GIF's size, frames, loop and timing, both
-sketches' slower pace, that two draws give the same bytes, and that each
+hand font and the fallback, each GIF's size, frames, loop and timing, every
+sketch's slower pace, that two draws give the same bytes, and that each
 committed GIF is a fresh draw, a comparison that runs only on macOS arm64
 with Comic Sans MS, as ``tests/test_usdcad_tests_whiteboard.py`` explains.
 The check that ``docs/figures`` holds exactly the GIFs the modules draw lives
@@ -39,9 +50,11 @@ import math
 import platform
 import re
 from dataclasses import replace
+from datetime import date
 
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
@@ -53,11 +66,18 @@ from chan.low_beta_holdout_whiteboard import (
     ABOVE_Y,
     AXIS_Y,
     BELOW_Y,
+    DROP_AXIS_Y,
+    DROP_X,
+    DROPS,
+    FIGURE_X,
     FORMED_X,
     GAP_X,
     GAPS,
     NEXT_X,
+    ROWS_Y,
     BoundFigures,
+    DroppedFigures,
+    drop_x,
     gap_x,
     gif_name,
     main,
@@ -82,9 +102,16 @@ from chan.usdcad_tests_whiteboard import (
 POST = REPO_ROOT / "blog" / "low-beta-holdout-lessons.md"
 
 #: Every GIF in the order :func:`make_low_beta_holdout_whiteboards` returns them.
-GIFS = ["low_beta_holdout_sketch_bound_and_y.gif", "low_beta_holdout_sketch_look_ahead.gif"]
+GIFS = [
+    "low_beta_holdout_sketch_bound_and_y.gif",
+    "low_beta_holdout_sketch_dropped_months.gif",
+    "low_beta_holdout_sketch_look_ahead.gif",
+]
 #: The GIFs a redraw cannot write without the owner's archive.
-ARCHIVE_GIFS = {"low_beta_holdout_sketch_bound_and_y.gif"}
+ARCHIVE_GIFS = {
+    "low_beta_holdout_sketch_bound_and_y.gif",
+    "low_beta_holdout_sketch_dropped_months.gif",
+}
 
 #: The registered run's yearly gap, its yearly Newey-West standard error and Y,
 #: as ``test_the_whiteboard_draws_this_runs_figures`` in
@@ -100,10 +127,31 @@ PINNED = BoundFigures(
     detectable=0.2947506749400717,
 )
 
+#: Twelve times the mean of d over all 208 holding months and over the months
+#: left when the lowest, the second lowest, the highest, and the lowest and
+#: highest together are dropped, with those three months, as
+#: ``test_the_whiteboard_draws_this_runs_dropped_months`` in
+#: ``tests/test_low_beta_holdout.py`` holds the run gives them, on the same
+#: vintages and specification as :data:`PINNED`. The write-up measured these
+#: after the run, so they decide nothing.
+PINNED_DROPPED = DroppedFigures(
+    months=208,
+    gap=-0.058965291602502266,
+    lowest=date(2024, 12, 31),
+    second=date(2026, 3, 31),
+    highest=date(2025, 2, 28),
+    without_lowest=0.03132642815124606,
+    without_second=0.007890177777331676,
+    without_highest=-0.09471610660305997,
+    without_lowest_and_highest=-0.004159625175752438,
+)
+
 #: A fragment of the paragraph each GIF follows, keyed on words a review round
-#: is unlikely to reword: the end of Lesson 1's bound paragraph and the opening
-#: of Lesson 5's holding-month paragraph.
+#: is unlikely to reword: the end of Lesson 1's bound paragraph, the opening of
+#: its dropped-month paragraph and the opening of Lesson 5's holding-month
+#: paragraph.
 BOUND_FRAGMENT = "from a deficit of the same size."
+DROP_FRAGMENT = "Either of two months sets the sign of the gap on its own."
 LOOK_FRAGMENT = "The holding month changed most."
 
 BOUND_LABELS = [
@@ -121,6 +169,22 @@ BOUND_LABELS = [
     "same standard error, different starting points",
 ]
 
+DROP_LABELS = [
+    "gap a year",
+    "0",
+    "all 208 months",
+    "−0.0590",
+    "without Dec 2024",
+    "+0.0313",
+    "without Mar 2026",
+    "+0.0079",
+    "without Feb 2025",
+    "−0.0947",
+    "without Dec 2024 and Feb 2025",
+    "−0.0042",
+    "dropping a month is not a test",
+]
+
 LOOK_LABELS = [
     "formation",
     "next month-end",
@@ -136,13 +200,13 @@ CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
 
 @pytest.fixture(scope="module")
 def every():
-    return scenes(PINNED)
+    return scenes(PINNED, PINNED_DROPPED)
 
 
 @pytest.fixture(scope="module")
 def gifs(tmp_path_factory):
     return make_low_beta_holdout_whiteboards(
-        out_dir=tmp_path_factory.mktemp("sketches"), figures=PINNED
+        out_dir=tmp_path_factory.mktemp("sketches"), figures=PINNED, dropped=PINNED_DROPPED
     )
 
 
@@ -201,12 +265,25 @@ def _gap_of(x):
 
 
 class TestTheScenes:
-    def test_there_are_two_in_the_order_the_post_reads_them(self, every) -> None:
+    def test_there_are_three_in_the_order_the_post_reads_them(self, every) -> None:
         assert [gif_name(scene) for scene in every] == GIFS
 
     def test_each_draws_its_strokes_in_order(self, every) -> None:
         assert [s.gid for s in every[0].strokes] == ["axis", "gap", "bound", "reject", "y", "join"]
         assert [s.gid for s in every[1].strokes] == [
+            "axis",
+            "zero",
+            "row-0",
+            "arrow-1",
+            "row-1",
+            "arrow-2",
+            "row-2",
+            "arrow-3",
+            "row-3",
+            "arrow-4",
+            "row-4",
+        ]
+        assert [s.gid for s in every[2].strokes] == [
             "time",
             "formed",
             "next",
@@ -233,7 +310,7 @@ class TestTheScenes:
                 assert stroke.points >= stroke.frames, (scene.title, stroke.gid)
 
     def test_every_pale_tint_has_a_green_edge(self, every) -> None:
-        """Neither sketch draws a tint. The bound sketch hatches its rejected
+        """No sketch draws a tint. The bound sketch hatches its rejected
         zone with red strokes instead. A tint would need the green edge the
         equity seasonals module's ``_tinted`` draws, since the tint alone
         stands 1.29 to 1 against the board."""
@@ -301,7 +378,7 @@ class TestTheGifs:
             hold = sketches.PACED_HOLD_MS if scene.slug in sketches.PACED else HOLD_MS
             assert steps[-1].ms == hold, scene.slug
 
-    def test_both_sketches_build_slowly_and_hold_twelve_seconds(self, every) -> None:
+    def test_every_sketch_builds_slowly_and_holds_twelve_seconds(self, every) -> None:
         """Each label alone for 0.9 s and the drawing for 12 s, the equity
         post's slow pace."""
         from chan import equity_seasonals_whiteboard as equity
@@ -311,7 +388,7 @@ class TestTheGifs:
             equity.PACED_LABEL_MS,
             equity.PACED_HOLD_MS,
         )
-        assert sketches.PACED == ("bound_and_y", "look_ahead")
+        assert sketches.PACED == ("bound_and_y", "dropped_months", "look_ahead")
         for scene in every:
             frames = sketch_timeline(scene)
             labels = [
@@ -331,7 +408,9 @@ class TestTheGifs:
             assert path.stat().st_size < 1_000_000, path.name
 
     def test_two_draws_give_the_same_bytes(self, gifs, tmp_path) -> None:
-        again = make_low_beta_holdout_whiteboards(out_dir=tmp_path, figures=PINNED)
+        again = make_low_beta_holdout_whiteboards(
+            out_dir=tmp_path, figures=PINNED, dropped=PINNED_DROPPED
+        )
         for first, second in zip(gifs, again, strict=True):
             assert first.read_bytes() == second.read_bytes(), first.name
 
@@ -380,7 +459,7 @@ class TestTheCommand:
         self, monkeypatch, tmp_path, capsys
     ) -> None:
         monkeypatch.setattr(sketches, "FIGURES_DIR", tmp_path)
-        monkeypatch.setattr(BoundFigures, "from_run", classmethod(lambda cls: PINNED))
+        monkeypatch.setattr(sketches, "read_figures", lambda: (PINNED, PINNED_DROPPED))
         main()
         assert sorted(path.name for path in tmp_path.glob("*.gif")) == sorted(GIFS)
         assert capsys.readouterr().out.splitlines() == [f"wrote {tmp_path / name}" for name in GIFS]
@@ -390,7 +469,7 @@ class TestTheCommand:
         [ArchiveUnavailable("no archive here"), HoldoutRefused("SPY is a member ticker")],
         ids=["no archive", "run refused"],
     )
-    def test_without_the_archive_it_names_the_gif_it_left(
+    def test_without_the_archive_it_names_the_gifs_it_left(
         self, monkeypatch, refusal, tmp_path
     ) -> None:
         """It draws into a scratch folder, because a draw into the figures
@@ -405,7 +484,8 @@ class TestTheCommand:
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == (
-            f"low_beta_holdout_sketch_bound_and_y.gif was not redrawn: {refusal}"
+            "low_beta_holdout_sketch_bound_and_y.gif, low_beta_holdout_sketch_dropped_months.gif "
+            f"were not redrawn: {refusal}"
         )
         assert sorted(p.name for p in tmp_path.glob("*.gif")) == sorted(set(GIFS) - ARCHIVE_GIFS)
         assert {path.name: path.read_bytes() for path in FIGURES_DIR.glob("*.gif")} == before
@@ -428,15 +508,16 @@ class TestThePost:
     def test_each_gif_follows_the_paragraph_it_draws(self) -> None:
         paragraphs = [p for p in POST.read_text(encoding="utf-8").split("\n\n") if p.strip()]
         (bound,) = [k for k, p in enumerate(paragraphs) if BOUND_FRAGMENT in p]
+        (drop,) = [k for k, p in enumerate(paragraphs) if p.startswith(DROP_FRAGMENT)]
         (look,) = [k for k, p in enumerate(paragraphs) if p.startswith(LOOK_FRAGMENT)]
-        for index, name in zip((bound, look), GIFS, strict=True):
+        for index, name in zip((bound, drop, look), GIFS, strict=True):
             embed = paragraphs[index + 1]
             assert re.fullmatch(rf"!\[[^\]]+\]\(\.\./docs/figures/{re.escape(name)}\)", embed), name
 
     def test_each_sits_in_its_lesson(self) -> None:
         text = POST.read_text(encoding="utf-8")
-        bound, look = (text.index(f"(../docs/figures/{name})") for name in GIFS)
-        assert text.index("## Lesson 1:") < bound < text.index("## Lesson 2:")
+        bound, drop, look = (text.index(f"(../docs/figures/{name})") for name in GIFS)
+        assert text.index("## Lesson 1:") < bound < drop < text.index("## Lesson 2:")
         assert text.index("## Lesson 5:") < look < text.index("## What this holdout cannot say")
 
     def test_each_gif_is_embedded_once_and_the_chart_still_is(self) -> None:
@@ -463,7 +544,7 @@ class TestThePost:
 
     def test_the_module_says_which_is_schematic(self) -> None:
         doc = sketches.__doc__ or ""
-        assert "The first sketch is drawn to scale, and the second is schematic." in doc
+        assert "The first two sketches are drawn to scale, and the third is schematic." in doc
 
 
 # --- Lesson 1: Y and the upper bound -------------------------------------------------
@@ -490,7 +571,7 @@ class TestTheBoundFigures:
         join = sketches.four(PINNED.reach)
         assert join == "0.1950"
         assert join not in POST.read_text(encoding="utf-8")
-        assert not [text for text in scenes(PINNED)[0].labels if join in text]
+        assert not [text for text in scenes(PINNED, PINNED_DROPPED)[0].labels if join in text]
 
     def test_from_verdict_reads_the_yearly_figures(self) -> None:
         class Stub:
@@ -588,7 +669,7 @@ class TestTheBoundSketch:
 
     def test_made_up_figures_move_the_words_and_marks(self) -> None:
         made_up = replace(PINNED, gap=-0.0400, error=0.0900, detectable=(1.645 + 0.8416) * 0.09)
-        scene = scenes(made_up)[0]
+        scene = scenes(made_up, PINNED_DROPPED)[0]
         assert "−0.0400" in scene.labels
         assert "1.645 × 0.0900" in scene.labels and "0.8416 × 0.0900" in scene.labels
         assert f"upper bound {sketches.four(-0.04 + 1.645 * 0.09)}" in scene.labels
@@ -607,7 +688,7 @@ class TestTheBoundSketch:
     )
     def test_figures_the_drawing_would_misdescribe_are_refused(self, changes) -> None:
         with pytest.raises(ValueError, match="the sketch draws a negative gap"):
-            scenes(replace(PINNED, **changes))
+            scenes(replace(PINNED, **changes), PINNED_DROPPED)
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
         alt = _alt(POST.read_text(encoding="utf-8"), every[0])
@@ -617,16 +698,211 @@ class TestTheBoundSketch:
         assert "carries no figure" in alt
 
 
+# --- Lesson 1: either of two months sets the sign -----------------------------------
+
+
+def _drop_of(x):
+    """The gap a year at a board position across, the inverse of :func:`drop_x`."""
+    (v0, v1), (x0, x1) = DROPS, DROP_X
+    return v0 + (np.asarray(x) - x0) * (v1 - v0) / (x1 - x0)
+
+
+#: Each row's figure in :data:`PINNED_DROPPED`, top to bottom.
+ROW_VALUES = [
+    PINNED_DROPPED.gap,
+    PINNED_DROPPED.without_lowest,
+    PINNED_DROPPED.without_second,
+    PINNED_DROPPED.without_highest,
+    PINNED_DROPPED.without_lowest_and_highest,
+]
+#: Each row's label, top to bottom.
+ROW_LABELS = DROP_LABELS[2:12:2]
+
+
+class TestTheDroppedFigures:
+    def test_the_pinned_figures_print_as_the_post_does(self) -> None:
+        printed = [sketches.signed(value) for value in ROW_VALUES]
+        assert printed == ["−0.0590", "+0.0313", "+0.0079", "−0.0947", "−0.0042"]
+        text = POST.read_text(encoding="utf-8")
+        for figure in printed[1:]:
+            assert figure in text, figure
+
+    def test_the_gap_is_the_bound_sketchs_gap(self) -> None:
+        """Both sketches in Lesson 1 start from the same −0.0590."""
+        assert PINNED_DROPPED.gap == pytest.approx(PINNED.gap, abs=1e-15)
+
+    def test_from_differences_reads_the_months_and_the_means(self) -> None:
+        """Made-up d over six months, so which month is dropped follows the data."""
+        index = pd.to_datetime(
+            ["2020-01-31", "2020-02-29", "2020-03-31", "2020-04-30", "2020-05-31", "2020-06-30"]
+        )
+        d = pd.Series([0.01, -0.30, 0.20, -0.10, 0.02, 0.03], index=index)
+        found = DroppedFigures.from_differences(d)
+        assert found.months == 6
+        assert (found.lowest, found.second, found.highest) == (
+            date(2020, 2, 29),
+            date(2020, 4, 30),
+            date(2020, 3, 31),
+        )
+        assert found.gap == pytest.approx(12 * d.mean())
+        assert found.without_lowest == pytest.approx(12 * d.drop(index[1]).mean())
+        assert found.without_second == pytest.approx(12 * d.drop(index[3]).mean())
+        assert found.without_highest == pytest.approx(12 * d.drop(index[2]).mean())
+        assert found.without_lowest_and_highest == pytest.approx(
+            12 * d.drop([index[1], index[2]]).mean()
+        )
+
+
+class TestTheDroppedMonthsSketch:
+    def test_its_words(self, every) -> None:
+        assert every[1].title == "Either of two months sets the sign"
+        assert every[1].labels == DROP_LABELS
+
+    def test_its_colours(self, every) -> None:
+        """Each dot and its printed figure are red below zero and green above
+        it, and the arrows are black, since row 2's crosses zero."""
+        scene = every[1]
+        for gid in ("axis", "zero"):
+            assert _stroke(scene, gid).color == MUTED, gid
+        assert _stroke(scene, "zero").dashed
+        for row, value in enumerate(ROW_VALUES):
+            ink = LOST if value < 0 else GOOD
+            assert _stroke(scene, f"row-{row}").color == ink, row
+            assert _label(scene, sketches.signed(value)).color == ink, row
+        for row in range(1, 5):
+            assert _stroke(scene, f"arrow-{row}").color == INK, row
+        for text in ("gap a year", "0"):
+            assert _label(scene, text).color == MUTED, text
+        for text in [*ROW_LABELS, "dropping a month is not a test"]:
+            assert _label(scene, text).color == INK, text
+
+    def test_each_row_label_and_figure_sit_in_its_dots_row(self, every) -> None:
+        scene = every[1]
+        for text, value, y in zip(ROW_LABELS, ROW_VALUES, ROWS_Y, strict=True):
+            assert _label(scene, text).y == y, text
+            assert _label(scene, sketches.signed(value)).y == y, text
+
+    def test_each_dot_sits_in_its_row_at_its_figure(self, every) -> None:
+        scene = every[1]
+        for row, (value, y) in enumerate(zip(ROW_VALUES, ROWS_Y, strict=True)):
+            dot = _stroke(scene, f"row-{row}")
+            assert (dot.points, dot.frames) == (1, 1)
+            assert dot.y[0] == y
+            assert _drop_of(dot.x[0]) == pytest.approx(value)
+
+    def test_the_rows_run_top_to_bottom_above_the_axis(self) -> None:
+        assert list(ROWS_Y) == sorted(ROWS_Y, reverse=True)
+        assert min(ROWS_Y) > DROP_AXIS_Y
+
+    def test_each_arrow_starts_at_the_gap_and_points_at_its_rows_dot(self, every) -> None:
+        scene = every[1]
+        start = float(drop_x(PINNED_DROPPED.gap))
+        for row in range(1, 5):
+            arrow, dot = _stroke(scene, f"arrow-{row}"), _stroke(scene, f"row-{row}")
+            assert (arrow.x[0], arrow.y[0]) == pytest.approx((start, ROWS_Y[row]))
+            shaft = int(np.argmax(np.abs(arrow.x - start)))
+            tip = arrow.x[shaft]
+            assert arrow.y[shaft] == pytest.approx(ROWS_Y[row])
+            # The head points towards the dot and stops just short of it,
+            # between the gap and the dot rather than past the dot.
+            assert min(start, dot.x[0]) < tip < max(start, dot.x[0]), row
+            assert abs(dot.x[0] - tip) <= 0.2, row
+
+    def test_dropping_the_lowest_month_moves_the_gap_further_than_the_highest(self, every) -> None:
+        """The paragraph's "less far", drawn as two arrow lengths."""
+        scene = every[1]
+        start = float(drop_x(PINNED_DROPPED.gap))
+        lowest = abs(_stroke(scene, "row-1").x[0] - start)
+        highest = abs(_stroke(scene, "row-3").x[0] - start)
+        assert lowest > 2 * highest
+
+    def test_the_dashed_upright_stands_at_0_through_every_row(self, every) -> None:
+        upright = _stroke(every[1], "zero")
+        assert np.ptp(upright.x) == 0
+        assert _drop_of(upright.x[0]) == pytest.approx(0.0, abs=1e-12)
+        assert upright.y.min() == DROP_AXIS_Y and upright.y.max() > max(ROWS_Y)
+
+    def test_the_axis_runs_along_the_bottom(self, every) -> None:
+        axis = _stroke(every[1], "axis")
+        assert (axis.x.min(), axis.x.max()) == pytest.approx(DROP_X)
+        assert np.ptp(axis.y) == 0 and axis.y[0] == DROP_AXIS_Y
+
+    def test_the_figures_stand_in_a_column_at_the_right_edge(self, every) -> None:
+        scene = every[1]
+        for value, y in zip(ROW_VALUES, ROWS_Y, strict=True):
+            label = _label(scene, sketches.signed(value))
+            assert (label.x, label.y, label.ha) == (FIGURE_X, y, "right")
+        assert FIGURE_X > DROP_X[1]
+
+    def test_the_closing_label_comes_last(self, every) -> None:
+        assert every[1].steps[-1].text == "dropping a month is not a test"
+
+    def test_made_up_figures_move_the_words_and_marks(self) -> None:
+        made_up = DroppedFigures(
+            months=120,
+            gap=0.0200,
+            lowest=date(2019, 6, 30),
+            second=date(2011, 8, 31),
+            highest=date(2015, 1, 31),
+            without_lowest=-0.0400,
+            without_second=-0.0300,
+            without_highest=0.0100,
+            without_lowest_and_highest=0.0050,
+        )
+        scene = scenes(PINNED, made_up)[1]
+        assert scene.labels[2:12] == [
+            "all 120 months",
+            "+0.0200",
+            "without Jun 2019",
+            "−0.0400",
+            "without Aug 2011",
+            "−0.0300",
+            "without Jan 2015",
+            "+0.0100",
+            "without Jun 2019 and Jan 2015",
+            "+0.0050",
+        ]
+        assert _stroke(scene, "row-0").color == GOOD
+        assert _stroke(scene, "row-1").color == LOST
+        assert _drop_of(_stroke(scene, "row-3").x[0]) == pytest.approx(0.0100)
+
+    @pytest.mark.parametrize(
+        "changes",
+        [
+            {"without_lowest": -0.0200},
+            {"without_second": -0.0010},
+            {"without_highest": -0.2000},
+            {"without_lowest": 0.0600},
+        ],
+        ids=[
+            "the lowest month leaves the sign",
+            "the second lowest leaves the sign",
+            "a figure off the axis left",
+            "a figure off the axis right",
+        ],
+    )
+    def test_figures_the_title_would_misdescribe_are_refused(self, changes) -> None:
+        with pytest.raises(ValueError, match="either of two months sets the sign"):
+            scenes(PINNED, replace(PINNED_DROPPED, **changes))
+
+    def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
+        alt = _alt(POST.read_text(encoding="utf-8"), every[1])
+        assert "a black arrow starts from that same position" in alt
+        assert "red below zero and green above it" in alt
+        assert "less than half as far" in alt
+        assert "just touching the upright on its left" in alt
+
+
 # --- Lesson 5: what the formation cannot know ---------------------------------------
 
 
 class TestTheLookAheadSketch:
     def test_its_words(self, every) -> None:
-        assert every[1].title == "What the formation cannot know"
-        assert every[1].labels == LOOK_LABELS
+        assert every[2].title == "What the formation cannot know"
+        assert every[2].labels == LOOK_LABELS
 
     def test_its_colours(self, every) -> None:
-        scene = every[1]
+        scene = every[2]
         for gid in ("time", "formed", "next"):
             assert _stroke(scene, gid).color == MUTED, gid
         for gid in ("formed", "next"):
@@ -643,42 +919,42 @@ class TestTheLookAheadSketch:
         assert _label(scene, LOOK_LABELS[5]).color == GOOD
 
     def test_stock_a_trades_past_both_dates(self, every) -> None:
-        a = _stroke(every[1], "a")
+        a = _stroke(every[2], "a")
         assert a.x.min() < FORMED_X and a.x.max() > NEXT_X
 
     def test_stock_bs_series_stops_strictly_between_the_dates(self, every) -> None:
         """The case the new rule changed. A series ending on the formation day
         itself is one of the two exclusions the post says still look ahead,
         so B stops after the formation, not on it."""
-        scene = every[1]
+        scene = every[2]
         b, last = _stroke(scene, "b"), _stroke(scene, "b-last")
         assert b.x.min() < FORMED_X < b.x.max() < NEXT_X
         assert (last.x[0], last.y[0]) == (b.x[-1], b.y[-1])
 
     def test_the_old_rule_points_from_the_next_month_end_back_to_the_formation(self, every) -> None:
-        old = _stroke(every[1], "old")
+        old = _stroke(every[2], "old")
         assert (old.x[0], old.x.min()) == pytest.approx((NEXT_X, FORMED_X))
         tip = int(np.argmin(old.x))
         assert old.x[tip + 1] > FORMED_X, "the arrow's head sits at the formation"
 
     def test_the_new_rule_holds_b_flat_from_its_last_close_to_the_month_end(self, every) -> None:
-        scene = every[1]
+        scene = every[2]
         cash, last = _stroke(scene, "cash"), _stroke(scene, "b-last")
         assert np.ptp(cash.y) == 0 and cash.y[0] == last.y[0]
         assert (cash.x.min(), cash.x.max()) == pytest.approx((last.x[0], NEXT_X))
 
     def test_it_carries_no_figures(self, every) -> None:
-        assert not [text for text in every[1].labels if re.search(r"\d", text)]
+        assert not [text for text in every[2].labels if re.search(r"\d", text)]
 
     def test_no_label_says_the_formation_now_sees_only_its_own_date(self, every) -> None:
         """Two exclusions still read the next month-end, which the paragraph
         after the sketch says, so a closing label claiming the look-ahead is
         gone would contradict the post."""
-        words = " ".join(every[1].labels).lower()
+        words = " ".join(every[2].labels).lower()
         assert "left tick" not in words and "only" not in words
 
     def test_its_alt_text_says_what_the_picture_shows(self, every) -> None:
-        alt = _alt(POST.read_text(encoding="utf-8"), every[1])
+        alt = _alt(POST.read_text(encoding="utf-8"), every[2])
         assert "schematic" in alt
         assert "stops between the two dates" in alt
         assert "points from the next month-end back to the formation" in alt

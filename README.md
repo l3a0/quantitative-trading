@@ -9528,7 +9528,7 @@ of a fresh draw with the committed file in
 price is that CI never sees the real right column drawn, and a reader cannot
 redraw it.
 
-The post also carries two looping whiteboard sketches, drawn by
+The post also carries three looping whiteboard sketches, drawn by
 [src/chan/low_beta_holdout_whiteboard.py](src/chan/low_beta_holdout_whiteboard.py)
 on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
 
@@ -9540,23 +9540,33 @@ on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
    which is 1.645 plus 0.8416 of the same standard errors, and a tick marks
    where its first 1.645 end. That point is 0.1950, which the post does not
    state, so the sketch prints no figure there.
-2. `low_beta_holdout_sketch_look_ahead.gif`, in Lesson 5, after the paragraph
+2. `low_beta_holdout_sketch_dropped_months.gif`, in Lesson 1, after the
+   paragraph on the two months that each set the gap's sign. On its own axis
+   of the yearly gap, with a dashed upright at 0, five rows show the gap over
+   all 208 months, −0.0590, and without December 2024, +0.0313, without March
+   2026, +0.0079, without February 2025, −0.0947, and without both December
+   2024 and February 2025, −0.0042. A black arrow runs from the first row's
+   position to each other row's dot, and a closing label says dropping a month
+   is not a test.
+3. `low_beta_holdout_sketch_look_ahead.gif`, in Lesson 5, after the paragraph
    on the holding month. Stock A trades past the formation and the next
    month-end, and stock B's series stops between them. The old rule, which
    asked for a close at the next month-end, drops B only by reading that later
    date. The new rule earns B's return to its last close and then holds cash.
 
-The first is drawn to scale, and the second is schematic and carries no
+The first two are drawn to scale, and the third is schematic and carries no
 figures. The first sketch's figures come from the registered run's verdict,
-which needs the owner's archive, so
+and the second's from the run's monthly differences. Both need the owner's
+archive, so
 [tests/test_low_beta_holdout_whiteboard.py](tests/test_low_beta_holdout_whiteboard.py)
-pins a frozen copy of them and runs everywhere, and
-`test_the_whiteboard_draws_this_runs_figures` in
-[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) holds that
-the run gives that copy. Both build more slowly than the USD.CAD post's
-sketches and hold their finished drawings for twelve seconds. Redraw both
-with the command below. Without the archive it redraws only the schematic,
-names the GIF it left stale and exits non-zero.
+pins a frozen copy of each and runs everywhere, and
+`test_the_whiteboard_draws_this_runs_figures` and
+`test_the_whiteboard_draws_this_runs_dropped_months` in
+[tests/test_low_beta_holdout.py](tests/test_low_beta_holdout.py) hold that
+the run gives those copies. All three build more slowly than the USD.CAD
+post's sketches and hold their finished drawings for twelve seconds. Redraw
+all three with the command below. Without the archive it redraws only the
+schematic, names the two GIFs it left stale and exits non-zero.
 
 ```bash
 QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_whiteboard

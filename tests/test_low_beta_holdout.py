@@ -940,6 +940,22 @@ class TestWhatThePostMeasured:
                 f"{name}; {SPEC}; {AFTER_THE_RUN}"
             )
 
+    def test_the_whiteboard_draws_this_runs_dropped_months(self, holdout) -> None:
+        """The dropped-month sketch draws its ``PINNED_DROPPED`` figures, so it
+        runs without the archive. This holds that this run's d gives them: the
+        count of months, the three months it names and the five gaps a year."""
+        from chan.low_beta_holdout_whiteboard import DroppedFigures
+        from tests.test_low_beta_holdout_whiteboard import PINNED_DROPPED
+
+        drawn = DroppedFigures.from_differences(differences(holdout.portfolios))
+        for field in dataclasses.fields(DroppedFigures):
+            name = field.name
+            found, pinned = getattr(drawn, name), getattr(PINNED_DROPPED, name)
+            if isinstance(pinned, float):
+                assert found == pytest.approx(pinned, abs=1e-9), f"{name}; {SPEC}; {AFTER_THE_RUN}"
+            else:
+                assert found == pinned, f"{name}; {SPEC}; {AFTER_THE_RUN}"
+
     def test_unlevered_the_high_fifth_out_compounded_the_low_by_0_0543(self, holdout) -> None:
         """From the full values, since the rounded 0.1613 and 0.1069 differ by 0.0544."""
         p = holdout.portfolios

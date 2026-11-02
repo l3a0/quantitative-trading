@@ -1,12 +1,13 @@
-"""Whiteboard sketches for the low-beta holdout post, one for Lesson 1 and one for Lesson 5.
+"""Whiteboard sketches for the low-beta holdout post, two for Lesson 1 and one for Lesson 5.
 
-``blog/low-beta-holdout-lessons.md`` makes two claims that a sentence has to
+``blog/low-beta-holdout-lessons.md`` makes three claims that a sentence has to
 build in the reader's head. Y and the one-sided upper bound are both built from
 the same standard error, yet they answer different questions, because they are
-measured from different starting points. And the earlier test's holding-month
-rule looked ahead on a panel whose series can stop inside a month. This module
-draws the two as scenes, and the post places each right after the paragraph it
-draws.
+measured from different starting points. The gap's sign rests on either of two
+months, and dropping the best month pulls the other way less far. And the
+earlier test's holding-month rule looked ahead on a panel whose series can stop
+inside a month. This module draws the three as scenes, and the post places each
+right after the paragraph it draws.
 
 1. Y and the upper bound: one axis of the yearly gap, levered low fifth minus
    unlevered high fifth. A red dot sits at the measured gap of −0.0590. A black
@@ -18,7 +19,17 @@ draws.
    as the black bracket. That point, 1.645 × 0.1185 or 0.1950, carries no label,
    because the post does not state it. It sits in Lesson 1, after the paragraph
    that ends "from a deficit of the same size."
-2. What the formation cannot know: a time axis with a formation and the next
+2. Either of two months sets the sign: a second axis of the yearly gap, with a
+   dashed grey upright at 0 through five rows. The top row is a red dot at the
+   gap over all 208 months, −0.0590. Below it, a black arrow runs from that
+   position to a dot at the gap without December 2024, +0.0313, without March
+   2026, +0.0079, without February 2025, −0.0947, and without both December
+   2024 and February 2025, −0.0042. Each dot and the figure printed at the
+   right edge of its row are red below zero and green above it. A closing
+   label says dropping a month is not a test. It sits in Lesson 1, after the
+   paragraph that opens "Either of two months sets the sign of the gap on its
+   own."
+3. What the formation cannot know: a time axis with a formation and the next
    month-end. Stock A trades past both. Stock B's series stops between them.
    A red arrow runs from the next month-end back to the formation, because the
    old rule, which asked every stock for a close at the next month-end, drops B
@@ -29,21 +40,24 @@ draws.
    formation now sees only its own date, because the paragraph after it names
    two exclusions that still read the next month-end.
 
-The first sketch is drawn to scale, and the second is schematic. Every figure
-the first prints, and every position it draws a dot, a bracket, a tick or the
-hatching at, comes from :class:`BoundFigures`, which
+The first two sketches are drawn to scale, and the third is schematic. Every
+figure the first prints, and every position it draws a dot, a bracket, a tick
+or the hatching at, comes from :class:`BoundFigures`, which
 :meth:`BoundFigures.from_verdict` reads from the registered run's
-:class:`chan.low_beta_leverage.Verdict`. Those figures need the owner's archive,
-so ``tests/test_low_beta_holdout_whiteboard.py`` pins them as a frozen copy and
-``tests/test_low_beta_holdout.py`` holds that the run gives that copy. The
-second sketch carries no figures: its paths, its dates and where B stops are
-shapes, not data.
+:class:`chan.low_beta_leverage.Verdict`. Every figure, month and count the
+second prints or draws comes from :class:`DroppedFigures`, which
+:meth:`DroppedFigures.from_differences` reads from the run's d. The write-up
+measured those after the run, so they decide nothing. Both sets need the
+owner's archive, so ``tests/test_low_beta_holdout_whiteboard.py`` pins each as
+a frozen copy and ``tests/test_low_beta_holdout.py`` holds that the run gives
+those copies. The third sketch carries no figures: its paths, its dates and
+where B stops are shapes, not data.
 
 The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
 than copied, so these GIFs share that post's look, frame rate and colours. This
 post's chart draws in :mod:`chan.regime_figure`'s shared inks, so the sketches
-do too. Both are in :data:`PACED`, and :func:`sketch_timeline` holds each of
-their labels longer and their finished drawings for twelve seconds, as
+do too. All three are in :data:`PACED`, and :func:`sketch_timeline` holds each
+of their labels longer and their finished drawings for twelve seconds, as
 :mod:`chan.equity_seasonals_whiteboard` does for its slow sketches. Each GIF is
 named :data:`GIF_PREFIX` plus the scene's slug. The post's chart,
 ``low_beta_holdout.png``, does not start with that prefix, so nothing that
@@ -51,8 +65,8 @@ looks for the sketches by prefix finds the chart.
 
 The sketches are deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. The schematic is written first, so a redraw
-without the archive leaves only the first sketch stale and says so. Redraw both
-with::
+without the archive leaves only the first two sketches stale and says so.
+Redraw all three with::
 
     QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_whiteboard
 """
@@ -60,9 +74,11 @@ with::
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from chan import low_beta_holdout
 from chan.archive import ArchiveRefused, ArchiveUnavailable
@@ -76,6 +92,7 @@ from chan.low_beta_leverage import (
     NonPositiveBeta,
     UnreadableStandardError,
     Verdict,
+    differences,
 )
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
@@ -143,11 +160,6 @@ class BoundFigures:
             error=verdict.standard_error * MONTHS,
             detectable=verdict.detectable,
         )
-
-    @classmethod
-    def from_run(cls) -> BoundFigures:
-        """Read the owner's archive through the run's own path, about a minute."""
-        return cls.from_verdict(low_beta_holdout.read_holdout().verdict)
 
 
 # --- Lesson 1: Y and the upper bound -----------------------------------------------
@@ -302,6 +314,150 @@ def _bound_and_y(f: BoundFigures) -> Scene:
     return Scene("Y and the upper bound", "bound_and_y", tuple(steps))
 
 
+# --- Lesson 1: either of two months sets the sign ------------------------------------
+
+#: The gap a year the second axis spans, and where it lands on the board. Nothing
+#: the run gives lies beyond −0.0947 or +0.0313, so the span leaves a margin on
+#: each side and keeps the dot nearest 0 off the dashed upright.
+DROPS, DROP_X = (-0.11, 0.05), (3.6, 8.75)
+#: The five rows' heights from the top, the axis below them, and how far right
+#: each row's figure ends.
+ROWS_Y = (3.7, 3.2, 2.7, 2.2, 1.7)
+DROP_AXIS_Y, FIGURE_X = 1.2, 9.6
+#: How far short of its dot each arrow's head stops, so the dot does not cover it.
+TIP_GAP = 0.17
+
+
+def drop_x(value: float | np.ndarray) -> float | np.ndarray:
+    """The board across of a gap a year on the dropped-month axis."""
+    (v0, v1), (x0, x1) = DROPS, DROP_X
+    return x0 + (np.asarray(value) - v0) * (x1 - x0) / (v1 - v0)
+
+
+def signed(value: float) -> str:
+    """``value`` to four decimals with its sign, as the post prints a dropped-month figure."""
+    return f"{value:+.4f}".replace("-", "−")
+
+
+def month(day: date) -> str:
+    """A holding month as a row label names it, such as ``Dec 2024``."""
+    return f"{day:%b %Y}"
+
+
+@dataclass(frozen=True)
+class DroppedFigures:
+    """What the dropped-month sketch draws: twelve times the mean of d over fewer months.
+
+    ``months`` is how many holding months d has. ``lowest`` and ``second`` are
+    the two months whose d is furthest below zero, and ``highest`` the one
+    furthest above. Each ``without_`` figure is twelve times the mean of d over
+    the months left when those are dropped. The write-up measured all of them
+    after the run, so they decide nothing.
+    """
+
+    months: int
+    gap: float
+    lowest: date
+    second: date
+    highest: date
+    without_lowest: float
+    without_second: float
+    without_highest: float
+    without_lowest_and_highest: float
+
+    @property
+    def rows(self) -> tuple[tuple[str, float], ...]:
+        """Each row's label and its gap a year, top to bottom."""
+        low, second, high = month(self.lowest), month(self.second), month(self.highest)
+        return (
+            (f"all {self.months} months", self.gap),
+            (f"without {low}", self.without_lowest),
+            (f"without {second}", self.without_second),
+            (f"without {high}", self.without_highest),
+            (f"without {low} and {high}", self.without_lowest_and_highest),
+        )
+
+    @classmethod
+    def from_differences(cls, d: pd.Series) -> DroppedFigures:
+        """Read the figures from d, each holding month's levered-minus-unlevered log growth."""
+        ranked = d.sort_values().index
+        lowest, second, highest = ranked[0], ranked[1], ranked[-1]
+        return cls(
+            months=len(d),
+            gap=float(d.mean() * MONTHS),
+            lowest=lowest.date(),
+            second=second.date(),
+            highest=highest.date(),
+            without_lowest=float(d.drop(lowest).mean() * MONTHS),
+            without_second=float(d.drop(second).mean() * MONTHS),
+            without_highest=float(d.drop(highest).mean() * MONTHS),
+            without_lowest_and_highest=float(d.drop([lowest, highest]).mean() * MONTHS),
+        )
+
+
+def _ink(value: float) -> str:
+    """A dot's ink and its figure's: red below zero, green above it."""
+    return LOST if value < 0 else GOOD
+
+
+def _dropped_months(f: DroppedFigures) -> Scene:
+    """Lesson 1: dropping either of the two lowest months flips the gap, the highest less far."""
+    outside = {label: value for label, value in f.rows if not DROPS[0] < value < DROPS[1]}
+    flips = [np.sign(value) != np.sign(f.gap) for value in (f.without_lowest, f.without_second)]
+    if outside or not all(flips):
+        raise ValueError(
+            f"the sketch says either of two months sets the sign, inside {DROPS}, and these "
+            f"figures give {dict(f.rows)}"
+        )
+    zero, start = float(drop_x(0.0)), float(drop_x(f.gap))
+    (top_label, top_value), *rest = f.rows
+    steps: list[Stroke | Label] = [
+        _stroke("axis", _line([(DROP_X[0], DROP_AXIS_Y), (DROP_X[1], DROP_AXIS_Y)]), color=MUTED),
+        Label("gap a year", DROP_X[0], DROP_AXIS_Y - 0.32, names="axis", color=MUTED, size=11),
+        _stroke(
+            "zero",
+            _line([(zero, DROP_AXIS_Y), (zero, ROWS_Y[0] + 0.25)]),
+            color=MUTED,
+            dashed=True,
+            width=1.5,
+            frames=4,
+        ),
+        Label("0", zero, DROP_AXIS_Y - 0.32, names="zero", color=MUTED, size=11, ha="center"),
+        _dot("row-0", start, ROWS_Y[0], color=_ink(top_value)),
+        Label(top_label, 0.3, ROWS_Y[0], names="row-0", size=11),
+        Label(
+            signed(top_value),
+            FIGURE_X,
+            ROWS_Y[0],
+            names="row-0",
+            color=_ink(top_value),
+            size=11,
+            ha="right",
+        ),
+    ]
+    for row, ((label, value), y) in enumerate(zip(rest, ROWS_Y[1:], strict=True), start=1):
+        end = float(drop_x(value))
+        tip = end - TIP_GAP if end > start else end + TIP_GAP
+        steps += [
+            _stroke(f"arrow-{row}", _arrow(start, y, tip, y), color=INK, frames=5),
+            _dot(f"row-{row}", end, y, color=_ink(value)),
+            Label(label, 0.3, y, names=f"row-{row}", size=11),
+            Label(
+                signed(value),
+                FIGURE_X,
+                y,
+                names=f"row-{row}",
+                color=_ink(value),
+                size=11,
+                ha="right",
+            ),
+        ]
+    steps.append(
+        Label("dropping a month is not a test", 0.3, 0.38, names=f"row-{len(rest)}", size=11)
+    )
+    return Scene("Either of two months sets the sign", "dropped_months", tuple(steps))
+
+
 # --- Lesson 5: what the formation cannot know --------------------------------------
 
 #: Where the two dates sit across the board, and where the time axis runs.
@@ -389,12 +545,12 @@ def _look_ahead() -> Scene:
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
-PACED = ("bound_and_y", "look_ahead")
+PACED = ("bound_and_y", "dropped_months", "look_ahead")
 PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 #: The sketches whose figures come from the owner's archive, which a redraw
 #: without it leaves stale.
-ARCHIVE_SLUGS = ("bound_and_y",)
+ARCHIVE_SLUGS = ("bound_and_y", "dropped_months")
 
 #: The refusals a redraw can meet in reading the archive, the ones
 #: :func:`chan.low_beta_holdout.main` turns into one line.
@@ -427,9 +583,18 @@ def sketch_timeline(scene: Scene) -> list[Frame]:
     return paced
 
 
-def scenes(figures: BoundFigures) -> tuple[Scene, ...]:
-    """The two scenes in the order the post reads them."""
-    return (_bound_and_y(figures), _look_ahead())
+def read_figures() -> tuple[BoundFigures, DroppedFigures]:
+    """Read the owner's archive once through the run's own path, about a minute."""
+    holdout = low_beta_holdout.read_holdout()
+    return (
+        BoundFigures.from_verdict(holdout.verdict),
+        DroppedFigures.from_differences(differences(holdout.portfolios)),
+    )
+
+
+def scenes(figures: BoundFigures, dropped: DroppedFigures) -> tuple[Scene, ...]:
+    """The three scenes in the order the post reads them."""
+    return (_bound_and_y(figures), _dropped_months(dropped), _look_ahead())
 
 
 def _write(scene: Scene, folder: Path) -> Path:
@@ -448,29 +613,35 @@ def _write(scene: Scene, folder: Path) -> Path:
 
 
 def make_low_beta_holdout_whiteboards(
-    out_dir: Path | None = None, figures: BoundFigures | None = None
+    out_dir: Path | None = None,
+    figures: BoundFigures | None = None,
+    dropped: DroppedFigures | None = None,
 ) -> list[Path]:
     """Write one looping GIF for each scene and return their paths, in the post's order.
 
-    ``figures`` is read from the owner's archive when it is not handed in. The
-    schematic needs no archive and is written before that read, so a refused or
-    missing archive leaves it redrawn and raises from the read.
+    ``figures`` and ``dropped`` are read from the owner's archive, in one read,
+    when either is not handed in. The schematic needs no archive and is written
+    before that read, so a refused or missing archive leaves it redrawn and
+    raises from the read.
     """
     folder = out_dir if out_dir is not None else FIGURES_DIR
     look = _write(_look_ahead(), folder)
-    found = figures if figures is not None else BoundFigures.from_run()
-    return [_write(_bound_and_y(found), folder), look]
+    if figures is None or dropped is None:
+        bound, drops = read_figures()
+        figures = figures if figures is not None else bound
+        dropped = dropped if dropped is not None else drops
+    return [_write(_bound_and_y(figures), folder), _write(_dropped_months(dropped), folder), look]
 
 
 def main() -> None:
     try:
         paths = make_low_beta_holdout_whiteboards()
     except REFUSALS as refused:
-        # The schematic's GIF is already written. The one left stale is named,
+        # The schematic's GIF is already written. The ones left stale are named,
         # and the exit is non-zero, so a redraw on a machine without the
         # archive does not read as a full one.
         stale = ", ".join(f"{GIF_PREFIX}{slug}.gif" for slug in ARCHIVE_SLUGS)
-        raise SystemExit(f"{stale} was not redrawn: {refused}") from refused
+        raise SystemExit(f"{stale} were not redrawn: {refused}") from refused
     for path in paths:
         print(f"wrote {path}")
 

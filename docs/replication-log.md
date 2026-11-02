@@ -11725,8 +11725,9 @@ with it, since that post quotes most of these figures. So does its one
 figure, which `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_figures`
 redraws where the archive is.
 
-The post also carries two whiteboard sketches, added in the first round of its
-review before publishing.
+The post also carries three whiteboard sketches. The first and third were
+added in the first round of its review before publishing, and the second in
+the second round.
 
 1. **Y and the upper bound**, in Lesson 1. The yearly standard error is
    0.1185. Measured from the gap of −0.0590, 1.645 standard errors reach the
@@ -11734,15 +11735,21 @@ review before publishing.
    reach Y, 0.2948. The sketch draws both on one axis and prints no figure
    where the second bracket's first 1.645 standard errors end, since the post
    does not state it.
-2. **What the formation cannot know**, in Lesson 5, which is schematic. The
+2. **Either of two months sets the sign**, in Lesson 1. Twelve times the mean
+   of d is −0.0590 over all 208 months. Without December 2024 it is +0.0313,
+   without March 2026 +0.0079, without February 2025 −0.0947, and without
+   both December 2024 and February 2025 −0.0042. The sketch draws each as a
+   dot on one axis, with an arrow from the first, and closes on "dropping a
+   month is not a test", since the write-up measured these after the run.
+3. **What the formation cannot know**, in Lesson 5, which is schematic. The
    old rule drops a stock whose series stops between the formation and the
    next month-end, and it can do so only by reading that later date. The new
    rule holds the stock, earns its return to its last close and then holds
    cash.
 
-A change to the first sketch's figures moves it too, and
+A change to the first two sketches' figures moves them too, and
 `QT_ARCHIVE_DIR=/path/to/archive uv run python -m chan.low_beta_holdout_whiteboard`
-redraws both through the same `read_holdout`.
+redraws all three through one `read_holdout`.
 
 ## Entry 50: the Khandani-Lo reversal on the S&P 400, Chan's *Quantitative Trading*
 
