@@ -436,7 +436,7 @@ KNOWN_BREAKS = {"ko_chan.csv": ["1965-02-19", "1968-06-03"]}
 #: the same for ``chan.low_beta_holdout``, which runs that rule on the archive's
 #: S&P 500 panel, the ``sp500`` Alpha Vantage lines, rather than on Chan's file.
 #: Its registration counts and does not refuse, for issue 275's reason. On the
-#: closes the run reads, each series cut at its last row that traded, the guard
+#: closes the run reads, each series cut at its last row that traded and moved, the guard
 #: flags 820 closes in 98 stocks, and 34 of the low portfolio's and 321 of the
 #: high portfolio's stock-months carry a flagged day, against 19,377 each.
 #: ``TestTheScaleBreakDecision`` in ``tests/test_low_beta_holdout.py`` holds

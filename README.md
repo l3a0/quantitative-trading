@@ -9379,8 +9379,9 @@ first edition's release in November 2008. Its verdict is registered under two
 amendments and every other figure is exploratory. Every figure computed from
 the prices of IVV's members or from SPY's Alpha Vantage series reads the
 owner's archive, so a reader cannot rerun it, while every figure from Chan's
-file and every count in Lesson 4 but one, the 6,943 member-months the monthly
-rule leaves out on the series the run reads, come from committed files. The
+file and every count in Lesson 4 except the 6,943 member-months the monthly rule
+leaves out on the series the run reads, and the few that cutting each series at
+its last traded day leaves out or lets in, come from committed files. The
 post links the levered low-beta post for the rule, the beta match, the ruin
 line and June 2001 rather than repeating them, and draws five lessons from
 Entry 49 of the replication log.
@@ -9430,7 +9431,8 @@ Six groups of what it says are not pinned here.
    panel's failures lean toward companies that left or tickers that changed,
    that the Newey-West t, Y and the bound treat the average monthly gap as
    roughly normal, what the row check compares, who the monthly rule lets be
-   held, and that the cut at each series' last traded day looks ahead.
+   held, and that the cut at each series' last day that traded and moved the
+   price looks ahead.
 4. Figures the post states in words, such as a few hundredths a year. The
    chart's alt text reads its curves approximately, and it also quotes the
    chart's labels exactly, such as 69.0762, −0.8014 and 2024-12-31, along with
@@ -9513,6 +9515,12 @@ formations prints: 1.5738, 0.0818, 9.4342 and 3.4162.
     and −0.0042 without it and December 2024, and the three lowest and three
     highest d all inside the only stretch of holding months, October 2024 to
     April 2026, in which k exceeded 7.
+11. The counts behind "a few", "most" and "the rest" in the post's account of
+    the cut and the earlier test's rule, which the post states only in words.
+    Against the manifest's spans, the cut leaves out 20 more member-months
+    and lets in 4. At the 208 formations kept, that rule would drop 67 of the
+    82 covered members whose series stop inside the holding month, and hold
+    the other 15, each on one unchanged close.
 
 Its one figure is drawn by
 [src/chan/low_beta_holdout_figures.py](src/chan/low_beta_holdout_figures.py)
@@ -9734,7 +9742,7 @@ serial run, which is the faster choice for a few tests, because every worker
 starts whatever the selection. `--pdb` runs serially on its own.
 
 A Claude Code session here also runs the archive pins, the 17 of Example
-7.1, the 18 of the Example 7.2 rerun, the 35 of
+7.1, the 18 of the Example 7.2 rerun, the 46 of
 [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s
 holdout in `tests/test_low_beta_holdout.py`, the 7 of its figure in
 `tests/test_low_beta_holdout_figures.py`, the comparison of that figure with

@@ -11578,7 +11578,7 @@ the result, so they are stated here.
 
 **Every figure is about the members the monthly rule keeps.** The panel has
 a smaller survivor gap than Chan's file, not none. On the series the run
-reads, each cut at its last row that traded, the monthly rule leaves out
+reads, each cut at its last row that traded and moved, the monthly rule leaves out
 6,943 of the 107,115 member-months. 6,816 of those fail the row check
 against the filing, and 4,614 of the 6,816 carry a ticker absent from the
 2026-06-30 schedule. Of the 2,187 member rows that fail the row check, only

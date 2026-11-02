@@ -27,7 +27,7 @@ are stated once here and carried in every figure's failure message as
   issue 526 registered the same day before any beta, or any return of a
   portfolio sorted on beta, was computed on this panel: IVV's covered members
   at t without Example 7.7's ``rank`` reason, each series cut at its last row
-  that traded and earning its return to its last close, SPY from the archive
+  that traded and moved, and earning its return to its last close, SPY from the archive
   on the committed calendar, and formations from 2008-12-31 to 2026-07-31.
   Issue 526's second amendment of 2026-10-11 skips a formation whose low
   group's mean beta is zero or below.
@@ -64,9 +64,9 @@ import pandas as pd
 import pytest
 
 from chan import low_beta_holdout, sp500_panel
-from chan.archive import read_archive_manifest
+from chan.archive import read_archive_manifest, read_cross_section
 from chan.bill_rates import bill_vintage
-from chan.equity_seasonals import stopped_closes
+from chan.equity_seasonals import last_traded, stopped_closes
 from chan.low_beta_holdout import (
     HoldoutRefused,
     frame_days,
@@ -391,7 +391,7 @@ class TestTheCoverageWithoutRank:
     """Point 3 of the registration: Example 7.7's ``rank`` reason is left out.
 
     Read on the committed members file, holes file and the manifest's spans,
-    before each series is cut at its last row that traded, so these are the
+    before each series is cut at its last row that traded and moved, so these are the
     audit's counts rather than the run's.
     """
 
@@ -445,7 +445,7 @@ class TestTheExclusionsThatReadTPlus1:
     """Point 4 keeps two exclusions that read t + 1: a last row at t and a hole at t + 1.
 
     On the manifest's spans, before each series is cut at its last row that
-    traded, the rule's ``next`` reason leaves out 14 member-months at the 212
+    traded and moved, the rule's ``next`` reason leaves out 14 member-months at the 212
     formations, which is the count issue 526 cites from issue 336. They split
     5 and 9. The run's cut moves both, so its own split, held below the archive
     line, differs.
@@ -680,7 +680,7 @@ def chans_close_at_t_plus_1() -> tuple[dict[str, tuple[int, int]], dict[str, str
 SPEC = (
     "IVV's covered members 2008-12-31 to 2026-07-31 without the rank reason, sp500 Alpha "
     "Vantage adjusted dl 2026-10-05, SPY's sp500 line dl 2026-10-11, raw SPY calendar dl "
-    "2026-10-03, TB3MS dl 2026-09-30, series cut at their last traded row, 252-day "
+    "2026-10-03, TB3MS dl 2026-09-30, series cut at their last row that traded and moved, 252-day "
     "excess-return betas with an intercept and 200 finite, lowest and highest fifth ties by "
     "symbol, equal-weighted, low levered to the high fifth's mean beta at the bill, registered "
     "2026-10-11 with issue 275's ruin amendment and issue 526's skip amendment"
@@ -1077,6 +1077,56 @@ class TestWhatThePostMeasured:
         after(float(ruin_line(p.rf, p.leverage)[mar]), -0.29255005082766206, "-0.2926")
         after(float(p.levered[mar]), -0.42776296562855215, "-0.4278")
         after(float(ruinous_leverage(p.low, p.rf)[mar]), 7.983670912779481, "7.9837")
+
+    def test_what_the_cut_and_the_earlier_rule_do_to_series_that_stop(self, holdout) -> None:
+        """The counts behind the post's "a few", "most" and "the rest".
+
+        Against the manifest's spans, the cut at each series' last traded row
+        leaves out 20 more member-months and lets in 4, which net to 6,943 less
+        6,927. At the 208 formations kept, 82 covered members' series stop
+        inside the holding month. The earlier test's rule, a close at the next
+        month-end on the manifest's spans, would drop 67 of them and hold the
+        other 15, each on one unchanged close from its stop to that month-end.
+        """
+        rows = sp500_panel.load()
+        calendar = sp500_panel.calendar()
+        manifest = sp500_panel.spans()
+        holes = sp500_panel.read_holes()
+        uncut = sp500_panel.monthly_coverage(
+            rows, manifest, holes, calendar, previous={}, rank=False
+        )
+        cut = {(m.month, key) for m in holdout.coverage for key in m.missing}
+        before = {(m.month, key) for m in uncut for key in m.missing}
+        assert (len(cut - before), len(before - cut)) == (20, 4), f"{SPEC}; {AFTER_THE_RUN}"
+
+        symbols = sp500_panel.tickers(rows)
+        section = sp500_panel.CROSS_SECTION
+        _, adjusted = read_cross_section(section, column="adjusted_close", symbols=symbols)
+        _, volume = read_cross_section(section, column="volume", symbols=symbols)
+        stops = last_traded(adjusted, volume)
+        formed = set(pd.DatetimeIndex(holdout.portfolios.formed))
+        tails, dropped = [], 0
+        for m in holdout.coverage:
+            month = pd.Period(m.month, "M")
+            t = sp500_panel.month_end(calendar, month)
+            if t not in formed:
+                continue
+            t1 = sp500_panel.month_end(calendar, month + 1)
+            gone = set(m.missing)
+            for row in rows:
+                if row.report_date != m.schedule or row.key in gone:
+                    continue
+                stop = stops[row.ticker]
+                if not t < stop < t1:
+                    continue
+                first, last = (pd.Timestamp(day) for day in manifest[row.ticker])
+                if first <= t1 <= last and (row.ticker, str(month + 1)) not in holes:
+                    tails.append(adjusted[row.ticker].loc[stop:t1].dropna())
+                else:
+                    dropped += 1
+        counts = (len(tails) + dropped, dropped, len(tails))
+        assert counts == (82, 67, 15), f"{SPEC}; {AFTER_THE_RUN}"
+        assert all(tail.nunique() == 1 for tail in tails), f"{SPEC}; {AFTER_THE_RUN}"
 
 
 class TestTheScaleBreakDecision:
