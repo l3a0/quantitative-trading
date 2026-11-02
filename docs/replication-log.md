@@ -11025,7 +11025,26 @@ change to any assertion named above moves this entry in the same commit, and
 [blog/pead-edgar-rerun-lessons.md](../blog/pead-edgar-rerun-lessons.md) moves
 with it, since that post quotes most of these figures. So does its one
 figure, drawn from committed files only, which
-`uv run python -m chan.pead_rerun_figures` redraws.
+`uv run python -m chan.pead_rerun_figures` redraws. Its two whiteboard
+sketches move too, and `uv run python -m chan.pead_rerun_whiteboard` redraws
+them.
+
+The post also carries two whiteboard sketches, added in the first round of its
+review before publishing. Both read only committed files, and the second also
+draws two constants from the uncommitted sample of 248 filings.
+
+1. **Where the 56 go**, in Lesson 1. It draws ALL's 497 stocks as a box
+   holding CAL's 488 and PX's 446 as two overlapping circles, with U's 441 in
+   the overlap. The 47 in CAL alone split into 4 reused tickers and 43
+   without prices for the whole window, and the 5 in PX alone and the 4
+   outside both are the 9 that fail the filer check. It is not drawn to
+   scale.
+2. **Four hours late**, in Lesson 2. On one clock from 6 a.m. to 10 p.m. it
+   moves three spans 4 hours later: the 1,460 filings accepted before the
+   open, from 06:00:43, into the session, Apple's releases at about 4:30 p.m.
+   to about 8:30 p.m., and noon to the close past the close. The 4 hours and
+   the 5 a winter time takes are the unpinned sample's, so they are constants
+   in the module rather than figures read from a file.
 
 ## Entry 47: the VIX filter on buy on gap and the STOXX Europe 50 gap rule, Chan's *Algorithmic Trading*
 

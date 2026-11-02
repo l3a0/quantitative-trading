@@ -35,7 +35,8 @@ Example 7.1. Every other pin reads committed files and runs everywhere.
 to any of them moves that post too. ``TestWhatThePostMeasured`` holds the
 numbers the post added, all measured after the runs, and
 ``TestTheTradeReturns`` holds the one helper they come through, on toy prices.
-``tests/test_pead_rerun_figures.py`` holds what the post's figure draws.
+``tests/test_pead_rerun_figures.py`` holds what the post's figure draws, and
+``tests/test_pead_rerun_whiteboard.py`` what its two sketches draw.
 
 Exploratory, all of it. The audit on issue 251 spent part of the sample
 before the registration, and it first ran here on 2026-10-10.
