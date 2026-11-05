@@ -67,6 +67,10 @@ CLOSE_CAPABLE_TILDE = re.compile(r"(?<![\s~\\<])~")
 # A delimiter row whose dashes touch the pipes on both sides.
 TIGHT_DELIMITER_ROW = re.compile(r"\|-{1,}\|")
 
+# A table's delimiter row, in any padding, and the title line that names a table.
+DELIMITER_ROW = re.compile(r"^\s*\|(\s*:?-+:?\s*\|)+\s*$")
+TABLE_TITLE = re.compile(r"^\s*\*\*Table:\*\* \S")
+
 # An opening or closing fence: up to three spaces of indent, then a run of at
 # least three backticks or tildes, then an optional info string.
 _FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
@@ -1020,3 +1024,27 @@ def _last_attribution(before: str, document: Path, root: Path) -> tuple[str, Pat
         return None
     _, written, target = max(found)
     return written, target
+
+
+def untitled_tables(text: str, path: Path) -> list[Finding]:
+    """Flag every table whose nearest line above is not a title.
+
+    A rendered table with no title leaves a reader to work out what it holds
+    from its column heads. Markdown has no caption, so the title is a line of
+    its own above the table, starting with a bold `Table:`.
+    """
+    findings: list[Finding] = []
+    prose = blank_code(text).split("\n")
+    source = text.split("\n")
+    for index, line in enumerate(prose):
+        if index == 0 or not DELIMITER_ROW.match(line):
+            continue
+        above = index - 2
+        while above >= 0 and not source[above].strip():
+            above -= 1
+        if above < 0 or not TABLE_TITLE.match(source[above]):
+            header = source[index - 1]
+            findings.append(
+                Finding(path, index, header, "table with no title, add **Table:** above it")
+            )
+    return findings

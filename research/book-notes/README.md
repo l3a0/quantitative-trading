@@ -3,6 +3,8 @@
 Kindle highlights from the books this repo replicates, quoted verbatim and
 cited by Kindle location.
 
+**Table:** The book notes and their editions
+
 | Note | Book | Edition | Highlights |
 | --- | --- | --- | --- |
 | [algorithmic-trading.md](algorithmic-trading.md) | *Algorithmic Trading: Winning Strategies and Their Rationale* | 1st, Wiley, 2013 | 301 |
@@ -404,6 +406,8 @@ index. Three sources, all read on 2026-10-28, carry the comparison.
 
 Each row sets a highlight's Kindle page beside the print pages a source allows
 for the same passage.
+
+**Table:** One passage's Kindle and print pages, by location
 
 | Location | The passage | Kindle page | Print pages | Print source |
 | --- | --- | --- | --- | --- |

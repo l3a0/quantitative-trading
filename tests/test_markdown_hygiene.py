@@ -56,6 +56,7 @@ from tests.support.markdown_sweep import (
     sweep_heading_references,
     sweep_text,
     units,
+    untitled_tables,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -2099,3 +2100,37 @@ class TestRowSplitsAddUpToTheRowCount:
     def test_every_row_split_in_the_replication_log_adds_up(self) -> None:
         document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
         assert _row_split_disagreements(document) == []
+
+
+def test_a_table_with_no_title_is_flagged() -> None:
+    text = "Some prose.\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n"
+    findings = untitled_tables(text, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [3]
+
+
+def test_a_table_under_a_title_is_left_alone() -> None:
+    text = "**Table:** What A holds\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n"
+    assert untitled_tables(text, Path("x.md")) == []
+
+
+def test_a_table_inside_a_fence_is_left_alone() -> None:
+    text = "```text\n| A | B |\n| --- | --- |\n```\n"
+    assert untitled_tables(text, Path("x.md")) == []
+
+
+# The log's older tables sit under an entry heading that names them. This count
+# may only fall, so a new entry's table needs a title.
+UNTITLED_LOG_TABLES = 168
+
+
+def test_every_table_in_the_repo_has_a_title() -> None:
+    findings = [
+        finding
+        for path in markdown_files(REPO_ROOT)
+        if "fixtures" not in path.parts
+        for finding in untitled_tables(path.read_text(encoding="utf-8"), path)
+    ]
+    log = [finding for finding in findings if finding.path.name == "replication-log.md"]
+    rest = [finding for finding in findings if finding not in log]
+    assert rest == [], "\n".join(str(finding) for finding in rest)
+    assert len(log) <= UNTITLED_LOG_TABLES

@@ -15,6 +15,8 @@ Using Python and the latest data reproduced the test statistic, but not the hedg
 
 Here is the ledger of what reproduced and what didn't, then the six detours that explain why.
 
+**Table:** What reproduced, quantity by quantity
+
 | Quantity | Book → reproduced | Status |
 | --- | --- | --- |
 | Hedge ratio (through-origin) | 1.6766 → 1.6379 | vintage drift |
@@ -50,6 +52,8 @@ GDX has paid dividends for nineteen years since 2007. So today's adjusted 2006 p
 
 Anchoring the series at a fixed start, instead of today, sidesteps the drift. That gives a total-return index that never rewrites its past. Simpler still, a raw as-traded price is already fixed. A given day's close is a historical fact, whatever dividends come later. That is the series this reproduction uses.
 
+**Table:** The hedge ratio by reproduction
+
 | Reproduction | Hedge ratio | Note |
 | --- | --- | --- |
 | Book, 2007 vintage | 1.6766 | not reproducible from any modern download |
@@ -66,6 +70,8 @@ The hedge ratio slipped about two percent, from 1.6766 to 1.6379. The half-life 
 The test ran twice. Once by hand, in fifteen lines of numpy. Once through a standard statistics library. The two agreed to four decimal places. That agreement was the proof that the remaining gap was data, not a bug in the arithmetic.
 
 Chan hit the same fork and drew the opposite lesson. His Python test disagreed with his MATLAB and R tests on this pair, and he concluded that Python's statistics packages could not be trusted. They were fine. Python and MATLAB ran the same test with different lag settings, and R ran a different test.
+
+**Table:** The CADF t by lag setting
 
 | Setting | Lags | CADF t |
 | --- | --- | --- |
@@ -90,6 +96,8 @@ The last detour outlives the reproduction. Over Chan's own windows, which end by
 
 The statistic drops to −1.45, well short of significance. The spread's half-life balloons from 10 days to over 800. The miners detached from gold somewhere in the 2010s and never fully came back.
 
+**Table:** The verdict in each window
+
 | Window | t-statistic | Verdict |
 | --- | --- | --- |
 | 2006–2008 | −3.18 | cointegrated at one lag |
@@ -106,6 +114,8 @@ The two-window table is the compressed version. The full picture is a rolling te
 Cointegration flickers on and off, and just 31 of the 231 windows clear even the 10% bar. They cluster in the early years, around Chan's own window. In the decade from 2015, only 10 of 139 windows reject. The lower panel shows why the fixed trade was doomed regardless. The hedge that balances the spread climbs from Chan's \~1.64 to above 4, and briefly past 6. There was never one ratio to hold.
 
 ## The two runs, reproduced
+
+**Table:** Each run's window, hedge and verdict
 
 | Run | Window | Hedge (origin) | CADF t | Verdict | Residuals clean |
 | --- | --- | --- | --- | --- | --- |

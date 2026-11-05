@@ -151,6 +151,8 @@ member that the 2008 filing links to, since that member's 2007 close is what
 ranks it at the 2008 year-end. The index does not name it, because it is not a
 filing.
 
+**Table:** The columns of the members file
+
 | Column | What it holds |
 | --- | --- |
 | `report_date` | the filing's report date |
@@ -269,6 +271,8 @@ writes them. They sit in their own directory with their own index, because
    filing date, the Eastern acceptance time read from the filing's
    `.hdr.sgml`, and the sha256 of that header file. The headers are not
    committed.
+
+**Table:** The columns of `tickers.csv`
 
 | Column of `tickers.csv` | What it holds |
 | --- | --- |

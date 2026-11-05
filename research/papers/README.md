@@ -6,6 +6,8 @@ by Kindle location. This directory holds whole documents, because the figures
 they carry are not quotable in a highlight and because a citation is only as
 durable as whoever is hosting it.
 
+**Table:** The papers held, and who read each
+
 | File | Paper | Author | Date | Read by |
 | --- | --- | --- | --- | --- |
 | [qian-2005-risk-parity-portfolios.pdf](qian-2005-risk-parity-portfolios.pdf) | *Risk Parity Portfolios: Efficient Portfolios Through True Diversification* | Edward Qian | September 2005 | [docs/replication-log.md](../../docs/replication-log.md) Entry 4 and [blog/risk-parity-against-60-40.md](../../blog/risk-parity-against-60-40.md) |
@@ -56,6 +58,8 @@ alone. Each is stated by the paper rather than computed here. The
 one derived number in this file is the volatility ratio two sections down,
 which is a quotient of the two volatilities in this table and is labelled as
 derived where it appears.
+
+**Table:** This paper's figures, and where each sits
 
 | Figure | Value | Where |
 | --- | --- | --- |
@@ -113,6 +117,8 @@ second has an open card that is the authority for what it is.
    [Issue 161](https://github.com/l3a0/quantitative-trading/issues/161).
 
 ## Provenance
+
+**Table:** Where this copy came from
 
 | Field | Value |
 | --- | --- |

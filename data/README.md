@@ -79,6 +79,8 @@ carries.
 The date is a download date for a series a vendor returned, and a saved date
 for a series lifted from one of Chan's own files.
 
+**Table:** What each committed file is, with its vendor, span and download date
+
 | File | Vendor | Symbol | Price | Span | Downloaded |
 | --- | --- | --- | --- | --- | --- |
 | `gld_20yr_prices.csv` | yfinance | GLD | adjusted | 2006-06-19 .. 2026-06-16 | 2026-06-16 |
@@ -1575,6 +1577,8 @@ committed files above has their row. The ruling did not address the vendor's
 terms and reaches no other series, so every other Alpha Vantage series stays in
 the archive.
 
+**Table:** Single-series vintages kept in the owner's archive
+
 | File | Vendor | Symbol | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `gld_intraday_1min.csv.gz` | Alpha Vantage, `TIME_SERIES_INTRADAY` | GLD | 2004-11-18 to 2026-07-16 | 2026-07-17 | raw, as `adjusted=false` returns it, extended hours included | 2,984,037 |
@@ -1623,6 +1627,8 @@ the first 603 lines on 2026-10-05, one for each company IJR held at
 it to. The table above stays the two minute-bar files, because a table with a
 row per stock would be 603 rows long.
 
+**Table:** The `sp600` cross-section kept in the archive
+
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `sp600` | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 603 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 2,993,012 |
@@ -1657,6 +1663,8 @@ for the 2025-12-31 members. 884 are under a ticker
 `research/filings/ijr/members.csv` maps a company to, and 12 hold a ticker
 that was tried and then replaced, which no member reads.
 
+**Table:** The `sp600` cross-section's lines from [issue 332](https://github.com/l3a0/quantitative-trading/issues/332)
+
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `sp600`, [issue 332](https://github.com/l3a0/quantitative-trading/issues/332)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 896 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 3,653,318 |
@@ -1683,6 +1691,8 @@ takes, 817 for the tickers `research/filings/ivv/members.csv` maps a
 company to that Alpha Vantage holds a series for, and four for tickers tried
 and then replaced.
 
+**Table:** The `sp500` cross-section's lines from [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)
+
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `sp500`, [issue 373](https://github.com/l3a0/quantitative-trading/issues/373)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 822 | 1999-11-01 to 2026-10-02, each symbol from its first row to its last | 2026-10-05 | adjusted, with the raw close beside it | 4,305,502 |
@@ -1706,6 +1716,8 @@ like the members', and only its manifest line is committed. Each member's
 line still carries the 2026-10-05 download date, so a figure from that run
 names both dates.
 
+**Table:** The `sp500` cross-section's line from [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)
+
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `sp500`, [issue 526](https://github.com/l3a0/quantitative-trading/issues/526)'s line | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | SPY | 1999-11-01 to 2026-10-09 | 2026-10-11 | adjusted, with the raw close beside it | 6,776 |
@@ -1726,6 +1738,8 @@ recorded 367 lines that day, one for each ticker
 a series for. The other 34 mapped tickers have no line, because Alpha Vantage
 answered that it holds no series for them.
 
+**Table:** The `sp400` cross-section's lines from [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
+
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
 | `sp400`, [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)'s lines | Alpha Vantage, `TIME_SERIES_DAILY_ADJUSTED`, `outputsize=full` | 367 | 1999-11-01 to 2026-10-09, each symbol from its first row to its last | 2026-10-11 | adjusted, with the raw close beside it | 1,865,549 |
@@ -1735,6 +1749,8 @@ S&P 600 built from every holding of IJR's 2007-12-31 schedule, where
 `research/filings/ijr/members.csv` holds only the 509 that link into 2008. The
 44 are the tickers the other 93 holdings map to that the cross-section did not
 already hold and Alpha Vantage serves.
+
+**Table:** The `sp600` cross-section's lines from [issue 303](https://github.com/l3a0/quantitative-trading/issues/303)
 
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
