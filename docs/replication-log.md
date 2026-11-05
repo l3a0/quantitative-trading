@@ -9375,7 +9375,7 @@ the committed file's, as [data/README.md](../data/README.md) records. The zip
 is not committed, and `chan.opening_gap.python_port` carries the port's
 arithmetic. Against the script, line by line:
 
-**Table:** Entry 40, `gapFutures_FSTX.m`
+**Table:** Entry 40, `gapFutures_FSTX.m` against `gapFutures_FSTX.py`
 
 | Script line | `gapFutures_FSTX.m` | `gapFutures_FSTX.py` | What differs |
 | --- | --- | --- | --- |
@@ -12306,7 +12306,7 @@ step rises as capitalisation falls.
 The control is read with its three exclusions, which is primary, and
 without them. Its gap is its figure less Chan's S&P 600 file's, before costs.
 
-**Table:** Entry 50, what this repo computed: specification
+**Table:** Entry 50, what this repo computed: the control
 
 | # | Specification | With the exclusions | Without them | Assertion |
 | --- | --- | --- | --- | --- |
@@ -12316,7 +12316,7 @@ without them. Its gap is its figure less Chan's S&P 600 file's, before costs.
 | 14 | opens, the same | −0.7244, 0.5768, 0.8484, −1.2559, within | −2.7050, 1.2882, 0.2070, −2.0998, beyond | the same |
 | 15 | each gap against the S&P 400's distance to its nearer neighbour, 1.3748 on the closes and 0.9669 on the opens | inside at both prices, so separable | outside at both | `TestTheControl::test_the_ordering_is_separable_with_the_exclusions_and_not_without` |
 
-**Table:** Entry 50, what this repo computed: specification
+**Table:** Entry 50, what this repo computed: the reading against the declaration
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
