@@ -2118,19 +2118,28 @@ def test_a_table_inside_a_fence_is_left_alone() -> None:
     assert untitled_tables(text, Path("x.md")) == []
 
 
-# The log's older tables sit under an entry heading that names them. This count
-# may only fall, so a new entry's table needs a title.
-UNTITLED_LOG_TABLES = 168
-
-
 def test_every_table_in_the_repo_has_a_title() -> None:
+    fixtures = ("tests", "fixtures", "substack")
     findings = [
         finding
         for path in markdown_files(REPO_ROOT)
-        if "fixtures" not in path.parts
+        if path.relative_to(REPO_ROOT).parts[:3] != fixtures
         for finding in untitled_tables(path.read_text(encoding="utf-8"), path)
     ]
-    log = [finding for finding in findings if finding.path.name == "replication-log.md"]
-    rest = [finding for finding in findings if finding not in log]
-    assert rest == [], "\n".join(str(finding) for finding in rest)
-    assert len(log) <= UNTITLED_LOG_TABLES
+    assert findings == [], "\n".join(str(finding) for finding in findings)
+
+
+@pytest.mark.parametrize(
+    ("text", "lines"),
+    [
+        ("**Table:** One\n\n| A |\n| --- |\n\n| B |\n| --- |\n", [6]),
+        ("**Table:** One\n\nProse.\n\n| A |\n| --- |\n", [5]),
+        ("**Table:** One\n| A |\n| --- |\n", []),
+        ("**Table:**\n\n| A |\n| --- |\n", [3]),
+        ("See **Table:** One\n\n| A |\n| --- |\n", [3]),
+        ("Prose.\n\n| A | B |\n| :--- | ---: |\n", [3]),
+    ],
+    ids=["two-under-one", "prose-between", "touching", "empty", "prefixed", "aligned"],
+)
+def test_a_title_covers_only_the_table_right_below_it(text: str, lines: list[int]) -> None:
+    assert [f.line_number for f in untitled_tables(text, Path("x.md"))] == lines

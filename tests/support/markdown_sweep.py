@@ -1031,7 +1031,9 @@ def untitled_tables(text: str, path: Path) -> list[Finding]:
 
     A rendered table with no title leaves a reader to work out what it holds
     from its column heads. Markdown has no caption, so the title is a line of
-    its own above the table, starting with a bold `Table:`.
+    its own above the table, starting with a bold `Table:`. The check reads
+    pipe tables with outer pipes, the only form these documents use. A table
+    with no outer pipes, or one in a blockquote, goes unread.
     """
     findings: list[Finding] = []
     prose = blank_code(text).split("\n")

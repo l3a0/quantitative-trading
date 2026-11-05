@@ -407,7 +407,7 @@ index. Three sources, all read on 2026-10-28, carry the comparison.
 Each row sets a highlight's Kindle page beside the print pages a source allows
 for the same passage.
 
-**Table:** One passage's Kindle and print pages, by location
+**Table:** Each passage's Kindle and print pages, by location
 
 | Location | The passage | Kindle page | Print pages | Print source |
 | --- | --- | --- | --- | --- |

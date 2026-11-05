@@ -15,7 +15,7 @@ Using Python and the latest data reproduced the test statistic, but not the hedg
 
 Here is the ledger of what reproduced and what didn't, then the six detours that explain why.
 
-**Table:** What reproduced, quantity by quantity
+**Table:** Chan's numbers vs. reproduced, raw close
 
 | Quantity | Book → reproduced | Status |
 | --- | --- | --- |

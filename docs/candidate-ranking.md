@@ -239,7 +239,7 @@ costs. A row whose history is long enough goes to
 [issue 777](https://github.com/l3a0/quantitative-trading/issues/777) for an
 after-cost figure.
 
-**Table:** Rows with no after-cost figure
+**Table:** Rows with no after-cost Sharpe ratio
 
 | Row | 1. Sharpe before costs | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |

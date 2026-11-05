@@ -1023,6 +1023,8 @@ Twelve rows, and all of them are derivable from
 
 ### What the book printed
 
+**Table:** Entry 1, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | GLD/GDX hedge, Chapter 7 window, through the origin | 1.6766 | Kindle location 3727 |
@@ -1040,6 +1042,8 @@ Twelve rows, and all of them are derivable from
 
 ### What this repo computed
 
+**Table:** Entry 1, what this repo computed
+
 | # | Window | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 2006-05-23 to 2007-11-30 | OLS through the origin, no intercept, Chan's `ols(GLD, GDX)` | `gld_20yr_prices_unadjusted.csv` and `gdx_20yr_prices_unadjusted.csv`, yfinance raw closes, both downloaded 2026-08-27 | 1.6379 | `TestGldGdxReproduction::test_ch7_hedge_and_stat` |
@@ -1056,6 +1060,8 @@ Twelve rows, and all of them are derivable from
 | 12 | 2006-05-23 to 2007-05-23 | LeSage's `cadf(GLD, GDX, 0, 1)` as `example3_6_1.m` calls it, reconstructed as `lesage_cadf`: ADF at a fixed lag of 1 on the with-intercept residual spread, with the regression demeaned and its standard error formed as `cadf` forms it | `gld_chan.csv` and `gdx_chan.csv`, the adjusted-close columns of Chan's own `GLD.xls` and `GDX.xls`, saved 2007-12-02 | −3.18156477, with an AR(1) estimate of −0.070038. Row 4's specification gives −3.1780 on the same files | `TestChansPythonRun::test_cadfs_own_regression_lands_matlabs_printout`, `::test_the_port_misses_cadf_by_one_detail_of_its_regression` for −3.1780, and `TestResidualCheckOnChansFiles::test_the_fit_and_its_residuals` for the residual check the reason column quotes |
 
 ### The verdicts
+
+**Table:** Entry 1, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -1396,6 +1402,8 @@ has nothing to hold. Leaving it blank would read as an omission.
 
 ### What the book printed
 
+**Table:** Entry 2, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | Expected gain per round, with infinite capital | \$5 | Kindle locations 3176 and 3186, which print it twice |
@@ -1409,6 +1417,8 @@ has nothing to hold. Leaving it blank would read as an omission.
 
 ### What this repo computed
 
+**Table:** Entry 2, what this repo computed
+
 | # | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | Half the win less half the loss, at the starting capital | none, synthetic | \$5.00 | `TestBookFigures::test_expected_gain_is_five_dollars` |
@@ -1421,6 +1431,8 @@ has nothing to hold. Leaving it blank would read as an omission.
 | 8 | `ensemble_log_growth` and `growth_exact` each compounded from \$1,000 over 1,000 rounds | none, synthetic | \$146,576 against \$606, a ratio of 241.72 | `TestTheCapitalDiverges::test_the_capital_a_reader_sees_at_a_thousand_rounds`, `::test_the_gap_widens_with_every_round` and `::test_the_time_average_path_is_the_median_path` |
 
 ### The verdicts
+
+**Table:** Entry 2, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -1590,6 +1602,8 @@ lines.
 
 ### What the book printed
 
+**Table:** Entry 3, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | SPY mean annual return | 11.23 percent | Kindle location 2858 |
@@ -1629,6 +1643,8 @@ lines.
 
 ### What this repo computed
 
+**Table:** Entry 3, what this repo computed
+
 | # | Window | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 1993-01-29 to 2007-12-28 | simple daily returns on the adjusted close, mean times 252 | `yfinance_spy_adjusted_1993-01-29_2026-09-18_dl2026-09-18.csv`, yfinance's both-adjustments close, downloaded 2026-09-18 | 11.2948 percent | `TestChansWindowOnAModernDownload::test_the_moments` |
@@ -1667,6 +1683,8 @@ lines.
 | 34 | 1993-01-29 to 2007-12-28 | row 31 halved against row 11, which holds exactly while row 31 is above 1.954079 | row 31's file, with row 18's beside it for the adjusted verdict | the claim fails, 0.0200 short of the threshold on the leverage, with half-Kelly at 0.9670 | `TestThePriceBasisOnHisOwnWorkbook::test_the_black_monday_conclusion_reverses_on_the_as_traded_close` |
 
 ### The verdicts
+
+**Table:** Entry 3, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -1857,6 +1875,8 @@ should hold.
 
 ### What the book printed
 
+**Table:** Entry 4, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | Qian's allocation between stocks and bonds | 23-77 | Kindle location 4684 |
@@ -1898,6 +1918,8 @@ every trading day. The moments are simple daily returns, the mean scaled by
 252 and the sample standard deviation, dividing by n−1, by the square root of
 252, with a 4 percent annual risk-free rate subtracted as 0.04/252 a day.
 
+**Table:** Entry 4, what this repo computed
+
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | 2003-09-30 to 2026-09-17 | inverse-volatility weights, which equalise the risk contributions on two legs | 21.78 to 78.22 | `TestTheFullSpan::test_the_risk_parity_weights_land_about_a_point_off_qians` |
@@ -1936,6 +1958,8 @@ the same return.
 holds that day's two returns, so the arithmetic above stays checkable.
 
 ### The verdicts
+
+**Table:** Entry 4, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -2179,6 +2203,8 @@ these two funds cointegrate over this span and nothing about bonds in general.
 
 ### What the book stated
 
+**Table:** Entry 5, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | The claim | fixed-income instruments can be found to be cointegrating, long and short bonds by the same issuer at different maturities | Kindle location 3951 |
@@ -2190,6 +2216,8 @@ these two funds cointegrate over this span and nothing about bonds in general.
 
 ### What this repo computed
 
+**Table:** Entry 5, what this repo computed
+
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | 2002-07-30 to 2026-10-01 | rows 2 and 3 read together | neither orientation rejects at 10% | `TestBothOrientations::test_neither_orientation_rejects_even_at_ten_percent` |
@@ -2200,6 +2228,8 @@ these two funds cointegrate over this span and nothing about bonds in general.
 | 6 | 278 windows ending 2003-07-29 to 2026-09-11 | 252-day windows stepped by 21, one ADF lag | 56 and 51 clear 10%, 33 and 29 clear 5%, 30 and 29 of the 10% windows end in 2003-04 or 2020-21 | `TestTheRollingScan::test_the_counts` and `::test_rejections_cluster_in_two_stretches` |
 
 ### What each row says
+
+**Table:** Entry 5, what each row says
 
 | # | Why it is here |
 | --- | --- |
@@ -2328,6 +2358,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 6, what the book printed
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | The CAD/AUD cross rate is quite stationary | the claim, with no figure | Kindle location 3951 |
@@ -2342,6 +2374,8 @@ columns have nothing to hold in any row and are dropped, under
 
 ### What this repo computed
 
+**Table:** Entry 6, what this repo computed
+
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | 2007-08-06 to 2026-09-30 | rows 2 and 3 read against the declared criterion, both below the 5% bar of −2.86 | both clear it | `TestTheCrossRateVerdict::test_it_is_reproduced` |
@@ -2355,6 +2389,8 @@ columns have nothing to hold in any row and are dropped, under
 | 9 | 2007-08-06 to 2026-09-30, and 400 simulated paths of 4,984 days | a Gaussian AR(1) at row 4's half-life traded at minus its distance from a known mean, no costs. The Sharpe ratio is daily, scaled by √252. Seed 20261005. Added after the verdict, not declared | 0.7845, against 1.5501 at 36 days. On whole years 1.236 against 4.291. The rate sits 10.12 times a day's noise from its mean against 5.12. The test window holds 35.2 half-lives, and one OLS standard error on the slope spans half-lives of 110.1 to 198.2 days. The Kelly leverage at 36 days is 3.88 times the rate's | `TestTheKnownMeanRule` |
 
 ### The verdicts
+
+**Table:** Entry 6, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -2603,6 +2639,8 @@ rule for it before the run.
 
 ### What the book printed
 
+**Table:** Entry 7, what the book printed
+
 | # | Row | Published | Where |
 | --- | --- | --- | --- |
 | 1 | 7.6, entered 2005-12-30, MATLAB in both editions | −0.0244 | `example7_6.m` at `1a71950`, printed in its closing comment. The revised edition prints the same figure, which the owner read on 2026-10-02 |
@@ -2649,6 +2687,8 @@ code behind rows 9, 10, 13 and 14 traces to
 [the comment on issue 226](https://github.com/l3a0/quantitative-trading/issues/226#issuecomment-5973504942).
 
 ### What this repo computed
+
+**Table:** Entry 7, what this repo computed
 
 | # | Printout's rules | Computed | Gap, computed minus published | Assertion |
 | --- | --- | --- | --- | --- |
@@ -2710,6 +2750,8 @@ asserted the same way, at the precision their printout's rules print, and have
 no published figure to take a gap from.
 
 ### The verdicts
+
+**Table:** Entry 7, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -2956,6 +2998,8 @@ numbers reproduce on his file and nothing about whether the rule pays today.
 
 ### What the book printed
 
+**Table:** Entry 8, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | Sharpe ratio on the S&P 500 in 2006, before costs | 0.25 | Kindle location 2137, and again at 2233 |
@@ -2965,6 +3009,8 @@ numbers reproduce on his file and nothing about whether the rule pays today.
 | 5 | Chan's explanation of the drop | that most of their returns came from small and microcap stocks, a claim rather than a figure | location 2137 |
 
 ### What this repo computed
+
+**Table:** Entry 8, what this repo computed
 
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
@@ -2976,6 +3022,8 @@ numbers reproduce on his file and nothing about whether the rule pays today.
 holds the −3.1822 a pandas port gives, and that it misses −3.19.
 
 ### The verdicts
+
+**Table:** Entry 8, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3093,6 +3141,8 @@ Reproducing the arithmetic on a printed table spends no sample.
 
 ### What the book printed
 
+**Table:** Entry 9, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | Survivorship-free portfolio, equal capital | −42 percent, the return Chan says a trader would actually have had | Kindle location 1471 |
@@ -3103,6 +3153,8 @@ Reproducing the arithmetic on a printed table spends no sample.
 
 ### What this repo computed
 
+**Table:** Entry 9, what this repo computed
+
 | # | Window | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | 1/2/2001 to 1/2/2002 | mean of the ten per-stock returns, end over start less one, each delisted stock at its terminal price | none, the book's printed tables | −41.72 percent | `TestBookFigures::test_the_survivorship_free_portfolio_loses_42_percent` |
@@ -3112,6 +3164,8 @@ Reproducing the arithmetic on a printed table spends no sample.
 | 5 | 1/2/2001 to 1/2/2002 | row 2's mean with NEOF's start price multiplied by 10, the ratio of its 2001 reverse split | none, the book's printed tables | 100.91 percent. As printed, NEOF carries 308.86 of row 2's 387.88 points | `TestTheReverseSplit::test_on_one_share_basis_the_survivor_portfolio_still_gains` and `::test_neof_carries_most_of_the_survivor_only_return` |
 
 ### The verdicts
+
+**Table:** Entry 9, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3255,6 +3309,8 @@ at the open pays today.
 
 ### What the book printed
 
+**Table:** Entry 10, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Both Sharpe ratios, before and after costs, at the open | "both very positive", a claim rather than a figure | p. 78. Not among the committed highlights, as [research/book-notes/README.md](../research/book-notes/README.md) records |
@@ -3265,6 +3321,8 @@ at the open pays today.
 | 6 to 13 | rule B's figures, what the open recovered, rule A without its fill or without WYN, and the one-year bar | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 10, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -3283,6 +3341,8 @@ at the open pays today.
 | 13 | rows 2, 3, 6 and 7 against 1 × √(681/251), Chan's minimum-backtest estimate at p. 61 scaled to the window | the bar is 1.6472, and only the two before-cost figures clear it | `TestTheVerdicts::test_which_figures_clear_the_one_year_bar` and `::test_the_bar_is_chans_estimate_scaled_to_the_window` |
 
 ### The verdicts
+
+**Table:** Entry 10, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3407,6 +3467,8 @@ either trade pays today.
 
 ### What the book printed
 
+**Table:** Entry 11, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Gasoline, profitable years in 1995 to 2015 | 19 of 21 | location 4529 |
@@ -3418,6 +3480,8 @@ either trade pays today.
 | 7 to 10 | the runs counted from 1994, 2006 on the older gasoline contract, the expiry-day file, and both trades after the book | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 11, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -3433,6 +3497,8 @@ either trade pays today.
 | 10 | both trades, 2016 to 2023 | gasoline 3 of 8, natural gas 4 of 8 | `TestTheVerdicts::test_both_trades_after_the_book` |
 
 ### The verdicts
+
+**Table:** Entry 11, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3642,6 +3708,8 @@ reproduce on his files and nothing about whether the drift pays today.
 `pead.m` prints its figures in the comment lines that close it, and the book
 quotes two of them rounded.
 
+**Table:** Entry 12, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Arithmetic annual return, 252 times the mean daily return | 0.0667 | `pead.m` |
@@ -3656,6 +3724,8 @@ quotes two of them rounded.
 | 10 and 11 | the positions taken in all, and row 1 under the first edition's `smartstd` | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 12, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -3672,6 +3742,8 @@ quotes two of them rounded.
 | 11 | row 1 with the first edition's `smartstd` in the moving deviation and the Sharpe ratio | 0.066833, and 1,071 positions | `TestTheHelperMovesADigit::test_the_first_editions_helper_misses_chans_printed_digit`, `::test_the_other_printed_figures_survive_the_swap` and `::test_the_one_position_that_moves_is_pnws_long_on_2012_02_24` |
 
 ### The verdicts
+
+**Table:** Entry 12, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3805,6 +3877,8 @@ text is among the committed highlights. The code-printed figures are not, and
 [research/book-notes/README.md](../research/book-notes/README.md) records that
 absence.
 
+**Table:** Entry 13, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | First-edition MATLAB, `smartmean(ret)*252`, a sum over positions | −1.8099 | `example7_4.m`, first edition |
@@ -3820,6 +3894,8 @@ absence.
 | 11 to 16 | what separates the printouts, and each without PMC | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 13, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -3841,6 +3917,8 @@ absence.
 | 16 | rows 1 to 6 without PMC | −1.8014, then 0.0180 and 0.1869, then 0.0408 and 0.5851 | `TestTheSplice::test_each_printout_without_pmc` |
 
 ### The verdicts
+
+**Table:** Entry 13, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -3987,6 +4065,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 14, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | MKT has stronger serial autocorrelation than single stocks, so it has momentum | the claim, "often", with no figure | location 4014, MKT defined at location 3978 |
@@ -3994,6 +4074,8 @@ columns have nothing to hold in any row and are dropped, under
 | 3 to 9 | each factor's autocorrelation and percentile, the stocks' quartiles, the band, each factor's mean and t-statistic, and the legs | nothing, the book works no example | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 14, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -4008,6 +4090,8 @@ columns have nothing to hold in any row and are dropped, under
 | 9 | the eligible stocks, the excluded stocks, the winner leg and the loser leg, fewest and most over the 83 formations | 442 to 494 eligible, so 6 to 58 excluded for a missing close. Winners 79 to 468, losers 11 to 397 | `TestTheLegs::test_442_to_494_stocks_are_eligible`, `::test_6_to_58_stocks_are_excluded` and `::test_the_winner_and_loser_legs_sizes` |
 
 ### The verdicts
+
+**Table:** Entry 14, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -4168,6 +4252,8 @@ location 2321, saying calendar spreads "do not generally mean-revert". The issue
 claim before any statistic, so the result cannot be presented afterwards as a
 surprise in either direction.
 
+**Table:** Entry 15, what the book printed
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | Natural gas calendar spreads cointegrate | the claim, with no figure | Kindle location 3951 |
@@ -4187,6 +4273,8 @@ surprise in either direction.
 
 ### What this repo computed
 
+**Table:** Entry 15, what this repo computed
+
 | # | Pairs | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | 360 natural gas | the share rejecting in both orientations, against the 975th of 1,000 shares under the corrected null | 57 of 360, 0.1583, against 47 of 360, 0.1306. The null's median is 35 of 360 | `TestTheCalendarSpreadVerdicts::test_natural_gas_reproduces` |
@@ -4205,6 +4293,8 @@ surprise in either direction.
 | 14 | 220 RBOB expiries, January 2006 to April 2024 | the same | 202 of 213. Moved earlier 15 of 210, and later 9 of 213 | the same |
 
 ### The verdicts
+
+**Table:** Entry 15, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -4399,6 +4489,8 @@ on [issue 628](https://github.com/l3a0/quantitative-trading/issues/628#issuecomm
 which replace the page numbers read on 2026-10-03 and recorded on
 [issue 23](https://github.com/l3a0/quantitative-trading/issues/23).
 
+**Table:** Entry 16, what the book printed
+
 | # | Row | Published | Where |
 | --- | --- | --- | --- |
 | 1 | Unconditional cumulative return over the three test years | 73% | p. 146, not among the highlights |
@@ -4424,6 +4516,8 @@ arithmetic, 17.29% a year can compound to at most 68.0% over three years and
 
 ### What this repo computed
 
+**Table:** Entry 16, what this repo computed
+
 | # | Specification | Computed | Gap | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | `∏(1 + r) − 1` over the 736 test days | 3.40 | +2.67 | `TestExample71OnTheArchive::test_rows_1_to_4_the_unconditional_figures_and_their_gaps` |
@@ -4442,6 +4536,8 @@ A cell is written as Chan's p. 145 output writes it: weight, lookback in
 minutes, entry threshold.
 
 ### The verdicts
+
+**Table:** Entry 16, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -4634,6 +4730,8 @@ The comment lines that close `kentdaniel.m` record five figures for the 2007
 window. The book quotes two figures for that window, one for 2008 and
 2009, and a claim about the years after.
 
+**Table:** Entry 17, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Arithmetic annual return, 2007 | 0.0315 | `kentdaniel.m` |
@@ -4648,6 +4746,8 @@ window. The book quotes two figures for that window, one for 2008 and
 | 10 and 11 | rows 6 and 8 on the compounded APR, and row 7 under the first edition's `smartstd` | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 17, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -4664,6 +4764,8 @@ window. The book quotes two figures for that window, one for 2008 and
 | 11 | row 2 with the first edition's `smartstd`, which divides by n − 1 | 4.0530 | `TestTheHelperMovesADigit::test_the_first_editions_helper_prints_4_05_rather_than_4_07` |
 
 ### The verdicts
+
+**Table:** Entry 17, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -4689,6 +4791,8 @@ from `TestTheReadings` and `TestTheScriptOverTheOtherWindows`. A reading lands w
 its 2007 return rounds to 37 percent and its 2007 Sharpe ratio to 4.1. The
 last column is each 2007 figure less the book's, from `TestTheDistances`, which
 also holds each reading's distance from −30 percent.
+
+**Table:** Entry 17, the declared readings
 
 | Reading | What changes | 2007 | 2008 and 2009 | 2010 to 2012 | Lands | From 37 percent and 4.1 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -4846,6 +4950,8 @@ one sentence rather than a hypothesis tested on held-out data.
 would print more digits, but nothing records what they printed, so the
 comment's one decimal is the precision the source carries.
 
+**Table:** Entry 18, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The window `bog.m` prints | `20060511 - 20120424` | `bog.m`, location 1974 |
@@ -4858,6 +4964,8 @@ comment's one decimal is the precision the source carries.
 | 8 to 12 | the qualifiers and positions, the first positions, the other `smartstd`, the late listings and the flagged closes | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 18, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -4875,6 +4983,8 @@ comment's one decimal is the precision the source carries.
 | 12 | positions that land on one of the 30 closes the scale-break guard flags | 1, MS short on 2008-10-13 | `TestTheScaleBreakDecision::test_one_position_falls_on_a_flagged_day` |
 
 ### The verdicts
+
+**Table:** Entry 18, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -5037,6 +5147,8 @@ today.
 
 ### What the book printed
 
+**Table:** Entry 19, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Example 4.3's APR, close to close | 13.7 percent | location 2110, and the script's comment `APR=13.7%` |
@@ -5055,6 +5167,8 @@ The assertions are in `tests/test_khandani_lo_book_two.py`. Rows 1 to 8 are
 the cases of `TestTheFigures::test_each_figure_reproduces` named by the
 figure, and each is held at six decimals and again at the precision printed.
 
+**Table:** Entry 19, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | Example 4.3, `prod(1 + r)^(252/1260) − 1`, in percent | 13.677582 | `4.3 APR percent` |
@@ -5070,6 +5184,8 @@ figure, and each is held at six decimals and again at the precision printed.
 | 11 | row 9 with returns taken before the cut, so 2006-01-03 and 2006-01-04 earn | 0.4170 | `TestBesideTheFirstBook::test_on_one_year_the_two_days_the_cut_zeroes_move_the_figure_by_a_third` |
 
 ### The verdicts
+
+**Table:** Entry 19, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -5090,6 +5206,8 @@ figure, and each is held at six decimals and again at the precision printed.
 The two books' runs of one rule, each on its own file and window, with rows 9
 to 11 between them. Every figure is a Sharpe ratio, and none of the rows is a
 check on another.
+
+**Table:** Entry 19, beside Entries 8 and 10
 
 | Run | File and window | Weights | Cost | Sharpe ratio | Figure |
 | --- | --- | --- | --- | --- | --- |
@@ -5207,6 +5325,8 @@ does.
 
 ### What the book printed
 
+**Table:** Entry 20, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | 8.1, the position after a \$10K loss | \$490K | location 3216 |
@@ -5225,6 +5345,8 @@ does.
 
 ### What this repo computed
 
+**Table:** Entry 20, what this repo computed
+
 | # | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | `rebalance(5, equity=100000, shock=0.02)`, the dollar loss as a fraction of the \$500K position | none, synthetic | \$490,000 | `TestConstantLeverage::test_the_loss_day_sells_forty_thousand` |
@@ -5242,6 +5364,8 @@ does.
 | 13 | `(m2 - m1) / (c22 - c12)` | none, synthetic | 2.448980 | `TestWhereTheCornerStopsWinning::test_the_threshold` |
 
 ### The verdicts
+
+**Table:** Entry 20, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -5379,6 +5503,8 @@ scripts' figures at fewer decimals. Three of them are the scripts' figures
 rounded. The fourth, the price spread's "about 10.9 percent", is not, since
 0.108335 rounds to 10.8 percent. It prints no number for the ratio.
 
+**Table:** Entry 21, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Price spread, APR | 0.108335, and "about 10.9 percent" | `PriceSpread.m`, location 1505 |
@@ -5392,6 +5518,8 @@ rounded. The fourth, the price spread's "about 10.9 percent", is not, since
 | 9 to 11 | the swapped legs, the first position, and two choices that move nothing | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 21, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -5408,6 +5536,8 @@ rounded. The fourth, the price spread's "about 10.9 percent", is not, since
 | 11 | every run with `lag` padding 0 rather than NaN, and with book two's `smart` average and deviation | the same returns, exactly and within 1e-12 | `TestWhatMovesNothing` |
 
 ### The verdicts
+
+**Table:** Entry 21, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -5538,6 +5668,8 @@ and decides nothing.
 
 ### What the book printed
 
+**Table:** Entry 22, what the book printed
+
 | # | Row | Published figure | Where the book prints it |
 | --- | --- | --- | --- |
 | 1 | 2.1, the ADF statistic at 1 lag | −1.840744, and "about −1.84" | the script's comment, location 1114 |
@@ -5554,6 +5686,8 @@ and decides nothing.
 
 ### What this repo computed
 
+**Table:** Entry 22, what this repo computed
+
 | # | Specification | Vintage | Computed | Assertion |
 | --- | --- | --- | --- | --- |
 | 1 | jplv7 `adf(y, 0, 1)` on the 1,216 closes, 1,213 rows fitted | `chan-py` USDCAD raw, saved 2018-10-13 | −1.840744089 | `TestExample21TheAdfTest::test_the_statistic_is_chans_minus_1_840744` |
@@ -5569,6 +5703,8 @@ and decides nothing.
 | 11 | `√252 · mean / std` of the daily P&L, `ddof=1`, no risk-free rate, over the 1,101 days whose previous-day position is not NaN, 2008-01-02 to 2012-03-28 | the same | 0.1188463477 | `TestExample25LinearMeanReversion::test_the_sharpe_ratio_against_any_fixed_account_is_0_12` |
 
 ### The verdicts
+
+**Table:** Entry 22, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -5638,6 +5774,8 @@ two things on the vintage every row reads.
    changes which closes it reads. The port's estimator uses every overlapping
    change. At each start the ADF statistic at trend order 0 and 1 lag, the
    variance ratio test at period 2 and the half-life are computed too.
+
+**Table:** Entry 22, how far H moves by chance and by its start day
 
 | Measurement | Computed | Assertion |
 | --- | --- | --- |
@@ -5796,6 +5934,8 @@ construction.
 
 ### What the book printed
 
+**Table:** Entry 23, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | 2.6, CADF t-statistic, EWC on EWA | −3.64346635, "about –3.64" | script line 36, location 1292 |
@@ -5828,6 +5968,8 @@ verdict, which `test_row_3_the_pair_cointegrates_at_95_percent` also asserts.
 
 ### What this repo computed
 
+**Table:** Entry 23, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `lesage_cadf(EWC, EWA, 1)` | −3.6434663489 | `TestExample26TheCadfTest::test_row_1_the_t_statistic` |
@@ -5852,6 +5994,8 @@ verdict, which `test_row_3_the_pair_cointegrates_at_95_percent` also asserts.
 | 20 | The first non-zero day of row 13's returns | 2006-05-30, row 23, and 1,477 days from there on | `TestExample28TheStrategy::test_the_first_return_is_on_row_23_and_every_later_day_has_one` |
 
 ### The verdicts
+
+**Table:** Entry 23, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6009,6 +6153,8 @@ figures.
 
 ### What the book printed
 
+**Table:** Entry 24, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The test window | January 2, 2008, to April 9, 2012 | location 2035 |
@@ -6034,6 +6180,8 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 
 ### What this repo computed
 
+**Table:** Entry 24, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | Every common day after 2007-12-31 | 2008-01-02 to 2012-04-09, 1,076 days | `TestRow1TheWindows::test_row_1_the_test_window_is_the_books` |
@@ -6055,6 +6203,8 @@ the script prints. They come from statsmodels, which carries LeSage's tables.
 | 17 | The 98 against Chan's `spx_20071123` list and the IVV schedules from 2008-12-31 | 12 not on the 2007-11-23 list, and ACE and CBE missing at quarter-ends of the test, 14 in all | `TestTheBasketsStocksAndTheIndex::test_12_of_the_98_were_not_on_the_index_list_of_2007_11_23` and `::test_ace_and_cooper_industries_left_the_index_during_the_test_and_came_back` and `::test_ak_steel_is_in_the_basket_after_it_left_the_index` |
 
 ### The verdicts
+
+**Table:** Entry 24, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6203,6 +6353,8 @@ training length "gives better results in hindsight".
 
 ### What the book printed
 
+**Table:** Entry 25, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The test window | 2009-12-18 to 2012-04-26, after the first 250 days | location 2237 |
@@ -6225,6 +6377,8 @@ differed from the saved file.
 
 ### What this repo computed
 
+**Table:** Entry 25, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | Rows 251 to 862 of the two daily files | 612 returns, 2009-12-18 to 2012-04-26 | `TestRow1TheTestWindow::test_612_returns_from_the_books_first_day_to_its_last` |
@@ -6240,6 +6394,8 @@ it is rounding and moves with the platform. On the machine that built the
 entry it was 2.0e-15.
 
 ### The verdicts
+
+**Table:** Entry 25, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6393,6 +6549,8 @@ reproduce on his file and nothing about whether the rule pays today.
 The script records the six decimals its `fprintf('APR=%f Sharpe=%f')` prints
 in a comment on the next line, and location 1559 rounds both.
 
+**Table:** Entry 26, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | APR | 0.178249, and "17.8 percent" | `bollinger.m`, location 1559 |
@@ -6401,6 +6559,8 @@ in a comment on the next line, and location 1559 rounds both.
 | 4 to 7 | the divisor, the first position, the `lag` padding and the band at its edges | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 26, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -6413,6 +6573,8 @@ in a comment on the next line, and location 1559 rounds both.
 | 7 | the units on synthetic arrays: a z-score of exactly −1 or 1, exactly 0, NaN, and a long turning short or a short turning long in one day | enters nothing, exits nothing, holds yesterday's units, and turns in one day | `TestBandUnits` |
 
 ### The verdicts
+
+**Table:** Entry 26, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6532,6 +6694,8 @@ his file and nothing about whether a roll return persists out of sample.
 
 ### What the book printed
 
+**Table:** Entry 27, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | BR, α | −2.7% | location 2399, Table 5.1 |
@@ -6558,6 +6722,8 @@ the same commit, the zip [data/README.md](../data/README.md) records with its
 sha256. Its rule is the MATLAB script's.
 
 ### What this repo computed
+
+**Table:** Entry 27, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -6587,6 +6753,8 @@ holds which of rows 1 to 10 round to the book's figure, sign included.
 
 Rows 1 to 10 are compared at the book's one decimal of a percent, so each gap is
 in percentage points at that precision.
+
+**Table:** Entry 27, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6752,6 +6920,8 @@ and it misses the printed deviation.
 
 ### What the book printed
 
+**Table:** Entry 28, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The hedge, VX contracts per ES contract | "0.3906" | location 2559 |
@@ -6761,6 +6931,8 @@ and it misses the printed deviation.
 | 5 to 11 | the first training row, the exit, the first test day, the rounded hedge, the later saves, the script as shipped, and the holding periods | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 28, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -6777,6 +6949,8 @@ and it misses the printed deviation.
 | 11 | the position held into the test and the changes in it | long at the close of 2010-07-28, short on 2011-11-08, long on 2011-12-19 and short on 2012-02-17 | `TestTheTrade` |
 
 ### The verdicts
+
+**Table:** Entry 28, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -6893,6 +7067,8 @@ cannot confirm the oil hypothesis however it comes out.
 
 ### What the book printed
 
+**Table:** Entry 29, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | GLD and GDX cointegrate, 2006-05-23 to 2008-07-14, trace statistic | a claim, "cointegrate with 99 percent probability" | location 1922 |
@@ -6924,6 +7100,8 @@ checked against Chan's own printout.
 
 ### What this repo computed
 
+**Table:** Entry 29, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `johansen([GLD, GDX], 0, 1)`, first window, trace | 1 relation at 99 percent, 22.571096 against 19.935 | `TestTheClaims::test_rows_1_and_2_the_pair_holds_one_relation_before` |
@@ -6943,6 +7121,8 @@ checked against Chan's own printout.
 | 15 | Johansen's (1991) likelihood-ratio test of β = Hφ on row 9's rank-1 relation, one fund's weight at zero, from the moments of `johansen(·, 0, 1)` with T = 1,479, against chi-squared with one degree of freedom, 2.706, 3.841 and 6.635 at 90, 95 and 99 percent | GLD's weight at zero 10.014660, GDX's 26.336768 and USO's 0.056678 | `TestTheWeightTest::test_row_15_rejects_a_zero_weight_for_gld_and_gdx_and_not_for_uso`, with the GLD figure reached again by maximising the likelihood in `::test_row_15_by_maximising_the_likelihood_directly` |
 
 ### The verdicts
+
+**Table:** Entry 29, the verdicts
 
 | # | Gap | Verdict | Why |
 | --- | --- | --- | --- |
@@ -7150,6 +7330,8 @@ reproduce on his files and nothing about whether the cross rate reverts today.
 
 ### What the book printed
 
+**Table:** Entry 30, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | APR with rollover interest | 0.061564, and 6.2 percent | script line 50, location 2303 |
@@ -7163,6 +7345,8 @@ reproduce on his files and nothing about whether the cross rate reverts today.
 
 ### What this repo computed
 
+**Table:** Entry 30, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | Line 43's returns over all 1,237 rows | 0.0615638271 | `TestRows1And2WithRollover::test_row_1_the_apr` |
@@ -7175,6 +7359,8 @@ reproduce on his files and nothing about whether the cross rate reverts today.
 | 8 | 365 times row 5's mean, 365 being the divisor lines 21 and 33 apply | 0.0472786388 | `TestBesideTheReplication::test_row_5_annualised_over_365_days_lands_inside_the_criterion_too` |
 
 ### The verdicts
+
+**Table:** Entry 30, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -7332,6 +7518,8 @@ read, so they are not a holdout.
 
 ### What the book printed
 
+**Table:** Entry 31, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The combination's APR | "12 percent", and `0.117600` in the script's comment | location 2701, and `CL_rev.m` |
@@ -7339,6 +7527,8 @@ read, so they are not a holdout.
 | 3 to 14 | each rule alone, ComboOR, a later save, the four years before, the positions, and four changes to the specification | none, the book prints no such figures | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 31, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -7358,6 +7548,8 @@ read, so they are not a holdout.
 | 14 | row 2 dividing by n rather than n − 1 | 1.100919 | `TestTheMutations::test_dividing_the_sharpe_ratio_by_n` |
 
 ### The verdicts
+
+**Table:** Entry 31, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -7508,6 +7700,8 @@ hedges EWA and EWC today.
 
 ### What the book printed
 
+**Table:** Entry 32, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | APR | 0.262252, and 26.2 percent | script's closing comment, location 1726 |
@@ -7520,6 +7714,8 @@ hedges EWA and EWC today.
 
 ### What this repo computed
 
+**Table:** Entry 32, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | The script over all 1,500 rows | 0.26225194 | `TestTheFigures::test_the_apr_is_chans_0_262252` |
@@ -7531,6 +7727,8 @@ hedges EWA and EWC today.
 | 7 | Rows 1 and 2 of the filter | row 1: state 0, `Q` equal to `Ve`, `e` 22.95 against a `sqrt(Q)` of 0.031623. Row 2: slope 1.366666, equal to its closed form, `e` 22.78 against a `sqrt(Q)` of 0.163213 | `TestTheFirstRows::test_row_1_has_a_zero_gain_and_q_equal_to_ve`, `::test_row_2_equals_its_closed_form` |
 
 ### The verdicts
+
+**Table:** Entry 32, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -7688,6 +7886,8 @@ and nothing about whether the rule pays today.
 
 ### What the book printed
 
+**Table:** Entry 33, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The 250/25 correlation of past and future returns | 0.27 | location 2659 |
@@ -7703,6 +7903,8 @@ and nothing about whether the rule pays today.
 | 11 to 15 | the whole correlation table, the script's active line, the 2012-05-17 save, H at other values of `maxT`, and the statistic Example 1.1 starts from | none here, as each row says | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 33, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -7723,6 +7925,8 @@ and nothing about whether the rule pays today.
 | 15 | `mean(ret) / std(ret) · √2000` with the n − 1 `std`, on the returns built from the module's exported functions | 2.933253 | `TestTheGaussianStatistic::test_the_exports_give_tu_mom_hypothesis_test_s_2_93` |
 
 ### The verdicts
+
+**Table:** Entry 33, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -7886,6 +8090,8 @@ the script's window missed two of the comment's figures.
 
 ### What the book printed
 
+**Table:** Entry 34, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The half-life of γ, script | 36.394034 | script line 63 |
@@ -7902,6 +8108,8 @@ the script's window missed two of the comment's figures.
 | 12 | The last day the specification holds a pair | none | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 34, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -7940,6 +8148,8 @@ records them.
    half-life of 41.095, none of them the book's.
 
 ### The verdicts
+
+**Table:** Entry 34, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -8130,6 +8340,8 @@ text, and B3 was picked out after the run.
 
 ### What the book printed
 
+**Table:** Entry 35, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The ratio of back to front is stationary | a claim, "stationary with a 99 percent probability" | location 2502 |
@@ -8144,6 +8356,8 @@ text, and B3 was picked out after the run.
 | 10 | The strategy "performed much more poorly prior to October 2008" | a claim, with no criterion declared | location 2502 |
 
 ### What this repo computed
+
+**Table:** Entry 35, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -8162,6 +8376,8 @@ S's drawdown is −0.255618 over 871 days, and its last held day is 2012-03-07,
 which `TestTheRows::test_each_rows_figures` pins with the rest of its row.
 
 ### The verdicts
+
+**Table:** Entry 35, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -8352,6 +8568,8 @@ loaded.
 
 ### What the book printed
 
+**Table:** Entry 36, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The APR | 2.5 percent | location 2690 |
@@ -8364,6 +8582,8 @@ loaded.
 | 8 to 14 | Example 6.1 cut first, the rebuild against the save, both rules on the save, the position's shares, the flat start, the month-unit γ and the fifth contract | none here, as each row says | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 36, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -8383,6 +8603,8 @@ loaded.
 | 14 | the declared position held on the fifth contract priced the day before, and on the fifth of those priced on both days, and both rules with γ fitted on the four nearest contracts | 0.024712, 2.144165 and −0.011583, and a Sharpe ratio of 1.957852, with the six window rows where no fifth contract is priced on both days earning 0, three of them on a long position (leaving them out gives 1.964416), and Sharpe ratios of 1.802262 for it and 1.429338 for the declared rule under the four-contract fit | `TestTheRowsBeside::test_the_fifth_contract_reading` and `::test_a_fit_on_four_contracts_lowers_both_rules` |
 
 ### The verdicts
+
+**Table:** Entry 36, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -8557,6 +8779,8 @@ registered test of the drift reading and cannot confirm it.
 
 ### What the book printed
 
+**Table:** Entry 37, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The Gaussian test statistic, mean / std · √n | 2.93 | `TU_mom_hypothesisTest.m`'s comment at L40, and the statistic's definition at location 606 |
@@ -8567,6 +8791,8 @@ registered test of the drift reading and cannot confirm it.
 | 6 to 8 | the observed positions on the simulated returns, a normal draw, and type IV with the mean set to zero | none here, as each row says | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 37, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -8580,6 +8806,8 @@ registered test of the drift reading and cannot confirm it.
 | 8 | row 2's draws less their target mean, added after the scratch run | 19 of 10,000, 0.001900. The simulated means average 3.604899e-07, against 3.220302e-05 for row 2. Over row 2's first 1,000 draws the rule is long on 0.804654 of signal days on average, and 0.502401 with the mean removed | `TestTheRowsBesideAddedAfterTheScratchRun::test_type_iv_with_the_mean_set_to_zero`, `::test_the_drift_is_what_the_strategy_earns_on_simulated_returns` and `::test_a_drifting_series_is_long_on_most_signal_days` |
 
 ### The verdicts
+
+**Table:** Entry 37, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -8736,6 +8964,8 @@ trade on later data.
 
 ### What the book printed
 
+**Table:** Entry 38, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The average annual return | 0.0190 | `GLD_GC.m`'s closing comment, no location |
@@ -8749,6 +8979,8 @@ trade on later data.
 | 9 to 11 | The two calendars, the series against the OHLC save's GC, and the daily change in log(GC / GLD) | none here, as each row says | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 38, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -8765,6 +8997,8 @@ trade on later data.
 | 11 | the daily change in log(GC / GLD) over the 752 kept days, for each GC series: its standard deviation over n, its largest move, and its moves past 2 percent. Then GLD's daily log return over the same days, its standard deviation over n, and half the squared ratio of this GC's figure to it, the most of GLD's daily variance a gap between the two closes can carry if nothing else that moves the ratio cancels the gap's moves | 0.000933, 0.007082 and none on this GC. 0.009243, 0.097332 and 20 on the OHLC save's. GLD's 0.015660, so at most 0.001775 | `TestTheSeriesIdentity::test_the_log_ratio_moves_little_on_the_16_00_series`, `::test_the_log_ratio_moves_ten_times_as_much_on_the_ohlc_save` and `::test_a_gap_between_the_closes_carries_at_most_0_18_percent_of_gld_s_variance` |
 
 ### The verdicts
+
+**Table:** Entry 38, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -8937,6 +9171,8 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What the book printed
 
+**Table:** Entry 39, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The average annual return, script | 0.1592 | script line 63 |
@@ -8949,6 +9185,8 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 
 ### What this repo computed
 
+**Table:** Entry 39, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `252 · smartmean(ret)` over the 1,498 days | 0.159231 | `TestTheSpecification::test_the_average_annual_return` |
@@ -8960,6 +9198,8 @@ Every result here is **exploratory**. Reproducing Chan's figures spends his
 | 7 | Row 2 | 1.046596 | `TestTheSpecification::test_the_sharpe_ratio`, and `::test_both_reproduce_the_book_s_figures` for the rounding |
 
 ### The verdicts
+
+**Table:** Entry 39, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -9135,6 +9375,8 @@ the committed file's, as [data/README.md](../data/README.md) records. The zip
 is not committed, and `chan.opening_gap.python_port` carries the port's
 arithmetic. Against the script, line by line:
 
+**Table:** Entry 40, `gapFutures_FSTX.m`
+
 | Script line | `gapFutures_FSTX.m` | `gapFutures_FSTX.py` | What differs |
 | --- | --- | --- | --- |
 | 3 | `entryZscore=0.1;` | `entryZscore=0.1;`, the port's line 7 | The same threshold, a tenth of the spread. |
@@ -9153,6 +9395,8 @@ script nor the port's, is evidence that an opening jump pays today.
 
 ### What the book printed
 
+**Table:** Entry 40, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The APR, script | 0.1327 | script line 27, the comment recording what line 26 printed |
@@ -9167,6 +9411,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 16 | The port's APR and Sharpe ratio as the Algorithmic Trading Experiments page records them | none of its own, the page records 7.5 percent and 0.49 | the Experiments page, a claude.ai artifact the body of [issue 358](https://github.com/l3a0/quantitative-trading/issues/358) cites |
 
 ### What this repo computed
+
+**Table:** Entry 40, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -9188,6 +9434,8 @@ script nor the port's, is evidence that an opening jump pays today.
 | 16 | Row 10's APR in percent and its Sharpe ratio dividing by n, at the page's precision | 7.48641057 percent and 0.4948573171, which round to 7.5 percent and 0.49 | `TestChansPythonPort::test_row_16_the_experiments_page_rounds_the_comment` |
 
 ### The verdicts
+
+**Table:** Entry 40, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -9413,6 +9661,8 @@ chose.
 
 ### What the book printed
 
+**Table:** Entry 41, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The APR, H | 0.069065 | script line 81 |
@@ -9429,6 +9679,8 @@ chose.
 
 ### What this repo computed
 
+**Table:** Entry 41, what this repo computed
+
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
 | 1 | `prod(1 + r)^(252 / 448) − 1` under H | 0.069065 | `TestTheHedgedSpecification::test_the_apr` |
@@ -9444,6 +9696,8 @@ chose.
 | 11 | H with `chan.vx_es`'s fitted hedge, 0.390594, in place of 0.3906: the APR and the Sharpe ratio | 0.069062 and 1.001978 | `TestTheFittedHedge::test_it_misses_the_script_s_sixth_decimal_on_both` |
 
 ### The verdicts
+
+**Table:** Entry 41, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -9669,6 +9923,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 42, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | PC1 has stronger serial autocorrelation than single stocks, so it has momentum | the claim, "often", with no figure | location 4014, and location 4051 for Example 7.4 resting on it |
@@ -9679,6 +9935,8 @@ columns have nothing to hold in any row and are dropped, under
 | 6 to 16 | the pairs and the comparison set, each factor's statistic, percentile and same-sign share, the stocks' quartiles, the band, each factor's Newey-West t and p-value and Benjamini-Hochberg, the intercept, and each again without PMC | nothing, the book works no example | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 42, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -9700,6 +9958,8 @@ columns have nothing to hold in any row and are dropped, under
 | 16 | the criterion's two halves for each factor without PMC | PC2 above −0.0283 and below 0, the other four above both | `TestWithoutPMC::test_the_criterion_would_miss_pc2_rather_than_pc3` |
 
 ### The verdicts
+
+**Table:** Entry 42, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -9903,6 +10163,8 @@ on his file, and nothing about whether any leverage is safe to trade.
 
 ### What the book printed
 
+**Table:** Entry 43, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | The Kelly leverage of the test-set returns | 18.4 | location 3342 |
@@ -9924,6 +10186,8 @@ on his file, and nothing about whether any leverage is safe to trade.
 | 17 | The script's lines on the historical returns | none | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 43, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -9949,6 +10213,8 @@ The growth rates are pinned at six significant figures and quoted here at the
 six decimals the book prints.
 
 ### The verdicts
+
+**Table:** Entry 43, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -10251,6 +10517,8 @@ way earns a registered test on data the run has not seen.
 
 ### What the book stated
 
+**Table:** Entry 44, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | The S&P 600 on the closes, before costs | nothing, the exercise asks for the run and prints no figure | location 2236, p. 78 |
@@ -10266,6 +10534,8 @@ prints it and the entry judges nothing against it.
 
 The gap is the S&P 600's figure less the S&P 500's.
 
+**Table:** Entry 44, what this repo computed: price and specification
+
 | # | Price and specification | S&P 600 | S&P 500 | Gap | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | closes, before costs | 3.4086 | 0.2510 | +3.1576 | `TestTheSmallCapFigures::test_closes` and `TestTheSixGaps::test_the_gap` |
@@ -10274,6 +10544,8 @@ The gap is the S&P 600's figure less the S&P 500's.
 | 4 | opens, before costs | 5.3052 | 4.4202 | +0.8850 | `TestTheSmallCapFigures::test_opens` and `TestTheSixGaps::test_the_gap` |
 | 5 | opens, after costs, first day uncharged and its NaN counted as 0 | 2.0147 | 0.7834 | +1.2313 | the same |
 | 6 | opens, after costs, first day charged | 2.0257 | 0.8293 | +1.1964 | the same |
+
+**Table:** Entry 44, what this repo computed: specification
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -10288,6 +10560,8 @@ holds that the two ratios the size reading compares are rows 1 and 4's
 figures to the last bit, rather than a second computation near them.
 
 ### What each row says
+
+**Table:** Entry 44, what each row says
 
 | # | Why it is here |
 | --- | --- |
@@ -10564,6 +10838,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 45, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | a highly leveraged low-beta portfolio out-compounds an unleveraged high-beta one | the rule, with no figure | location 4709, the leverage matched to beta at location 4684 |
@@ -10571,6 +10847,8 @@ columns have nothing to hold in any row and are dropped, under
 | 3 to 9 | the realised growth, the leverage path, the realised betas, the Kelly reading, the counts, the flagged stock-months and the calendar | nothing, the book works no example | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 45, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -10585,6 +10863,8 @@ columns have nothing to hold in any row and are dropped, under
 | 9 | the calendar | 2,011 of 2,024 rows shared with SPY, 96 month-ends from 1999-11-30 to 2007-10-31, formations 2000-11-30 to 2007-09-28, 83 holding months | `TestTheCalendar::test_the_cut_drops_13_of_2024_rows`, `::test_96_month_ends_on_the_cut_calendar` and `::test_83_formations_from_2000_11_30` |
 
 ### The verdicts
+
+**Table:** Entry 45, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -10774,6 +11054,8 @@ skipping an 8-K/A, and both making one flag of several filings on one day.
 And it fixes ten runs, each the rule above on one universe, one price
 source and one calendar.
 
+**Table:** Entry 46, the registration
+
 | Run | Stocks | Prices | Flags | What changes against its reference |
 | --- | --- | --- | --- | --- |
 | A | ALL | Chan's | Chan's | Entry 12, unchanged |
@@ -10822,6 +11104,8 @@ count.
 
 ### What this repo computed
 
+**Table:** Entry 46, what this repo computed: run or count
+
 | # | Run or count | Arithmetic annual return | Sharpe ratio | Compounded APR, maximum drawdown, its days | Trades, busiest day | Mean return per trade | Assertion |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | A, ALL 497, Chan's prices and flags | 0.066743 | 1.4909 | 0.067952, −0.026052, 109 | 1,072, 30 | 0.002446 | `TestTheCommittedRuns::test_the_figures[A]`, `::test_run_a_is_entry_12_unchanged` and `::test_the_return_per_trade[A]` |
@@ -10834,6 +11118,8 @@ count.
 | 8 | D, PX on raw Alpha Vantage prices | 0.053283 | 1.5255 | 0.054083, −0.023066, 112 | 954, 27 | 0.002194 | `TestTheArchiveRuns::test_the_figures[D]` and `::test_the_return_per_trade[D]` |
 | 9 | E1, U on adjusted prices and R1 | 0.057489 | 1.6585 | 0.058532, −0.023984, 63 | 1,172, 44 | 0.001927 | `TestTheArchiveRuns::test_the_figures[E1]` and `::test_the_return_per_trade[E1]` |
 | 10 | E5, U on adjusted prices and R5 | 0.057426 | 1.4118 | 0.058229, −0.029106, 80 | 1,339, 48 | 0.001685 | `TestTheArchiveRuns::test_the_figures[E5]` and `::test_the_return_per_trade[E5]` |
+
+**Table:** Entry 46, what this repo computed: count
 
 | # | Count | Value | Assertion |
 | --- | --- | --- | --- |
@@ -10864,6 +11150,8 @@ Read from the arithmetic annual return and the Sharpe ratio, as registered.
 `TestTheCommittedRuns::test_the_attribution_without_the_archive` holds rows
 18, 19 and 24 where no archive is.
 
+**Table:** Entry 46, the attribution: effect
+
 | # | Effect | Runs | Arithmetic annual return | Sharpe ratio |
 | --- | --- | --- | --- | --- |
 | 18 | The universe | A_U − A | −0.023065 | −0.2094 |
@@ -10876,6 +11164,8 @@ Read from the arithmetic annual return and the Sharpe ratio, as registered.
 The registration's table of runs names four more comparisons than the
 attribution uses. B5 is read against A_CAL, and E1 and E5 are each read
 against A_U and against A.
+
+**Table:** Entry 46, the attribution: comparison
 
 | # | Comparison | Runs | Arithmetic annual return | Sharpe ratio |
 | --- | --- | --- | --- | --- |
@@ -10890,6 +11180,8 @@ prices, though, so no price basis separates them. Without row 21 the residual
 is row 28. That reading was not registered, and
 `TestTheArchiveRuns::test_the_interaction_without_the_basis_effect` holds it.
 
+**Table:** Entry 46, the attribution: residual
+
 | # | Residual | Runs | Arithmetic annual return | Sharpe ratio |
 | --- | --- | --- | --- | --- |
 | 28 | What E1 − A_U leaves after rows 19 and 20 only, not registered | | −0.002865 | +0.0102 |
@@ -10900,6 +11192,8 @@ The review of the pull request that shipped this entry ran these on the same
 vintages. None was registered, and the thresholds in rows 29 and 33, 7 days
 and 2 percent, were chosen after reading the data. They decide nothing. They
 say where the figures above are fragile.
+
+**Table:** Entry 46, checks run after the figures were seen
 
 | # | Check | Value | Assertion |
 | --- | --- | --- | --- |
@@ -11187,6 +11481,8 @@ rule today.
 
 ### What the book printed
 
+**Table:** Entry 47, what the book printed
+
 | # | Row | Published figure | Where |
 | --- | --- | --- | --- |
 | 1 | Buy on gap's annualized average return when the preceding day's VIX is over 35 | 17.2 percent | location 3509 |
@@ -11204,6 +11500,8 @@ rule today.
 | 13 to 18 | The joined calendars, the qualifying days, the unfiltered figures, the guard, the rule run after the join, and whether the qualifying days differ from the rest | none, as each row says | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 47, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -11227,6 +11525,8 @@ rule today.
 | 18 | Welch's t on mean daily return, the qualifying days against the other joined days, treating each day as independent | buy on gap t = 0.705402 and p = 0.481405, FSTX's literal reading t = −0.684181 and p = 0.494679, and the momentum reading the same t negated | `TestBesideTheReplication::test_neither_rule_s_kept_days_differ_from_its_other_days_beyond_noise` |
 
 ### The verdicts
+
+**Table:** Entry 47, the verdicts
 
 | # | Gap, computed minus published | Verdict | Why |
 | --- | --- | --- | --- |
@@ -11477,6 +11777,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 48, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | a low-beta portfolio levered at most 2 out-compounds an unleveraged high-beta one | the rule, with no figure, and overnight positions "allow only a leverage of 2" | locations 4709, 814 and 2836 |
@@ -11484,6 +11786,8 @@ columns have nothing to hold in any row and are dropped, under
 | 3 to 7 | the realised growth, the leverage, the worst month, the realised beta and the break-even spread | nothing, the book works no example | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 48, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -11501,6 +11805,8 @@ and ceiling 5's, 0.2843 less 0.1183, reads 0.1660 while its gap reads 0.1659.
 These are the case `### What precision a number is quoted at` describes.
 
 ### The verdicts
+
+**Table:** Entry 48, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -11700,6 +12006,8 @@ The book prints no number for this claim, so the published-figure and gap
 columns have nothing to hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 49, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | a highly leveraged low-beta portfolio out-compounds an unleveraged high-beta one | the rule, with no figure | location 4709, the leverage matched to beta at location 4684 |
@@ -11707,6 +12015,8 @@ columns have nothing to hold in any row and are dropped, under
 | 3 to 11 | the realised growth, the leverage path, the realised betas, the Kelly reading, the counts, the flagged stock-months, the calendar, the skipped formations and the survivor gap | nothing, the book works no example | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 49, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -11723,6 +12033,8 @@ columns have nothing to hold in any row and are dropped, under
 | 11 | the survivor gap, on the committed members file and on the series the run cuts | 6,816 of 107,115 member-months fail the row check against the filing, and 4,614 of them carry a ticker absent from the 2026-06-30 schedule. 697 of the 2,187 failing member rows carry a ticker in that schedule. The monthly rule leaves out 6,927 member-months on the manifest's spans and 6,943 on the series the run cuts | `TestTheCoverageWithoutRank::test_the_survivor_label_counts` and `TestTheSideFigures::test_the_survivor_label` |
 
 ### The verdicts
+
+**Table:** Entry 49, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -11953,6 +12265,8 @@ seen.
 
 ### What the book stated
 
+**Table:** Entry 50, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | The S&P 400 on the closes, before costs | nothing, the exercise asks for the run and prints no figure | location 2236, p. 78 |
@@ -11966,6 +12280,8 @@ Khandani and Lo's 4.47 for 2006, at location 2099, takes no row, for Entry
 
 ### What this repo computed
 
+**Table:** Entry 50, what this repo computed: price and specification
+
 | # | Price and specification | S&P 500 | S&P 400 | S&P 600 | Assertion |
 | --- | --- | --- | --- | --- | --- |
 | 1 | closes, before costs | 0.2510 | 2.0338 | 3.4086 | `TestTheMidCapFigures::test_closes` and `TestChansTwoFiles::test_the_pinned_figures` |
@@ -11978,6 +12294,8 @@ Khandani and Lo's 4.47 for 2006, at location 2099, takes no row, for Entry
 Each step is the smaller index's figure less the larger's, so a positive
 step rises as capitalisation falls.
 
+**Table:** Entry 50, what this repo computed: step before costs
+
 | # | Step before costs | Gap | Standard error | Correlation | z | One year's noise | Assertion |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 7 | closes, S&P 400 less S&P 500 | +1.7828 | 0.8114 | 0.6758 | +2.1973 | beyond | `TestTheGapsToBothNeighbours::test_the_gap` |
@@ -11988,6 +12306,8 @@ step rises as capitalisation falls.
 The control is read with its three exclusions, which is primary, and
 without them. Its gap is its figure less Chan's S&P 600 file's, before costs.
 
+**Table:** Entry 50, what this repo computed: specification
+
 | # | Specification | With the exclusions | Without them | Assertion |
 | --- | --- | --- | --- | --- |
 | 11 | closes, before costs, after costs uncharged, after costs charged | 3.5194, 0.0655, 0.0575 | 1.8962, 0.9858, 0.9798 | `TestTheControl::test_the_figures_with_and_without_the_exclusions` |
@@ -11995,6 +12315,8 @@ without them. Its gap is its figure less Chan's S&P 600 file's, before costs.
 | 13 | closes, gap to Chan's file, standard error, correlation, z | +0.1108, 0.4943, 0.8836, +0.2241, within one year's noise | −1.5124, 1.2979, 0.1758, −1.1653, within | `TestTheControl::test_the_gap_to_chans_file` and `::test_the_gap_without_the_exclusions` |
 | 14 | opens, the same | −0.7244, 0.5768, 0.8484, −1.2559, within | −2.7050, 1.2882, 0.2070, −2.0998, beyond | the same |
 | 15 | each gap against the S&P 400's distance to its nearer neighbour, 1.3748 on the closes and 0.9669 on the opens | inside at both prices, so separable | outside at both | `TestTheControl::test_the_ordering_is_separable_with_the_exclusions_and_not_without` |
+
+**Table:** Entry 50, what this repo computed: specification
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -12008,6 +12330,8 @@ holds that this module's runs give the same floats as
 holds them at the four decimals those entries quote.
 
 ### What each row says
+
+**Table:** Entry 50, what each row says
 
 | # | Why it is here |
 | --- | --- |
@@ -12130,6 +12454,8 @@ bought in 2008, and IndyMac and Colonial BancGroup, whose banks failed in 2008
 and 2009. Nothing here counts those fates across the 116. The control is built
 by the same rule and keeps 385 of IJR's 602, 64.0% by count, so it carries the
 same kind of selection.
+
+**Table:** Entry 50, the holdings the run leaves out
 
 | Filing row | Ticker | Holding | Why the run leaves it out |
 | --- | --- | --- | --- |
@@ -12454,6 +12780,8 @@ after March 2012, so the published-figure and gap columns have nothing to
 hold in any row and are dropped, under
 `### What a second entry does to this file`.
 
+**Table:** Entry 51, what the book stated
+
 | # | Row | What the book says | Where |
 | --- | --- | --- | --- |
 | 1 | H1, Example 2.5's cumulative P&L is positive, on holdout B | "manages to be positive", with no figure | location 1225 |
@@ -12462,6 +12790,8 @@ hold in any row and are dropped, under
 | 8 to 10 | the drawdown and Sharpe ratio, the positions, and the window | nothing, the book reports no such figure for this period | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 51, what this repo computed
 
 | # | Specification | Computed | Assertion |
 | --- | --- | --- | --- |
@@ -12477,6 +12807,8 @@ hold in any row and are dropped, under
 | 10 | the window: the warm-up, the traded days, and the weekdays with no row over the traded days | 115 warm-up closes from 2011-10-20 to 2012-03-28. 3,791 traded days from 2012-03-29 to 2026-10-12. 2 of the 3,793 weekdays have no row, and no run of them is longer than 1, between 2014-12-26 and 2014-12-30 | `TestTheHoldoutWindow::test_115_warm_up_closes_from_2011_10_20_to_2012_03_28`, `::test_3791_traded_days_from_2012_03_29_to_2026_10_12`, `::test_2_of_3793_weekdays_have_no_row_and_no_run_is_longer_than_1` and `TestTheVintage::test_the_entry_names_the_fx_daily_closes_downloaded_2026_10_13` |
 
 ### The verdicts
+
+**Table:** Entry 51, the verdicts
 
 | # | Verdict | Why |
 | --- | --- | --- |
@@ -12612,6 +12944,8 @@ Four things carry the result.
 
 ### What the sources stated
 
+**Table:** Entry 52, what the sources stated
+
 | # | Row | What the source says | Where |
 | --- | --- | --- | --- |
 | 1 | The signal over Heston and Sadka's sample | 1.15 percent a month, t 7.6, 1965 to 2002 | Heston and Sadka, Table 2, read by the post from their October 2006 working paper. This repository holds no copy of either version |
@@ -12621,6 +12955,8 @@ Four things carry the result.
 | 6 | The rule's scale against the project's | nothing | n/a |
 
 ### What this repo computed
+
+**Table:** Entry 52, what this repo computed
 
 | # | Window | Specification | Computed | Assertion |
 | --- | --- | --- | --- | --- |

@@ -1627,7 +1627,7 @@ the first 603 lines on 2026-10-05, one for each company IJR held at
 it to. The table above stays the two minute-bar files, because a table with a
 row per stock would be 603 rows long.
 
-**Table:** The `sp600` cross-section kept in the archive
+**Table:** The `sp600` cross-section's first lines, from [issue 333](https://github.com/l3a0/quantitative-trading/issues/333)
 
 | Cross-section | Vendor | Symbols | Span | Downloaded | Basis | Rows |
 | --- | --- | --- | --- | --- | --- | --- |
