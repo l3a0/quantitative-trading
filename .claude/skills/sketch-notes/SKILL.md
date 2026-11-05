@@ -21,6 +21,8 @@ run it came from, and what lets a redraw prove the committed GIF is current.
 The drawing primitives are in `chan.usdcad_tests_whiteboard`, and every post's
 sketch module imports them.
 
+**Table:** The names in the machinery
+
 | Name | What it is |
 | --- | --- |
 | `Stroke` | a line revealed over `frames` frames, or with `dots=` a row of dots with no line |
@@ -35,6 +37,8 @@ sketch module imports them.
 The board is 10 units across and 4.7 up, drawn at 680 by 320 pixels. The inks
 come from `chan.regime_figure`, and each keeps its meaning from sketch to
 sketch.
+
+**Table:** What each ink means
 
 | Ink | Meaning |
 | --- | --- |

@@ -99,6 +99,8 @@ span whose trading return was computed. A cell rerun at another cost is the
 same variant. A computation that measures no return, such as a stationarity
 test, is none. When it was unclear, the cell counted.
 
+**Table:** Variants counted from each source
+
 | Source | Variants | What dominates it |
 | --- | --- | --- |
 | This repository, Entries 1 to 52 | 221,302 | Entry 34's two scans, 220,104 between them |
@@ -120,6 +122,8 @@ before its rule was declared. Entries 44 and 50 count only the cells they add,
 2 and 6, because each reruns cells an earlier entry counted.
 
 The sibling's count is `SIBLING_SEARCHES` in the same file:
+
+**Table:** Variants counted from each sibling search
 
 | Sibling search | Variants |
 | --- | --- |
@@ -170,6 +174,8 @@ loaded, and
 Ranked by t after costs. Every Sharpe ratio converts to t over its span in
 `TestTheAfterCostRows`.
 
+**Table:** Rows with an after-cost figure at 5 bp a side
+
 | Row | 1. Sharpe and t, before and after 5 bp a side | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Entry 44, Khandani-Lo reversal at the open, Chan's S&P 600 file | 5.3052, t 5.2947. Then 2.0257, t 2.0217 | no, the book's 2006, on a survivor file | 2 new | the S&P 600 from its 1994-10-28 launch to 1994-12-31, outside the rule's published record | The book says most of the returns come from small and microcap stocks. Inference: traders who need to trade now pay the liquidity provider, and a large fund would pay more than 5 bp a side in small caps, which the log says a flat 5 bp flatters | no estimate, the file holds no market values | one day, rebalanced daily, turnover 1.4505 to 1.4729 a day | needs 6.59 of 0.18 years |
@@ -192,6 +198,8 @@ None was run at 5 bp a side. A cost of 5 bp a side is at least as large as the
 cost in each figure here, so each after-cost figure is an upper bound on its
 figure at 5 bp.
 
+**Table:** Rows with an after-cost figure only at a lower cost
+
 | Row | 1. Sharpe and t, before and after the cost shown | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Sibling, generative search, SPY 0.05Δ short call, 30 days | Sharpe 0.688, Newey-West t +3.35 at a 1 bp hedge (`data/gen_ledger.jsonl:62`). The doc reads it as the best of about 131 noise draws (`docs/generative_search.md:57-61`) | no | 56 of its 70 cells, the ones that traded | as above | not stated | not stated | 30 days, about 12 a year | needs 57.12 of 2.97 years |
@@ -209,6 +217,8 @@ figure at 5 bp.
 These are the only statistics in either repository computed on a span no
 search had loaded when they ran. Each span is loaded now, so column 4 is
 "none" throughout and is left out.
+
+**Table:** Registered holdouts
 
 | Row | 1. The registered statistic | 2. Span | 3. Variants | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -228,6 +238,8 @@ whose unloaded history is too short even for that bound fails whatever its
 costs. A row whose history is long enough goes to
 [issue 777](https://github.com/l3a0/quantitative-trading/issues/777) for an
 after-cost figure.
+
+**Table:** Rows with no after-cost Sharpe ratio
 
 | Row | 1. Sharpe before costs | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays, and why a fund cannot take it | 6. Capacity | 7. Holding and trades | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -272,6 +284,8 @@ arithmetic, and count no variants.
 
 ### The sibling's other searches
 
+**Table:** The sibling's other searches
+
 | Search | 1. The best figure | 2. Out of sample? | 3. Variants | 4. Span no search loaded | 5. Who pays | 6. Capacity | 7. Holding | Stands |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Covered call in R-multiples | daily t +1.25 at most, with no hedge cost (`docs/explorations.md:680`, `:699`) | no | 42 with the coda | as the volatility premium | not stated | not stated | 30 days | needs 268.41 of 2.97 years |
@@ -310,6 +324,8 @@ lowest and highest runs on the same span, and the lowest already reaches t\*.
 
 Each Sharpe ratio is after 5 bp a side where one is pinned, and before costs
 otherwise.
+
+**Table:** The registration screen, row by row
 
 | Row | Sharpe | After costs? | Years available | Years needed | Stands |
 | --- | --- | --- | --- | --- | --- |
@@ -427,6 +443,8 @@ seen, and the owner's approval is what lets it stand.
 The span after today is the one span no search can have loaded, so it is the
 one every row has. It is slow. Held exactly, a row's after-cost Sharpe ratio
 reaches t\* after (t\* / Sharpe)² years of forward data:
+
+**Table:** Years of forward data each row needs
 
 | Row | After-cost Sharpe | Years to reach t\* = 5.200 |
 | --- | --- | --- |

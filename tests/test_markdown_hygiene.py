@@ -56,6 +56,7 @@ from tests.support.markdown_sweep import (
     sweep_heading_references,
     sweep_text,
     units,
+    untitled_tables,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -2099,3 +2100,46 @@ class TestRowSplitsAddUpToTheRowCount:
     def test_every_row_split_in_the_replication_log_adds_up(self) -> None:
         document = (REPO_ROOT / "docs" / "replication-log.md").read_text("utf-8")
         assert _row_split_disagreements(document) == []
+
+
+def test_a_table_with_no_title_is_flagged() -> None:
+    text = "Some prose.\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n"
+    findings = untitled_tables(text, Path("x.md"))
+    assert [finding.line_number for finding in findings] == [3]
+
+
+def test_a_table_under_a_title_is_left_alone() -> None:
+    text = "**Table:** What A holds\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n"
+    assert untitled_tables(text, Path("x.md")) == []
+
+
+def test_a_table_inside_a_fence_is_left_alone() -> None:
+    text = "```text\n| A | B |\n| --- | --- |\n```\n"
+    assert untitled_tables(text, Path("x.md")) == []
+
+
+def test_every_table_in_the_repo_has_a_title() -> None:
+    fixtures = ("tests", "fixtures", "substack")
+    findings = [
+        finding
+        for path in markdown_files(REPO_ROOT)
+        if path.relative_to(REPO_ROOT).parts[:3] != fixtures
+        for finding in untitled_tables(path.read_text(encoding="utf-8"), path)
+    ]
+    assert findings == [], "\n".join(str(finding) for finding in findings)
+
+
+@pytest.mark.parametrize(
+    ("text", "lines"),
+    [
+        ("**Table:** One\n\n| A |\n| --- |\n\n| B |\n| --- |\n", [6]),
+        ("**Table:** One\n\nProse.\n\n| A |\n| --- |\n", [5]),
+        ("**Table:** One\n| A |\n| --- |\n", []),
+        ("**Table:**\n\n| A |\n| --- |\n", [3]),
+        ("See **Table:** One\n\n| A |\n| --- |\n", [3]),
+        ("Prose.\n\n| A | B |\n| :--- | ---: |\n", [3]),
+    ],
+    ids=["two-under-one", "prose-between", "touching", "empty", "prefixed", "aligned"],
+)
+def test_a_title_covers_only_the_table_right_below_it(text: str, lines: list[int]) -> None:
+    assert [f.line_number for f in untitled_tables(text, Path("x.md"))] == lines

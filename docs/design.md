@@ -1009,6 +1009,8 @@ replications to have produced little of it.
 Terms with exact definitions, reused on purpose. A term listed here is not a
 candidate for a synonym.
 
+**Table:** Pinned vocabulary
+
 | Term | Definition |
 | --- | --- |
 | **vintage** | One series as one source held it on one date, identified by vendor, symbol, span, that date, and which price, rate, event or return the series carries, committed as a file with a checksum. Example 7.1's two series of Alpha Vantage minute bars are kept in the owner's data archive instead, with only their checksums committed, under the exception the premise states, and so is each stock of the S&P 600, S&P 500 and S&P 400 cross-sections of Alpha Vantage daily closes. Each of those files holds the raw close beside the adjusted close and is recorded as `adjusted`, because the adjusted close is the column the vendor restates. Alpha Vantage's `FX_DAILY` USD/CAD closes are the one Alpha Vantage series committed as a file, by the owner's ruling of 2026-10-13 on [issue 607](https://github.com/l3a0/quantitative-trading/issues/607). The date is a download date when a vendor was asked for the series, and a saved date when the series was lifted from one of Ernest Chan's own files, because nothing was fetched on that day. A saved vintage is a column of one of his workbooks, a stock from one of his MATLAB files, or a file of his 2018 Python port committed as his zip shipped it. An entry in the **manifest** carries exactly one of `download_date` and `saved_date`, and which one it carries says which kind of vintage it describes. A stock lifted from one of Chan's MATLAB files is one vintage holding its close, high, low, open and volume together, decided on [issue 88](https://github.com/l3a0/quantitative-trading/issues/88), because the source saved them together and an identity naming one series could not tell them apart. |
@@ -1051,6 +1053,8 @@ run reads that series through the archive. Everything a run
 reads, the archive's bytes included, needs no key, and everything that reads
 only committed vintages runs with no configuration at all.
 
+**Table:** Configuration settings
+
 | Setting | Secret | Lives in | Read by |
 | --- | --- | --- | --- |
 | The data archive's path | no | `~/.config/quantitative-trading/archive_dir`, one line, or `QT_ARCHIVE_DIR` for one run | `chan.archive`, for the vintages `data/archive_vintages.jsonl` records, `chan.fetch_alphavantage`, which writes the equity daily closes there, and `chan.sp600_panel`, `chan.sp500_panel` and `chan.sp400_panel`, whose `fetch` and `check` read it |
@@ -1063,6 +1067,8 @@ only committed vintages runs with no configuration at all.
 Machinery that was considered and cut, pinned here with the reason, so a
 decision stays decided. When something new is cut, add it here in the same
 change that cuts it.
+
+**Table:** The considered-and-rejected register
 
 | Cut | Why |
 | --- | --- |
