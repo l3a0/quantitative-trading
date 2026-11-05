@@ -310,7 +310,7 @@ Every `.md` file must pass markdownlint, which CI runs on every pull request. Th
 
 Every table has a title, on a line of its own above it, starting with `**Table:**`, because Markdown has no caption (owner directive, 2026-11-05).
 
-The rule and its test cover pipe tables. A post's LaTeX tables stay as they are until the owner rules on them, because many of those posts are published. Test fixtures are converter inputs, so they are exempt.
+The rule and its test cover pipe tables. A post's LaTeX tables stay untitled (owner directive, 2026-11-05), because many of those posts are published. Test fixtures are converter inputs, so they are exempt.
 
 After any edit, sweep:
 
