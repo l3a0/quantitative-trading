@@ -38,7 +38,7 @@ here, which the rule does not promise.
 The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
 post's sketches share, so these GIFs share their look and frame rate. Their
 colours are :mod:`chan.palette`'s, which a colour-blind reader can tell apart,
-so :func:`render` maps each frame onto :data:`chan.palette.INKS`: berry for
+so :func:`ithildincore.whiteboard.render` maps each frame onto :data:`chan.palette.INKS`: berry for
 the copy shifted by one amount, blue for a long, and vermilion for the uneven
 copy and a short. The grey of a flat stretch sits only 7.5 from the vermilion
 under protanopia. Each stretch already carries its word, and a flat one is
@@ -304,7 +304,7 @@ def _two_exits() -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("one_shift", "two_exits")
 
 

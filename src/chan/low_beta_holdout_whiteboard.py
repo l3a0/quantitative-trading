@@ -549,7 +549,7 @@ def _look_ahead() -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("bound_and_y", "dropped_months", "look_ahead")
 
 #: The sketches whose figures come from the owner's archive, which a redraw

@@ -15,9 +15,9 @@ The colours, and the pale tints ``TINT`` and ``REJECT_TINT`` a band or a reject
 zone is filled with, live in :mod:`ithildincore.palette`, so the account's other
 repositories draw in the same ones. ithildin-core's ``tests/test_palette.py``
 measures their contrast and their separation under each kind of colour
-blindness, and its docstring names the two gaps the measurements leave. This
-module names them for this repository, and ``docs/design.md`` says why posts
-move to them one at a time rather than all at once.
+blindness, and :mod:`ithildincore.palette`'s docstring names the two gaps the
+measurements leave. ``docs/design.md`` says why posts move to them one at a
+time rather than all at once.
 
 A post moves by importing these names in place of :mod:`chan.regime_figure`'s,
 and its sketch module passes :data:`INKS` to

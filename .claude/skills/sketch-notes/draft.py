@@ -34,8 +34,9 @@ The layout rules run in the hand font and again in the fallback font.
 
 What stays here is what belongs to this repository: the refusal to draft into
 ``docs/figures``, and the reading of whether a post has moved to the new
-colours. A post has moved when ``MODULE`` holds :data:`chan.palette.INKS`, the
-:mod:`chan.palette` module itself or :mod:`ithildincore.palette`, when
+colours. A post has moved when ``MODULE`` holds :data:`chan.palette.INKS`, which
+is :data:`ithildincore.palette.INKS`, or the :mod:`chan.palette` module itself,
+when
 ``--palette`` says so, or when a scene uses any of :mod:`chan.palette`'s own
 colours. The GIF is drawn the way the post's module draws its committed GIFs:
 on :data:`chan.palette.INKS` for a post that has moved, and on the brass inks
@@ -58,7 +59,6 @@ import os
 import sys
 from pathlib import Path
 
-import ithildincore.palette
 from ithildincore.whiteboard import draft
 
 from chan import palette
@@ -67,8 +67,7 @@ from chan.paths import FIGURES_DIR
 
 def has_moved(module: object) -> bool:
     """Whether ``module`` draws in :mod:`chan.palette`, read from what it imports."""
-    marks = (palette, ithildincore.palette, palette.INKS)
-    return any(any(value is mark for mark in marks) for value in vars(module).values())
+    return any(value is palette or value is palette.INKS for value in vars(module).values())
 
 
 def inside_figures(out: Path) -> bool:

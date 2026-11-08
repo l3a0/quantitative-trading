@@ -56,7 +56,7 @@ class TestTheChecksAreTheLibrarys:
     def test_the_script_drafts_with_the_shared_function(self) -> None:
         assert draft.draft is whiteboard.draft
 
-    def test_a_broken_rule_reaches_the_report(self, tmp_path) -> None:
+    def test_the_library_flags_a_broken_rule(self, tmp_path) -> None:
         line = whiteboard.stroke("line", whiteboard.line([(1.0, 2.0), (9.0, 2.0)]))
         scene = whiteboard.Scene(
             "Broken", "broken", (line, whiteboard.Label("on it", 3, 2.05, "line"))
@@ -89,7 +89,6 @@ class TestAPostThatHasMoved:
             "from chan.palette import INKS",
             "from chan import palette as own",
             "from ithildincore.palette import INKS",
-            "from ithildincore import palette",
         ],
     )
     def test_a_module_that_imports_the_new_palette_has_moved(
@@ -101,8 +100,12 @@ class TestAPostThatHasMoved:
         printed = capsys.readouterr().out
         assert "keeps the brass set's" in printed and BRASS.lower() in printed
 
-    def test_a_module_that_does_not_has_not(self, tmp_path, monkeypatch) -> None:
-        target = self._module(tmp_path, monkeypatch, "unmoved_sketch")
+    @pytest.mark.parametrize("imports", ["", "from ithildincore import palette"])
+    def test_a_module_that_does_not_has_not(self, tmp_path, monkeypatch, imports) -> None:
+        """``ithildincore.palette`` holds the brass set too, so importing it
+        says nothing about which set a post draws in."""
+        name = "unmoved_" + "".join(c if c.isalnum() else "_" for c in imports)
+        target = self._module(tmp_path, monkeypatch, name, imports)
         assert draft.main([target, "--out", str(tmp_path / "out")]) == 0
 
     def test_the_flag_moves_a_scratch_module(self, tmp_path, monkeypatch, capsys) -> None:

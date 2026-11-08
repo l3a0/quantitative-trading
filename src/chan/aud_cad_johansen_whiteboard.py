@@ -53,8 +53,9 @@ colours are :mod:`chan.regime_figure`'s inks, the ones this post's chart,
 moved to :mod:`chan.palette`. The band's tint is
 :data:`ithildincore.palette.RED_TINT`, the shared red at the
 renderer's lightest blend, for the same reason, and :func:`_write` passes no
-inks to :func:`render`, so it draws on the shared ones. The band carries a red
-edge, because the tint alone is too pale to read against the white board.
+inks to :func:`ithildincore.whiteboard.write_gif`, so it draws on the shared
+ones. The band carries a red edge, because the tint alone is too pale to read
+against the white board.
 The share sketch prints four of the run's figures and draws three ideas, so
 it is in :data:`PACED`: each label shows 900 ms rather than 350, and the
 finished drawing holds 12 seconds rather than 4, as :func:`sketch_timeline`

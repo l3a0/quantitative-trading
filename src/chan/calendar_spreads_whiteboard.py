@@ -25,7 +25,7 @@ places each right after the text it draws.
    crosses. Its figures are :class:`OneWindow`, read from the calendar and the
    committed files through the functions the run uses. A reader blind to red
    sees the vermilion and the grey as close, closer than
-   ``tests/test_palette.py`` allows any other pair, so each dropped day's
+   ithildin-core's ``tests/test_palette.py`` allows any other pair, so each dropped day's
    cross shape marks it as well as its colour.
 
 Neither scene is schematic. Every count and date a label prints, and every
@@ -42,7 +42,8 @@ than four, as :data:`PACED` lists. That is the pace
 The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
 post's sketches share, so these GIFs share their look and frame rate. Their
 colours come from :mod:`chan.palette` rather than that module, so
-:func:`render` gets :data:`chan.palette.INKS` and maps every frame onto them.
+:func:`ithildincore.whiteboard.render` gets :data:`chan.palette.INKS` and maps
+every frame onto them.
 Only the scenes, their pace and the file names are this module's. Each GIF
 is named :data:`GIF_PREFIX` plus the scene's slug. The sketches are
 deterministic for the reason that module gives, so a redraw with no change is

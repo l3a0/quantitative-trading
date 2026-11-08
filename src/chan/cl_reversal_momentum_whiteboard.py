@@ -599,7 +599,7 @@ def _swing_cost(figures: JoinFigures) -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("dip_and_bounce", "half_of_each", "swing_cost")
 
 

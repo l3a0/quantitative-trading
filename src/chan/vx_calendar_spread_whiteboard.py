@@ -622,7 +622,7 @@ def _twelve_apart(shipped: Shipped) -> Scene:
 #: in at the usual pace: a label longer than one letter shows on its own for
 #: :data:`PACED_LABEL_MS` and the finished drawing holds for
 #: :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("one_hold", "twelve_apart")
 
 

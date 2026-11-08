@@ -260,7 +260,7 @@ def _caption(index: int) -> str:
 def _end(arrow) -> int:
     """The index where an arrow's shaft ends, the tip its head is drawn around.
 
-    :func:`chan.usdcad_tests_whiteboard._arrow` draws the shaft, then turns
+    :func:`ithildincore.whiteboard.arrow` draws the shaft, then turns
     back along one arm of the head, so the tip is the first point where the
     pen reverses.
     """

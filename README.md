@@ -3497,10 +3497,9 @@ tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
 that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
-the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES, small-caps, roll returns,
-buy-on-gap, cross-sectional momentum and post-earnings drift redraw commands.
+the shared sketch machinery in `ithildincore.whiteboard`, so moving its pin in
+`pyproject.toml` needs every post's sketches redrawn, which the `sketch-notes`
+skill's loop does.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -5048,8 +5047,9 @@ the run on the committed file, and holds that each block's height is affine in
 its statistic, that the stack's top is the trace statistic, and that figures
 which would make its words false are refused. It compares each committed GIF
 with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
-USD.CAD sketches' test does. The sketches draw with the USD.CAD module's
-strokes, timeline and renderer, so an edit there needs this redraw too.
+USD.CAD sketches' test does. The sketches draw with the shared sketch
+machinery in `ithildincore.whiteboard`, so moving its pin needs this redraw
+too.
 
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
@@ -9951,7 +9951,7 @@ the committed file with a fresh draw.
 The post also carries one looping whiteboard sketch,
 `usdcad_holdout_sign_and_t.gif`, drawn by
 [src/chan/usdcad_holdout_whiteboard.py](src/chan/usdcad_holdout_whiteboard.py)
-on the earlier USD.CAD post's sketch machinery. It sits in Lesson 1, after the
+on the shared sketch machinery in `ithildincore.whiteboard`. It sits in Lesson 1, after the
 paragraph on the t, and sets the sum of 0.1132, above 0 with a check mark,
 over a t gauge drawn to scale, where the t of 0.2670 sits far left of the
 zone past 1.645. It reads the sum and the t from the same `read_holdout` as

@@ -39,7 +39,8 @@ the same run, so no figure is typed into a scene.
 The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
 post's sketches share, so these GIFs share their look and frame rate. Their colours
 are :mod:`chan.palette`'s, which a colour-blind reader can tell apart, so
-:func:`_write` passes :data:`chan.palette.INKS` to :func:`render`. The second
+:func:`_write` passes :data:`chan.palette.INKS` to
+:func:`ithildincore.whiteboard.write_gif`. The second
 sketch prints nine figures, so it is in :data:`PACED`: each label
 shows 900 ms rather than 350, and the finished drawing holds 12 seconds rather
 than 4, as :func:`sketch_timeline` sets. Each GIF is named :data:`GIF_PREFIX`

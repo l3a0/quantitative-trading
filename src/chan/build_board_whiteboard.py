@@ -27,7 +27,7 @@ the events that start no run are left out.
 The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
 post's sketches share, so this GIF shares their look and frame rate. Its colours
 are :mod:`chan.palette`'s, which a colour-blind reader can tell apart, so
-:func:`render` maps each frame onto :data:`chan.palette.INKS`: vermilion for
+:func:`ithildincore.whiteboard.render` maps each frame onto :data:`chan.palette.INKS`: vermilion for
 the refusal and berry for the events GitHub records. Each coloured arrow also
 carries its own words, so colour is never the only cue. The sketch carries
 more than a reader takes in at that post's pace, so it is in :data:`PACED`,
@@ -225,7 +225,7 @@ def _update_flow() -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("update_flow",)
 
 
