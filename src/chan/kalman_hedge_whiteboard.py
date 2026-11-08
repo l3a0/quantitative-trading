@@ -48,8 +48,8 @@ update, and row 2's update moves the slope to 1.366666 before the position is
 set, so no word under the second column says the short is unhedged. Only row
 1's position, which earns 2006-04-27's return, holds 0 EWA shares.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look and frame rate. They draw in
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so these GIFs share their look and frame rate. They draw in
 the shared colours of :mod:`chan.regime_figure`, as the post's chart does.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
@@ -71,21 +71,26 @@ from pathlib import Path
 
 import numpy as np
 
-from chan import kalman_hedge
-from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
+# Re-exported, because each post's tests read the pace from its module.
+from ithildincore.whiteboard import PACED_HOLD_MS as PACED_HOLD_MS
+from ithildincore.whiteboard import PACED_LABEL_MS as PACED_LABEL_MS
+from ithildincore.whiteboard import (
     Frame,
     Label,
     Scene,
     Stroke,
-    _arrow,
-    _dot,
-    _line,
-    _stroke,
-    render,
+    paced_timeline,
     timeline,
+    write_gif,
 )
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import dot as _dot
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
+
+from chan import kalman_hedge
+from chan.paths import FIGURES_DIR
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "kalman_hedge_sketch_"
@@ -604,23 +609,11 @@ def _zero_start(zero: ZeroStart) -> Scene:
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 PACED = ("one_day", "zero_start")
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
-    frames = timeline(scene)
-    if scene.slug not in PACED:
-        return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = paced[-1]
-    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return paced
+    return paced_timeline(scene) if scene.slug in PACED else timeline(scene)
 
 
 def scenes(day: OneDay | None = None, zero: ZeroStart | None = None) -> tuple[Scene, ...]:
@@ -633,16 +626,7 @@ def scenes(day: OneDay | None = None, zero: ZeroStart | None = None) -> tuple[Sc
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

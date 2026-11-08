@@ -72,17 +72,9 @@ import warnings
 import matplotlib
 import numpy as np
 import pytest
-from PIL import Image
-from scipy.stats import norm
-
-from chan import palette as own
-from chan import regime_figure, usdcad_mean_reversion
-from chan import usdcad_tests_whiteboard as whiteboard
-from chan.paths import FIGURES_DIR
-from chan.series import WindowCrossesScaleBreak
-from chan.stationarity_tests import VRATIO_ALPHA
-from chan.usdcad_mean_reversion import read_sources, stationarity_tests
-from chan.usdcad_tests_whiteboard import (
+from ithildincore import palette as shared
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
     FRAME_MS,
     HEIGHT,
     HOLD_MS,
@@ -94,14 +86,21 @@ from chan.usdcad_tests_whiteboard import (
     Stroke,
     clearances,
     hand_font,
-    main,
-    make_usdcad_tests_whiteboards,
     palette,
     render,
-    scenes,
-    spread,
     timeline,
 )
+from PIL import Image
+from scipy.stats import norm
+
+from chan import palette as own
+from chan import regime_figure, usdcad_mean_reversion
+from chan import usdcad_tests_whiteboard as usdcad
+from chan.paths import FIGURES_DIR
+from chan.series import WindowCrossesScaleBreak
+from chan.stationarity_tests import VRATIO_ALPHA
+from chan.usdcad_mean_reversion import read_sources, stationarity_tests
+from chan.usdcad_tests_whiteboard import main, make_usdcad_tests_whiteboards, scenes, spread
 from chan.vintage import VintageUnavailable
 from tests.test_usdcad_mean_reversion import NOISE_SPEC, SPEC
 
@@ -399,7 +398,7 @@ class TestTheScenes:
         left in one would land on the nearest colour of the post's palette, so
         only this check and the byte-for-byte comparison would see it, and that
         comparison skips off macOS arm64."""
-        allowed = {whiteboard.INK, whiteboard.MUTED, *own.INKS, own.TINT, own.REJECT_TINT}
+        allowed = {shared.INK, shared.MUTED, *own.INKS, own.TINT, own.REJECT_TINT}
         for scene in drawn:
             stray = [
                 (getattr(step, "gid", None) or step.text, step.color)
@@ -416,7 +415,7 @@ class TestTheScenes:
             assert not re.search(r"\d", scene.title), scene.title
 
     def test_each_scene_has_its_own_gif_named_for_it(self, drawn) -> None:
-        assert [scene.gif for scene in drawn] == GIFS
+        assert [usdcad.gif_name(scene) for scene in drawn] == GIFS
         assert not [name for name in GIFS if re.search(r"\d", name)]
 
     def test_each_scene_draws_its_strokes_in_order(self, drawn) -> None:
@@ -485,9 +484,9 @@ class TestTheLabelsStayClearOfTheLines:
         wider font can push a label at the right end off the GIF."""
         _font(monkeypatch, fallback)
         for scene in drawn:
-            with matplotlib.rc_context(whiteboard._style()):
-                canvas, artists = whiteboard._board(scene)
-                whiteboard._show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
+            with matplotlib.rc_context(whiteboard.style()):
+                canvas, artists = whiteboard.new_board(scene)
+                whiteboard.show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
                 canvas.draw()
                 renderer = canvas.get_renderer()
                 for artist in artists:
@@ -503,9 +502,9 @@ class TestTheLabelsStayClearOfTheLines:
         side, which a wider font pushes together."""
         _font(monkeypatch, fallback)
         for scene in drawn:
-            with matplotlib.rc_context(whiteboard._style()):
-                canvas, artists = whiteboard._board(scene)
-                whiteboard._show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
+            with matplotlib.rc_context(whiteboard.style()):
+                canvas, artists = whiteboard.new_board(scene)
+                whiteboard.show(scene, artists, whiteboard.Frame(len(scene.steps), 0, 0))
                 canvas.draw()
                 renderer = canvas.get_renderer()
                 boxes = [
@@ -578,9 +577,9 @@ class TestTheNumbersComeFromTheRun:
 
         def record(run, measured):
             seen.append((run.lookback, len(run.closes), measured.length))
-            return (whiteboard._half_life(run.lookback),)
+            return (usdcad._half_life(run.lookback),)
 
-        monkeypatch.setattr(whiteboard, "scenes", record)
+        monkeypatch.setattr(usdcad, "scenes", record)
         entry, closes = sources
         make_usdcad_tests_whiteboards(out_dir=tmp_path, sources=(entry, closes[:800]))
         assert seen == [(100, 800, 800)]
@@ -628,7 +627,7 @@ def _altered(run, statistic: float = -2.2):
 
 def _reading(run):
     """Chan's reading of ``run``, drawn on its own."""
-    return whiteboard._no_rejection(run.adf.statistic, run.adf.critical)
+    return usdcad._no_rejection(run.adf.statistic, run.adf.critical)
 
 
 def _x(scene, gid: str) -> float:
@@ -773,7 +772,7 @@ class TestTheFingerprint:
 
     def test_the_runs_four_values_are_the_scripts(self, run) -> None:
         """The check marks are true of the committed run, so it is drawn."""
-        assert [t for t in whiteboard._fingerprint(run).labels if self.VALUE.match(t)] == [
+        assert [t for t in usdcad._fingerprint(run).labels if self.VALUE.match(t)] == [
             "−1.840744",
             "0.994120",
             "0.367281",
@@ -781,7 +780,7 @@ class TestTheFingerprint:
         ], SPEC
 
     def test_the_count_of_closes_follows_the_run(self, run) -> None:
-        assert "1,000 closes" in whiteboard._fingerprint(_shortened(run, 1000)).labels
+        assert "1,000 closes" in usdcad._fingerprint(_shortened(run, 1000)).labels
 
     @pytest.mark.parametrize(
         "moved",
@@ -805,7 +804,7 @@ class TestTheFingerprint:
             for key, value in moved.items()
         }
         with pytest.raises(ValueError, match="where the script printed"):
-            whiteboard._fingerprint(dataclasses.replace(run, **changes))
+            usdcad._fingerprint(dataclasses.replace(run, **changes))
 
 
 def _cells(scene) -> list[float]:
@@ -870,7 +869,7 @@ class TestOneRowApart:
         edges = _cells(one_row)
         grey = _stroke(one_row, "grey")
         assert grey.x.max() == pytest.approx(edges[2]), "days 1 and 2"
-        assert grey.color == whiteboard.MUTED
+        assert grey.color == shared.MUTED
 
     def test_both_bars_end_at_the_last_cell_and_adfuller_runs_above(self, drawn) -> None:
         one_row = drawn[9]
@@ -907,7 +906,7 @@ class TestOneRowApart:
         assert note.x == pytest.approx((edges[day - 1] + edges[day]) / 2)
 
     def test_the_labels_follow_the_runs_figures(self, run) -> None:
-        labels = whiteboard._one_row(_altered(run)).labels
+        labels = usdcad._one_row(_altered(run)).labels
         assert labels[7] == "1,000"
         assert labels[9:13] == [
             "adfuller, 998 rows",
@@ -949,7 +948,7 @@ class TestEveryDayOrAFewRoundTrips:
         gap = top.y - bottom.y
         assert gap == pytest.approx(np.full(len(gap), gap[0]), abs=1e-12)
         assert gap[0] > np.ptp(top.y), "the copies do not overlap"
-        assert (top.color, bottom.color) == (whiteboard.INK, whiteboard.MUTED)
+        assert (top.color, bottom.color) == (shared.INK, shared.MUTED)
 
     def test_a_dot_lands_on_every_point_of_the_upper_copy(self, drawn) -> None:
         every_day = drawn[0]
@@ -1004,7 +1003,7 @@ def _palette_rgbs() -> list[list[int]]:
     return [flat[k : k + 3] for k in range(0, len(flat), 3)]
 
 
-def _altered_spread(measured) -> whiteboard.Spread:
+def _altered_spread(measured) -> usdcad.Spread:
     """The measurement with every figure Lesson 3's scene prints moved: fewer
     walks with another mean and SD, and every start day printing as 0.49."""
     offsets = tuple(
@@ -1121,8 +1120,8 @@ class TestChanceAndTheStartDay:
         scene = drawn[10]
         (band,) = scene.fills
         (image,) = render(scene, timeline(scene)[-1:], own.INKS)
-        with matplotlib.rc_context(whiteboard._style()):
-            _, artists = whiteboard._board(scene)
+        with matplotlib.rc_context(whiteboard.style()):
+            _, artists = whiteboard.new_board(scene)
             (x0, y0), (x1, y1) = artists[0].axes.transData.transform(
                 [(band.x0, band.y0), (band.x1, band.y1)]
             )
@@ -1232,7 +1231,7 @@ def _leaning(run, measured=None):
     """The gauges of ``run``, drawn on their own, with the walks measured on
     its closes from :data:`FEW_PATHS` walks unless handed in."""
     walks = measured if measured is not None else spread(run.closes, paths=FEW_PATHS)
-    return whiteboard._lean_not_cross(run, walks)
+    return usdcad._lean_not_cross(run, walks)
 
 
 def _altered_lean(run):
@@ -1269,7 +1268,7 @@ class TestLeaningNotCrossing:
         quantile of half that level, and a statistic there gives a p-value of
         exactly that level."""
         assert VRATIO_ALPHA == 0.05
-        critical = whiteboard._vratio_critical()
+        critical = usdcad._vratio_critical()
         assert critical == norm.ppf(VRATIO_ALPHA / 2)
         assert 2 * norm.cdf(critical) == pytest.approx(VRATIO_ALPHA, rel=1e-12)
         assert f"{critical:.6f}" == "-1.959964"
@@ -1277,7 +1276,7 @@ class TestLeaningNotCrossing:
         assert "−1.96 at 5%, two-sided" in drawn[11].labels
 
     def test_the_threshold_follows_the_tests_level(self, run, monkeypatch) -> None:
-        monkeypatch.setattr(whiteboard, "VRATIO_ALPHA", 0.10)
+        monkeypatch.setattr(usdcad, "VRATIO_ALPHA", 0.10)
         assert "−1.64 at 10%, two-sided" in _leaning(run).labels
 
     @pytest.mark.parametrize("altered", [False, True])
@@ -1324,12 +1323,12 @@ class TestLeaningNotCrossing:
         have not moved draw in, so they stay the shared green and red blended,
         not this post's blue and vermilion."""
         for tint, ink in (
-            (whiteboard.TINT, whiteboard.GOOD),
-            (whiteboard.REJECT_TINT, whiteboard.LOST),
+            (shared.GREEN_TINT, shared.GREEN),
+            (shared.RED_TINT, shared.RED),
         ):
-            blended = [round(255 * c) for c in whiteboard._blend(ink, whiteboard.BLENDS[-1])]
+            blended = [round(255 * c) for c in whiteboard.blend(ink, whiteboard.BLENDS[-1])]
             assert [round(255 * c) for c in matplotlib.colors.to_rgb(tint)] == blended
-        assert (whiteboard.GOOD, whiteboard.LOST) == (regime_figure.GOOD, regime_figure.LOST)
+        assert (shared.GREEN, shared.RED) == (regime_figure.GOOD, regime_figure.LOST)
 
     def test_each_dot_sits_on_the_reverting_side_short_of_its_threshold(self, drawn) -> None:
         scene = drawn[11]
@@ -1442,7 +1441,7 @@ class TestTheLookAhead:
         trading bar starts elsewhere."""
         entry, every = sources
         run = stationarity_tests(entry, every[:closes])
-        scene = whiteboard._look_ahead(run)
+        scene = usdcad._look_ahead(run)
         timeline, measure, trade = (_stroke(scene, g) for g in ("timeline", "measure", "trade"))
         left, right = timeline.x.min(), timeline.x.max()
         assert (measure.x.min(), measure.x.max()) == (left, right)
@@ -1486,7 +1485,7 @@ class TestTenHalfLives:
 
     def test_the_label_divides_the_closes_by_the_unrounded_half_life(self, run, drawn) -> None:
         assert "10.6 half-lives" in drawn[13].labels, SPEC
-        other = whiteboard._half_lives(dataclasses.replace(run, half_life=100.0))
+        other = usdcad._half_lives(dataclasses.replace(run, half_life=100.0))
         assert "12.2 half-lives" in other.labels
         assert other.title == "Ten half-lives", "the ticks follow the lookback"
 
@@ -1594,7 +1593,7 @@ class TestTheDrawing:
             assert image.mode == "P"
             assert image.getpalette() == expected
 
-    @pytest.mark.parametrize("inks", [whiteboard.INKS, own.INKS], ids=["shared", "post"])
+    @pytest.mark.parametrize("inks", [shared.BRASS_INKS, own.INKS], ids=["shared", "post"])
     def test_the_palette_is_white_and_five_inks_at_five_blends(self, inks) -> None:
         colours = palette(inks).getpalette()
         assert colours[:3] == [255, 255, 255]
@@ -1697,7 +1696,7 @@ class TestTheCommand:
             drawn.append(kwargs)
             return [FIGURES_DIR / name for name in GIFS]
 
-        monkeypatch.setattr(whiteboard, "make_usdcad_tests_whiteboards", draw)
+        monkeypatch.setattr(usdcad, "make_usdcad_tests_whiteboards", draw)
         main()
         assert drawn == [{}]
         out = capsys.readouterr().out
@@ -1705,8 +1704,8 @@ class TestTheCommand:
 
     def test_drawing_with_no_out_dir_writes_the_committed_paths(self, monkeypatch, sources) -> None:
         saved = []
-        monkeypatch.setattr(whiteboard, "read_sources", lambda: sources)
-        monkeypatch.setattr(whiteboard, "spread", lambda closes: spread(closes, paths=FEW_PATHS))
+        monkeypatch.setattr(usdcad, "read_sources", lambda: sources)
+        monkeypatch.setattr(usdcad, "spread", lambda closes: spread(closes, paths=FEW_PATHS))
         given = []
 
         def render(scene, frames, inks):
@@ -1730,7 +1729,7 @@ class TestTheCommand:
         def refuse(*_a, **_k):
             raise refusal
 
-        monkeypatch.setattr(whiteboard, "make_usdcad_tests_whiteboards", refuse)
+        monkeypatch.setattr(usdcad, "make_usdcad_tests_whiteboards", refuse)
         with pytest.raises(SystemExit) as stopped:
             main()
         assert str(stopped.value) == str(refusal)
@@ -1746,7 +1745,7 @@ class TestTheCommand:
             raise AssertionError("the walks were drawn before the guard ran")
 
         monkeypatch.setattr(usdcad_mean_reversion, "refuse_window_crossing_a_break", refuse)
-        monkeypatch.setattr(whiteboard, "spread", no_walks)
+        monkeypatch.setattr(usdcad, "spread", no_walks)
         with pytest.raises(WindowCrossesScaleBreak):
             make_usdcad_tests_whiteboards(out_dir=tmp_path)
 

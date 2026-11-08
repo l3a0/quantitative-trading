@@ -40,15 +40,9 @@ import re
 import matplotlib
 import numpy as np
 import pytest
-from PIL import Image
-
-from chan import palette, regime_figure, vx_es
-from chan import usdcad_tests_whiteboard as whiteboard
-from chan import vx_es_whiteboard as sketches
-from chan.palette import ACCENT, GOOD, LOST
-from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import INK, MUTED
-from chan.usdcad_tests_whiteboard import (
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT, RED_TINT
+from ithildincore.whiteboard import (
     HEIGHT,
     HOLD_MS,
     TITLE_MS,
@@ -59,6 +53,13 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from PIL import Image
+
+from chan import palette, regime_figure, vx_es
+from chan import vx_es_whiteboard as sketches
+from chan.palette import ACCENT, GOOD, LOST
+from chan.paths import FIGURES_DIR, REPO_ROOT
+from chan.regime_figure import INK, MUTED
 from chan.vx_es_whiteboard import (
     CROSSINGS,
     KNOTS,
@@ -144,9 +145,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -199,7 +200,7 @@ class TestTheScenes:
         """Neither sketch draws a tint today. One that does would need a blue
         edge like the green one the equity seasonals module's ``_tinted``
         draws, since the tint alone stands 1.31 to 1 against the board."""
-        pale = {palette.TINT, palette.REJECT_TINT, whiteboard.TINT, whiteboard.REJECT_TINT}
+        pale = {palette.TINT, palette.REJECT_TINT, GREEN_TINT, RED_TINT}
         tints = [fill for scene in every for fill in scene.fills if fill.color in pale]
         assert tints == []
 

@@ -44,11 +44,22 @@ from statistics import NormalDist
 import matplotlib
 import numpy as np
 import pytest
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import levered_low_beta_whiteboard as sketches
 from chan import low_beta_leverage as llb
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.levered_low_beta_whiteboard import (
     AXIS_Y,
     CURVE_HEIGHT,
@@ -74,17 +85,6 @@ from chan.levered_low_beta_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "levered-low-beta-lessons.md"
 
@@ -169,9 +169,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [

@@ -44,11 +44,23 @@ from dataclasses import replace
 import matplotlib
 import numpy as np
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import tu_hypothesis_tests as tests
 from chan import tu_hypothesis_tests_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.tu_hypothesis_tests_whiteboard import (
@@ -84,17 +96,6 @@ from chan.tu_momentum import (
     read_sources,
     signals,
     strategy_returns,
-)
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
 )
 
 POST = REPO_ROOT / "blog" / "tu-hypothesis-tests-lessons.md"
@@ -198,9 +199,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -262,7 +263,7 @@ class TestTheScenes:
         """Neither sketch draws a tint today. One that does would need the
         green edge the equity seasonals module's ``_tinted`` draws, since the
         tint alone stands 1.29 to 1 against the board."""
-        tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
+        tints = [fill for scene in every for fill in scene.fills if fill.color == GREEN_TINT]
         assert tints == []
 
     def test_every_colour_is_a_shared_ink(self, every) -> None:

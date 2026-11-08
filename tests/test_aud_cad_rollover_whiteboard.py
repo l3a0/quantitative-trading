@@ -35,11 +35,22 @@ import re
 import matplotlib
 import numpy as np
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import BRASS_INKS
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+)
 from PIL import Image
 
 from chan import aud_cad_rollover as rollover
 from chan import aud_cad_rollover_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.aud_cad_rollover import aud_cad_rollover, read_sources
 from chan.aud_cad_rollover_whiteboard import (
     BAR_WIDTH,
@@ -65,16 +76,6 @@ from chan.aud_cad_rollover_whiteboard import (
 from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-)
 
 POST = REPO_ROOT / "blog" / "aud-cad-rollover-lessons.md"
 
@@ -228,9 +229,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -758,7 +759,7 @@ class TestTheCommand:
     def test_each_committed_gif_carries_the_colour_blind_safe_palette(self) -> None:
         for name in GIFS:
             assert _gif_palette(FIGURES_DIR / name) == _ink_palette(INKS), name
-        assert _ink_palette(INKS) != _ink_palette(whiteboard.INKS)
+        assert _ink_palette(INKS) != _ink_palette(BRASS_INKS)
 
 
 def _ink_palette(inks) -> list[int]:

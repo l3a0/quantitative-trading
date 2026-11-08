@@ -36,10 +36,22 @@ import warnings
 import matplotlib
 import numpy as np
 import pytest
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    render,
+    timeline,
+)
 from PIL import Image
 
 from chan import usdcad_holdout_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST
 from chan.series import WindowCrossesScaleBreak
@@ -53,18 +65,6 @@ from chan.usdcad_holdout_whiteboard import (
     main,
     make_usdcad_holdout_whiteboards,
     scenes,
-)
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    render,
-    timeline,
 )
 from chan.vintage import VintageUnavailable
 
@@ -130,9 +130,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -475,7 +475,11 @@ class TestTheCommand:
     def test_drawing_with_no_out_dir_writes_the_committed_paths(self, monkeypatch, holdout) -> None:
         saved = []
         monkeypatch.setattr(sketches, "read_holdout", lambda: holdout)
-        monkeypatch.setattr(sketches, "render", lambda scene, frames: [Image.new("P", (1, 1))])
+        # The module writes through ithildincore.whiteboard.write_gif, which
+        # draws with that module's render.
+        monkeypatch.setattr(
+            "ithildincore.whiteboard.render", lambda scene, frames, inks: [Image.new("P", (1, 1))]
+        )
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))
         paths = make_usdcad_holdout_whiteboards()
         assert paths == saved == [FIGURES_DIR / name for name in GIFS]

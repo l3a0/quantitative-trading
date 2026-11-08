@@ -92,11 +92,23 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import BRASS, GREEN_TINT, INK, MUTED
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import equity_seasonals as seasonals
 from chan import equity_seasonals_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.archive import ArchiveUnavailable
 from chan.equity_seasonals_whiteboard import (
     ANNUAL_RANGE,
@@ -141,17 +153,6 @@ from chan.equity_seasonals_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, LOST
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "equity-seasonals-lessons.md"
 
@@ -762,9 +763,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -1709,7 +1710,7 @@ class TestTheRuleSketches:
         for k in range(len(sketches.COLUMNS)):
             arrow = _stroke(wrong, f"pair-{k}")
             assert arrow.x[0] == pytest.approx(sketches._card(k))
-            assert arrow.color == (LOST if k == hole else whiteboard.MUTED)
+            assert arrow.color == (LOST if k == hole else MUTED)
         rising = _stroke(wrong, f"pair-{hole}")
         assert rising.y[0] < rising.y.max() == pytest.approx(sketches.SORTED_Y - 0.42)
         assert _middle(wrong, "dropped") == pytest.approx(sketches._card(hole), abs=0.01)
@@ -1719,7 +1720,7 @@ class TestTheRuleSketches:
         assert _middle(wrong, "no-close") == pytest.approx(sketches._card(hole), abs=0.01)
         assert (_stroke(wrong, "dropped").color, _stroke(wrong, "kept").color) == (
             LOST,
-            whiteboard.ACCENT,
+            BRASS,
         )
 
     def test_the_months_are_counted_and_each_bracket_spans_its_mean(self, figures) -> None:
@@ -1881,9 +1882,9 @@ class TestTheSplitSketch:
     def test_both_brackets_and_their_gaps_are_brown(self, split) -> None:
         (swing,) = split
         for gid in ("halves-gap", "years-gap"):
-            assert _stroke(swing, gid).color == whiteboard.ACCENT
+            assert _stroke(swing, gid).color == BRASS
         gaps = [s for s in swing.steps if isinstance(s, Label) and s.text.endswith(" apart")]
-        assert [s.color for s in gaps] == [whiteboard.ACCENT, whiteboard.ACCENT]
+        assert [s.color for s in gaps] == [BRASS, BRASS]
 
 
 #: Five-year figures unlike the file's in every field, so a mark drawn from
@@ -2176,7 +2177,7 @@ class TestTheSurvivorSketches:
             assert (line.x.min(), line.x.max()) == pytest.approx(
                 (sketches.SAVED_FROM_X, sketches.SAVED_TO_X)
             )
-            assert line.color == whiteboard.INK
+            assert line.color == INK
         for k, (_, share, why) in enumerate(sketches.LEAVERS):
             line = _stroke(saved, f"leaver-{k}")
             assert line.x.max() < sketches.SAVED_TO_X and line.color == LOST, why
@@ -2190,7 +2191,7 @@ class TestTheSurvivorSketches:
         save_x = _stroke(saved, "save").x[0]
         rows = sketches.SURVIVOR_ROWS
         leavers = [y for y, _, _ in sketches.LEAVERS]
-        for gid, ys, colour in (("in-file", rows, whiteboard.INK), ("not-in-file", leavers, LOST)):
+        for gid, ys, colour in (("in-file", rows, INK), ("not-in-file", leavers, LOST)):
             bracket = _stroke(saved, gid)
             assert bracket.x.min() > save_x
             assert bracket.y.min() < min(ys) and bracket.y.max() > max(ys)
@@ -2211,7 +2212,7 @@ class TestTheSurvivorSketches:
         assert set(range(tenth)) & set(sketches.GONE), "the worst tenth as it stood holds a leaver"
         assert not set(kept[:tenth]) & set(sketches.GONE)
         assert _stroke(ranking, "stood-tenth").dashed
-        assert _stroke(ranking, "file-tenth").color == whiteboard.ACCENT
+        assert _stroke(ranking, "file-tenth").color == BRASS
         assert sketches.SURVIVOR_TENTH * 10 == sketches.SURVIVOR_RANKED
 
     def test_the_saved_panel_keeps_no_leaver_and_carries_the_joiner_back(self, survivors) -> None:
@@ -2223,7 +2224,7 @@ class TestTheSurvivorSketches:
             assert (line.x.min(), line.x.max()) == pytest.approx(left)
         assert _stroke(panels, "saved-joiner").color == GOOD
         for k in range(sketches.STAYERS):
-            assert _stroke(panels, f"saved-{k}").color == whiteboard.INK
+            assert _stroke(panels, f"saved-{k}").color == INK
         stood = [s for s in panels.strokes if s.gid.startswith("stood-")]
         assert len(stood) == sketches.STAYERS + 3
         for line, (a, b), colour in zip(
@@ -2237,7 +2238,7 @@ class TestTheSurvivorSketches:
         joiner = sketches.STAYERS
         assert sketches.STOOD_SPANS[joiner][0] > 0 and sketches.STOOD_COLOURS[joiner] == GOOD
         for (a, b), colour in zip(sketches.STOOD_SPANS, sketches.STOOD_COLOURS, strict=True):
-            if colour == whiteboard.INK:
+            if colour == INK:
                 assert (a, b) == (0, 1)
             elif colour == LOST:
                 assert a == 0 and b < 1
@@ -2384,7 +2385,7 @@ class TestTheJanuarySketches:
             assert bar.x == pytest.approx(np.full(bar.points, x))
             assert bar.y[0] == pytest.approx(sketches.RANGES_ZERO + low * sketches.RANGES_PER)
             assert bar.y[-1] == pytest.approx(sketches.RANGES_ZERO + high * sketches.RANGES_PER)
-            expected = whiteboard.INK if low < 0 < high else (GOOD if low > 0 else LOST)
+            expected = INK if low < 0 < high else (GOOD if low > 0 else LOST)
             assert bar.color == expected, year
         for x, (year, _, _), left_out in zip(xs, ranges.januaries, ranges.left_out, strict=True):
             dot = _stroke(scene, f"left-{year}")
@@ -2769,7 +2770,7 @@ class TestTheFurtherWorkSketches:
         last = BOOK_YEAR + PINNED_POWER.n - 1
         assert last == 2026
         for first, ink in (
-            (BOOK_YEAR, whiteboard.INK),
+            (BOOK_YEAR, INK),
             (sketches.SP600_FIRST_JANUARY, ACCENT),
             (sketches.CRSP_FIRST_JANUARY, ACCENT),
         ):
@@ -2800,11 +2801,11 @@ class TestTheFurtherWorkSketches:
         first, second = _stroke(regime, "first"), _stroke(regime, "second")
         # Both halves in ink, each with its own label: colour carries no meaning
         # here, and the labels say the even split is an assumption.
-        assert (len(first.x), first.color) == (9, whiteboard.INK)
-        assert (len(second.x), second.color) == (9, whiteboard.INK)
+        assert (len(first.x), first.color) == (9, INK)
+        assert (len(second.x), second.color) == (9, INK)
         assert _labelled(regime, "9 in one regime, if split evenly").names == "first"
         assert _labelled(regime, "9 in the other").names == "second"
-        for count, ink in ((18, whiteboard.INK), (9, ACCENT)):
+        for count, ink in ((18, INK), (9, ACCENT)):
             low, high = PINNED_POWER.detectable(count)
             bracket = _stroke(regime, f"x-{count}")
             assert bracket.color == ink
@@ -2863,7 +2864,7 @@ def test_every_pale_tint_has_a_green_edge(every) -> None:
     assert sketches.TINT_EDGE >= 1.0
     for scene in every:
         for fill in scene.fills:
-            if fill.color != whiteboard.TINT:
+            if fill.color != GREEN_TINT:
                 continue
             edges = [
                 s
@@ -2957,15 +2958,15 @@ class TestTheSection3Sketches:
             == next(f for f in sketches.FILINGS if f > sketches.JOINS_AT)
         )
         assert (held.color, late.color, missed.color, joined.color) == (
-            whiteboard.INK,
+            INK,
             LOST,
             LOST,
-            whiteboard.INK,
+            INK,
         )
         assert missed.dashed and not late.dashed
         for k in range(len(sketches.FILINGS)):
             filing = _stroke(carry, f"filing-{k}")
-            assert (filing.color, filing.dashed) == (whiteboard.MUTED, True)
+            assert (filing.color, filing.dashed) == (MUTED, True)
 
     @pytest.mark.parametrize("figures", [PINNED_IVV, OTHER_IVV], ids=["the run's", "other"])
     def test_each_bar_splits_at_its_share(self, figures) -> None:
@@ -2987,10 +2988,10 @@ class TestTheSection3Sketches:
             assert short.x1 - short.x0 == pytest.approx((x1 - start) * counts[1] / total)
             assert (long.color, short.color) == (GOOD, LOST)
             assert _labelled(leavers, f"long {counts[0] / total:.1%}").color == GOOD
-            assert _fill(leavers, f"neither-{k}").color == whiteboard.MUTED
+            assert _fill(leavers, f"neither-{k}").color == MUTED
         assert _fill(leavers, "long-0").y0 > _fill(leavers, "long-1").y0, "the leavers sit above"
         assert (_fill(checked, "all-checked").color, _fill(checked, "all-dropped").color) == (
-            whiteboard.INK,
+            INK,
             LOST,
         )
 
@@ -3004,7 +3005,7 @@ class TestTheSection3Sketches:
         assert run.y == pytest.approx(
             sketches.RUNNING_ZERO + per * np.concatenate([[0.0], np.cumsum(values)])
         )
-        assert (run.color, book.color, book.dashed) == (whiteboard.INK, GOOD, True)
+        assert (run.color, book.color, book.dashed) == (INK, GOOD, True)
         detect = _stroke(running, "detectable")
         assert detect.y == pytest.approx(
             sketches.RUNNING_ZERO + per * figures.detectable / 12 * np.arange(len(values) + 1)
@@ -3151,18 +3152,18 @@ class TestTheSection2Sketches:
         sources, before = osap
         inks = {label.text: label.color for label in sources.steps if isinstance(label, Label)}
         for text in (*sketches.SOURCES, *(q for q, _ in sketches.SOURCE_QUESTIONS)):
-            assert inks[text] == whiteboard.INK, text
+            assert inks[text] == INK, text
         for cost in sketches.SOURCE_COSTS:
-            assert inks[cost] == whiteboard.MUTED, cost
+            assert inks[cost] == MUTED, cost
         assert inks[sources.labels[-1]] == ACCENT
         inks = {label.text: label.color for label in before.steps if isinstance(label, Label)}
-        assert inks["0"] == whiteboard.MUTED
-        assert inks["one standard error each way"] == whiteboard.MUTED
+        assert inks["0"] == MUTED
+        assert inks["one standard error each way"] == MUTED
         assert inks["Open Source Asset Pricing:"] == ACCENT
         assert inks[before.labels[-1]] == ACCENT
         assert inks[before.labels[-2]] == GOOD
         for text in ("Heston and Sadka printed", "1965 to 2002, their sample"):
-            assert inks[text] == whiteboard.INK, text
+            assert inks[text] == INK, text
 
     def test_the_printed_bar_sits_above_the_projects_two(self, osap) -> None:
         """Heston and Sadka's bar on top, then the project's heading and its two bars."""
@@ -3192,7 +3193,7 @@ class TestTheSection2Sketches:
             return sketches.OSAP_X0 + value * per
 
         for gid, value, colour in (
-            ("printed", figures.printed, whiteboard.INK),
+            ("printed", figures.printed, INK),
             ("sample", figures.sample, ACCENT),
             ("prior", figures.before, ACCENT),
         ):
@@ -3248,7 +3249,7 @@ class TestTheSection2Sketches:
         assert "a brown bar for “1965 to 2002, their sample”" in alt
         assert "A second brown bar, “1965 to 2001, before Chan’s 2002”" in alt
         assert [_fill(before, gid).color for gid in ("printed", "sample", "prior")] == [
-            whiteboard.INK,
+            INK,
             ACCENT,
             ACCENT,
         ]
@@ -3348,26 +3349,26 @@ class TestTheDeltaSketches:
     def test_each_mark_is_in_the_ink_its_meaning_calls_for(self, delta) -> None:
         scatter, shortcut, bracket = delta
         for scene, gid, ink, dashed in (
-            (scatter, "null", whiteboard.MUTED, False),
+            (scatter, "null", MUTED, False),
             (scatter, "bar", LOST, True),
             (scatter, "null-tail", LOST, False),
             (scatter, "moved", ACCENT, False),
             (scatter, "moved-tail", GOOD, False),
-            (scatter, "shift", whiteboard.INK, False),
+            (scatter, "shift", INK, False),
             (shortcut, "curve", ACCENT, False),
             (shortcut, "centre", ACCENT, True),
             (shortcut, "bar", LOST, True),
             (shortcut, "miss", LOST, False),
             (shortcut, "clear", GOOD, False),
-            (shortcut, "gap", whiteboard.INK, False),
-            (bracket, "power", whiteboard.INK, False),
+            (shortcut, "gap", INK, False),
+            (bracket, "power", INK, False),
             (bracket, "target", ACCENT, True),
             (bracket, "found", ACCENT, True),
         ):
             stroke = _stroke(scene, gid)
             assert (stroke.color, stroke.dashed) == (ink, dashed), (scene.slug, gid)
         spans = [s for s in bracket.strokes if s.gid.startswith("bracket-")]
-        assert [s.color for s in spans] == [whiteboard.MUTED, whiteboard.MUTED, ACCENT]
+        assert [s.color for s in spans] == [MUTED, MUTED, ACCENT]
         for scene, text, ink in (
             (scatter, "1.652, the 5% bar", LOST),
             (scatter, "clears it 5% of the time", LOST),
@@ -3516,7 +3517,7 @@ class TestTheDeltaSketches:
         scatter, shortcut, bracket = delta
         text = POST.read_text(encoding="utf-8")
         alt = _alt(text, scatter)
-        assert "a grey scatter" in alt and _stroke(scatter, "null").color == whiteboard.MUTED
+        assert "a grey scatter" in alt and _stroke(scatter, "null").color == MUTED
         assert "a red dashed line marks “1.652, the 5% bar”" in alt
         assert "the thin tail past the line is shaded red" in alt
         assert "slid right by an arrow labelled “δ = 2.494”" in alt
@@ -3525,7 +3526,7 @@ class TestTheDeltaSketches:
         assert _stroke(shortcut, "bar").color == LOST
         alt = _alt(text, shortcut)
         assert "A brown normal curve" in alt and "A black bracket" in alt
-        assert _stroke(shortcut, "gap").color == whiteboard.INK
+        assert _stroke(shortcut, "gap").color == INK
         alt = _alt(text, bracket)
         assert "A black curve" in alt and "a brown dashed line" in alt
         assert "three brackets" in alt and len(sketches.BRACKET_ROWS) == 3
@@ -3621,17 +3622,17 @@ class TestTheBroaderSeriesSketches:
     def test_each_mark_is_in_the_ink_its_meaning_calls_for(self, broad) -> None:
         before_after, together, running = broad
         assert _stroke(running, "theirs").color == ACCENT
-        assert _stroke(running, "ours").color == whiteboard.INK
-        assert _stroke(running, "zero").color == whiteboard.MUTED
+        assert _stroke(running, "ours").color == INK
+        assert _stroke(running, "zero").color == MUTED
         assert _labelled(running, "Open Source Asset Pricing’s series").color == ACCENT
         assert [_fill(before_after, gid).color for gid in ("before", "after")] == [ACCENT, ACCENT]
         for gid in ("before-error", "after-error", "zero"):
-            ink = whiteboard.MUTED if gid == "zero" else whiteboard.INK
+            ink = MUTED if gid == "zero" else INK
             assert _stroke(before_after, gid).color == ink, gid
         assert _labelled(before_after, "1.31%").color == ACCENT
         assert _labelled(before_after, "0.12%").color == ACCENT
         months = _stroke(together, "months")
-        assert (months.color, months.dots > 0) == (whiteboard.INK, True)
+        assert (months.color, months.dots > 0) == (INK, True)
         assert _labelled(together, "correlation 0.59").color == GOOD
         assert _labelled(together, "Open Source Asset Pricing’s month").color == ACCENT
 

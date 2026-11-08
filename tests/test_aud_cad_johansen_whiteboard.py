@@ -42,11 +42,24 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import BRASS_INKS
+from ithildincore.palette import GREEN_TINT as TINT
+from ithildincore.palette import RED_TINT as REJECT_TINT
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+)
 from PIL import Image
 
 from chan import aud_cad_johansen as johansen
 from chan import aud_cad_johansen_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.aud_cad_johansen import aud_cad, cross_rates, read_sources
 from chan.aud_cad_johansen_whiteboard import (
     AXIS_Y,
@@ -70,18 +83,6 @@ from chan.aud_cad_johansen_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    REJECT_TINT,
-    TINT,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-)
 
 POST = REPO_ROOT / "blog" / "aud-cad-johansen-lessons.md"
 
@@ -247,9 +248,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -595,7 +596,7 @@ class TestTheCommittedGifs:
     def test_each_carries_the_shared_inks_the_chart_draws_in(self) -> None:
         """The post has not moved to chan.palette, so neither have its sketches."""
         for name in GIFS:
-            assert _gif_palette(FIGURES_DIR / name) == _ink_palette(whiteboard.INKS), name
+            assert _gif_palette(FIGURES_DIR / name) == _ink_palette(BRASS_INKS), name
 
 
 class TestThePost:
@@ -683,7 +684,7 @@ class TestTheCommand:
         assert sorted(path.name for path in tmp_path.iterdir()) == sorted(GIFS)
         assert capsys.readouterr().out.splitlines() == [f"wrote {tmp_path / name}" for name in GIFS]
         for name in GIFS:
-            assert _gif_palette(tmp_path / name) == _ink_palette(whiteboard.INKS), name
+            assert _gif_palette(tmp_path / name) == _ink_palette(BRASS_INKS), name
 
     def test_it_draws_the_runs_figures(self, monkeypatch, tmp_path, gifs) -> None:
         """``main`` reads its own figures, so its GIFs are the ones the run's figures draw."""
@@ -707,7 +708,7 @@ def _ink_palette(inks) -> list[int]:
 
 def _gif_palette(path) -> list[int]:
     with Image.open(path) as gif:
-        return gif.getpalette()[: len(_ink_palette(whiteboard.INKS))]
+        return gif.getpalette()[: len(_ink_palette(BRASS_INKS))]
 
 
 def test_the_band_ink_is_the_shared_red_not_the_palettes() -> None:
@@ -717,7 +718,7 @@ def test_the_band_ink_is_the_shared_red_not_the_palettes() -> None:
     assert REJECT_TINT != palette.REJECT_TINT
     assert np.allclose(
         matplotlib.colors.to_rgb(REJECT_TINT),
-        whiteboard._blend(LOST, whiteboard.BLENDS[-1]),
+        whiteboard.blend(LOST, whiteboard.BLENDS[-1]),
         atol=0.5 / 255,
     )
     assert sketches.REJECT_TINT is REJECT_TINT

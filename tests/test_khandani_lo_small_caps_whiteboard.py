@@ -44,12 +44,14 @@ import re
 
 import matplotlib
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT
+from ithildincore.whiteboard import HEIGHT, TITLE_MS, WIDTH, Frame, Label, clearances, hand_font
 from PIL import Image
 
 from chan import khandani_lo_mid_caps as mid_caps
 from chan import khandani_lo_small_caps as small_caps
 from chan import khandani_lo_small_caps_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.archive import ArchiveUnavailable
 from chan.fund_panel import PanelRefused
 from chan.khandani_lo_small_caps_whiteboard import (
@@ -66,15 +68,6 @@ from chan.khandani_lo_small_caps_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-)
 
 POST = REPO_ROOT / "blog" / "khandani-lo-small-caps-lessons.md"
 
@@ -192,9 +185,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -257,7 +250,7 @@ class TestTheScenes:
         tints = 0
         for scene in every:
             for fill in scene.fills:
-                assert fill.color == whiteboard.TINT
+                assert fill.color == GREEN_TINT
                 tints += 1
                 edges = [
                     s

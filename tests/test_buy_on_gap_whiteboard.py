@@ -40,10 +40,21 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    render,
+    timeline,
+)
 from PIL import Image
 
 from chan import buy_on_gap_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.buy_on_gap import drop_qualifiers, entry_spread, read_sources, trailing_average
 from chan.buy_on_gap_whiteboard import (
     AVERAGE_Y,
@@ -68,17 +79,6 @@ from chan.buy_on_gap_whiteboard import (
 from chan.palette import ACCENT, GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    render,
-    timeline,
-)
 from chan.vintage import VintageUnavailable
 
 POST = REPO_ROOT / "blog" / "buy-on-gap-lessons.md"
@@ -169,9 +169,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -628,9 +628,10 @@ class TestTheCommand:
     def test_drawing_with_no_out_dir_writes_the_committed_paths(self, monkeypatch, day) -> None:
         saved, inks = [], []
         monkeypatch.setattr(sketches, "read_gap_day", lambda: day)
+        # The module writes through ithildincore.whiteboard.write_gif, which
+        # draws with that module's render.
         monkeypatch.setattr(
-            sketches,
-            "render",
+            "ithildincore.whiteboard.render",
             lambda scene, frames, given: inks.append(given) or [Image.new("P", (1, 1))],
         )
         monkeypatch.setattr(Image.Image, "save", lambda self, path, **kw: saved.append(path))

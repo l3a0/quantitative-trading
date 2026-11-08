@@ -46,7 +46,7 @@ to sit above the open and below the dashed line, and the stock has to be the
 only one bought that day.
 
 The strokes, the timeline and the renderer are
-:mod:`chan.usdcad_tests_whiteboard`'s, so an edit there changes this GIF too,
+:mod:`ithildincore.whiteboard`'s, so an edit there changes this GIF too,
 and that module's docstring explains why two draws on one machine give the
 same bytes. Redraw it with::
 
@@ -59,6 +59,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+from ithildincore.whiteboard import Fill, Label, Scene, Stroke, timeline, write_gif
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import dot as _dot
+from ithildincore.whiteboard import hatched as _hatched
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
 
 from chan.buy_on_gap import (
     buy_on_gap,
@@ -71,20 +78,6 @@ from chan.matlab_helpers import backshift
 from chan.palette import ACCENT, GOOD, INKS, LOST, TINT
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import MUTED
-from chan.usdcad_tests_whiteboard import (
-    Fill,
-    Label,
-    Scene,
-    Stroke,
-    _arrow,
-    _box,
-    _dot,
-    _hatched,
-    _line,
-    _stroke,
-    render,
-    timeline,
-)
 from chan.vintage import VintageUnavailable
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
@@ -317,16 +310,7 @@ def make_buy_on_gap_whiteboards(
     paths = []
     for scene in scenes(day):
         frames = timeline(scene)
-        first, *rest = render(scene, frames, INKS)
-        path = folder / gif_name(scene)
-        first.save(
-            path,
-            save_all=True,
-            append_images=rest,
-            duration=[frame.ms for frame in frames],
-            loop=0,
-            optimize=False,
-        )
+        path = write_gif(scene, frames, folder / gif_name(scene), INKS)
         paths.append(path)
     return paths
 

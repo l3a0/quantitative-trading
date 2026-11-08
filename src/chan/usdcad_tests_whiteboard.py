@@ -88,48 +88,32 @@ false. Four scenes refuse such a run rather than draw it.
 4. Leaning, not crossing, whose title says each statistic sits on the
    reverting side of a random walk short of the line that would reject.
 
-:func:`scenes` describes every stroke, tint and label as data,
-:func:`timeline` orders one scene's steps into frames, and :func:`render`
-draws them. A test reads the first two without drawing anything. A tint is a
-flat rectangle drawn beneath every stroke, and only Lesson 3's two scenes have
-any: the ±1 SD band in both, and the gauges' reject zones. A
-label always appears after the stroke or tint it names, and each GIF holds on
-its finished drawing for :data:`HOLD_MS` before it loops. :func:`clearances`
-measures how far each label and title sits from the nearest stroke or tint on
-the finished drawing, so a test can hold that no label touches a line it does
-not name and none sits on a tint.
-
-The sketch is deterministic. Matplotlib's path sketch adds the same wobble on
-every draw, which two draws in separate processes confirmed byte for byte when
-this module was written. The palette is fixed rather than fitted to each
-frame, and nothing else here is random. So two draws on one machine give the
-same bytes, and a redraw with no change is a no-op diff. Pillow writes the
-GIFs, and it arrives as a dependency of matplotlib rather than as an entry of
-its own in ``pyproject.toml``.
-Another machine can differ, because the hand-drawn font is whichever of
-:data:`HAND_FONTS` is installed, with matplotlib's own DejaVu Sans as the
-fallback, and font rasterising varies across platforms. Redraw all fourteen with::
+:func:`scenes` describes every stroke, tint and label as data. The machinery
+that times, draws and checks them is :mod:`ithildincore.whiteboard`'s, which
+moved there from this module, so that every post here and ithildin-runtime's
+design docs draw with one implementation. That module's docstring says why two
+draws on one machine give the same bytes and why another machine can differ.
+A tint is a flat rectangle drawn beneath every stroke, and only Lesson 3's two
+scenes have any: the ±1 SD band in both, and the gauges' reject zones. A label
+always appears after the stroke or tint it names, and each GIF holds on its
+finished drawing for :data:`ithildincore.whiteboard.HOLD_MS` before it loops.
+:func:`gif_name` names each file. Redraw all fourteen with::
 
     uv run python -m chan.usdcad_tests_whiteboard
 
 This post's scenes draw in :mod:`chan.palette`'s berry, blue and vermilion,
 imported here as ``own``, and :func:`make_usdcad_tests_whiteboards` passes
-:data:`chan.palette.INKS` to :func:`render`. The module's own ``ACCENT``,
-``GOOD``, ``LOST``, :data:`INKS`, :data:`TINT` and :data:`REJECT_TINT`, and the
-default colours of :func:`palette`, :func:`render` and :func:`_dot`, stay the
-shared ones from :mod:`chan.regime_figure`. The posts that have not moved to
-:mod:`chan.palette` import those names or draw with those defaults, and
-``docs/design.md`` says why posts move one at a time.
+:data:`chan.palette.INKS` to :func:`ithildincore.whiteboard.write_gif`. The
+defaults of :func:`ithildincore.whiteboard.render` and
+:func:`ithildincore.whiteboard.dot` stay the brass set from
+:mod:`chan.regime_figure`. The posts that have not moved to
+:mod:`chan.palette` draw with those defaults, and ``docs/design.md`` says why
+posts move one at a time.
 
-Every other post's ``chan.*_whiteboard`` module draws its sketches with this
-module's strokes, timeline and renderer, so an edit to those changes their GIFs
-too. Redraw every set after one. This loop runs each module in ``src/chan``
-whose name ends in ``_whiteboard``, so a new post joins it without an edit
-here. :mod:`chan.equity_seasonals_whiteboard` needs the owner's archive for
-fifteen of its thirty-nine GIFs and :mod:`chan.khandani_lo_small_caps_whiteboard`
-for one of its two, and each says so when it is missing::
-
-    for f in src/chan/*_whiteboard.py; do uv run python -m "chan.$(basename "$f" .py)"; done
+Every post's ``chan.*_whiteboard`` module draws with
+:mod:`ithildincore.whiteboard`, so a change to the pin in ``pyproject.toml``
+can change every post's GIFs. The ``sketch-notes`` skill carries the loop that
+redraws them all.
 """
 
 from __future__ import annotations
@@ -139,19 +123,23 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-import matplotlib
 import numpy as np
 import pandas as pd
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-from matplotlib.font_manager import FontProperties, findfont
-from matplotlib.patches import Rectangle
-from PIL import Image
+from ithildincore.whiteboard import Fill, Label, Scene, Stroke, timeline, write_gif
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import check as _check
+from ithildincore.whiteboard import curve as _curve
+from ithildincore.whiteboard import dot as _dot
+from ithildincore.whiteboard import hatched as _hatched
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import span as _span
+from ithildincore.whiteboard import stroke as _stroke
 from scipy.stats import norm
 
 from chan import palette as own
 from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.regime_figure import INK, MUTED
 from chan.series import WindowCrossesScaleBreak
 from chan.stationarity_tests import VRATIO_ALPHA
 from chan.usdcad_hurst_noise import (
@@ -176,162 +164,19 @@ from chan.vintage import VintageEntry, VintageUnavailable
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "usdcad_tests_"
 
+
+def gif_name(scene: Scene) -> str:
+    """The scene's file name, such as ``usdcad_tests_hurst.gif``."""
+    return f"{GIF_PREFIX}{scene.slug}.gif"
+
+
 #: The frame in pixels, and the figure size and dpi that give it.
 WIDTH, HEIGHT = 680, 320
-DPI = 100
 
-#: One drawing frame lasts this long, so strokes are drawn at 10 frames a second.
-FRAME_MS = 100
-#: A scene's title shows alone for this long before its first stroke.
-TITLE_MS = 400
-#: A label, or a tint, pops in on one frame that lasts this long.
-LABEL_MS = 350
-#: The finished drawing shows this long before the GIF loops back to its title.
-HOLD_MS = 4000
-
-BOARD = "#FFFFFF"
-#: The shared inks :func:`palette` and :func:`render` default to, for the posts
-#: that have not moved to :mod:`chan.palette`. A post that has moved passes
-#: :data:`chan.palette.INKS` instead. Each frame is mapped onto the inks and
-#: their blends with the white board, so every GIF carries one fixed palette
-#: rather than one fitted to every frame.
-INKS = (INK, MUTED, ACCENT, GOOD, LOST)
-BLENDS = (1.0, 0.8, 0.6, 0.4, 0.2)
-
-#: Hand-drawn fonts in order of preference. None is downloaded, so the first
-#: one installed is used, and matplotlib's own DejaVu Sans when none is.
-HAND_FONTS = ("Humor Sans", "Comic Neue", "Comic Sans MS")
-FALLBACK_FONT = "DejaVu Sans"
 
 #: The board's coordinates. Ten units across and 4.7 up keep a unit about as
 #: tall as it is wide at 680 by 320 pixels.
 XLIM, YLIM = (0.0, 10.0), (0.0, 4.7)
-
-
-@dataclass(frozen=True)
-class Stroke:
-    """A line drawn from its first point to its last over ``frames`` frames.
-
-    A stroke of one point is a dot, drawn in a single frame when ``frames`` is
-    1, as :func:`_dot` sets it. A stroke with a
-    ``dots`` size is a row of dots of that size in points, one on each of its
-    points and no line between them, revealed a few more on each frame.
-    """
-
-    gid: str
-    x: np.ndarray
-    y: np.ndarray
-    color: str = INK
-    width: float = 2.2
-    dashed: bool = False
-    frames: int = 8
-    dots: float = 0.0
-
-    @property
-    def points(self) -> int:
-        return len(self.x)
-
-
-@dataclass(frozen=True)
-class Fill:
-    """A flat rectangle of ``color`` from (x0, y0) to (x1, y1), a tint that
-    shades a region rather than a line that draws one.
-
-    It appears whole on one frame, like a label, and it sits beneath every
-    stroke, so a line drawn across it stays on top.
-    """
-
-    gid: str
-    x0: float
-    y0: float
-    x1: float
-    y1: float
-    color: str
-
-
-@dataclass(frozen=True)
-class Label:
-    """Text that appears at its own place in the scene's steps. ``names`` is the
-    stroke or tint before it that it labels, which the tests hold is drawn first."""
-
-    text: str
-    x: float
-    y: float
-    names: str
-    color: str = INK
-    ha: str = "left"
-    size: float = 13
-    math: bool = False
-
-
-@dataclass(frozen=True)
-class Scene:
-    """One scene: its title, the slug its GIF is named for, and its strokes,
-    tints and labels in drawing order."""
-
-    title: str
-    slug: str
-    steps: tuple[Stroke | Fill | Label, ...]
-
-    @property
-    def gif(self) -> str:
-        """The GIF's file name, such as ``usdcad_tests_hurst.gif``."""
-        return f"{GIF_PREFIX}{self.slug}.gif"
-
-    @property
-    def labels(self) -> list[str]:
-        return [step.text for step in self.steps if isinstance(step, Label)]
-
-    @property
-    def strokes(self) -> list[Stroke]:
-        return [step for step in self.steps if isinstance(step, Stroke)]
-
-    @property
-    def fills(self) -> list[Fill]:
-        return [step for step in self.steps if isinstance(step, Fill)]
-
-
-@dataclass(frozen=True)
-class Frame:
-    """One GIF frame: the steps ``scene.steps[:done]`` are complete, and when
-    ``partial`` is above zero the stroke at ``done`` shows that many points."""
-
-    done: int
-    partial: int
-    ms: int
-
-
-def _line(points: Sequence[tuple[float, float]], per_unit: float = 6.0) -> tuple:
-    """The polyline through ``points``, with points added along each segment
-    so it can be revealed a little at a time. A segment gets points in
-    proportion to its length, and each corner is kept exactly."""
-    xs, ys = [points[0][0]], [points[0][1]]
-    for (x0, y0), (x1, y1) in zip(points, points[1:], strict=False):
-        steps = max(1, math.ceil(math.hypot(x1 - x0, y1 - y0) * per_unit))
-        t = np.arange(1, steps + 1) / steps
-        xs.extend(x0 + (x1 - x0) * t)
-        ys.extend(y0 + (y1 - y0) * t)
-    return np.array(xs), np.array(ys)
-
-
-def _curve(x: np.ndarray, y: np.ndarray) -> tuple:
-    return np.asarray(x, dtype=float), np.asarray(y, dtype=float)
-
-
-def _arrow(x0: float, y0: float, x1: float, y1: float) -> tuple:
-    """A shaft from (x0, y0) to (x1, y1) with a two-stroke head at the end."""
-    angle, head = math.atan2(y1 - y0, x1 - x0), 0.22
-    left = (x1 - head * math.cos(angle - 0.5), y1 - head * math.sin(angle - 0.5))
-    right = (x1 - head * math.cos(angle + 0.5), y1 - head * math.sin(angle + 0.5))
-    return _line([(x0, y0), (x1, y1), left, (x1, y1), right])
-
-
-def _stroke(gid: str, xy: tuple, **style) -> Stroke:
-    return Stroke(gid, xy[0], xy[1], **style)
-
-
-def _dot(gid: str, x: float, y: float, color: str = ACCENT) -> Stroke:
-    return Stroke(gid, np.array([x]), np.array([y]), color=color, frames=1)
 
 
 def _path(x: np.ndarray) -> np.ndarray:
@@ -557,37 +402,6 @@ def _linear_rule(lookback: int, closes: int) -> Scene:
             ),
         ),
     )
-
-
-def _box(x0: float, y0: float, x1: float, y1: float) -> tuple:
-    """A rectangle drawn from its lower left corner, counterclockwise."""
-    return _line([(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)])
-
-
-def _span(x0: float, x1: float, y: float, tick: float = 0.13) -> tuple:
-    """A bar from ``x0`` to ``x1`` at height ``y``, with an upright tick at each end."""
-    return _line([(x0, y + tick), (x0, y - tick), (x0, y), (x1, y), (x1, y + tick), (x1, y - tick)])
-
-
-def _check(x: float, y: float) -> tuple:
-    """A check mark whose short stroke starts at (x, y)."""
-    return _line([(x, y), (x + 0.1, y - 0.13), (x + 0.32, y + 0.2)], per_unit=10)
-
-
-def _hatched(x0: float, y0: float, x1: float, y1: float) -> tuple:
-    """A rectangle shaded with parallel diagonals, drawn as one stroke.
-
-    After the outline, the pen climbs one diagonal, steps along the top edge,
-    comes down the next diagonal parallel to the first, and steps along the
-    bottom edge, so every move between diagonals retraces the outline.
-    """
-    rise, gap = (y1 - y0) / 2, 0.3
-    points = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
-    feet = np.arange(x0 + gap, x1 - rise, gap)
-    for k, foot in enumerate(feet):
-        diagonal = [(foot, y0), (foot + rise, y1)]
-        points += diagonal if k % 2 == 0 else diagonal[::-1]
-    return _line(points)
 
 
 def _signed(value: float, places: int) -> str:
@@ -1381,236 +1195,6 @@ def scenes(run: StationarityRun, measured: Spread) -> tuple[Scene, ...]:
     )
 
 
-def timeline(scene: Scene) -> list[Frame]:
-    """Every frame of one scene's GIF in order, with how long each one shows.
-
-    The GIF opens on the scene's title alone. A stroke takes its ``frames``
-    frames, each showing a longer prefix of its points, and a tint or a label
-    takes one frame of :data:`LABEL_MS`. The last frame, the finished drawing,
-    shows for :data:`HOLD_MS`, and then the GIF loops.
-    """
-    frames = [Frame(0, 0, TITLE_MS)]
-    for done, step in enumerate(scene.steps):
-        if not isinstance(step, Stroke):
-            frames.append(Frame(done + 1, 0, LABEL_MS))
-            continue
-        for k in range(1, step.frames + 1):
-            shown = math.ceil(step.points * k / step.frames)
-            if shown == step.points:
-                frames.append(Frame(done + 1, 0, FRAME_MS))
-            else:
-                frames.append(Frame(done, max(shown, 2), FRAME_MS))
-    last = frames[-1]
-    frames[-1] = Frame(last.done, last.partial, HOLD_MS)
-    return frames
-
-
-def hand_font() -> str:
-    """The first of :data:`HAND_FONTS` installed here, or DejaVu Sans."""
-    for family in HAND_FONTS:
-        try:
-            findfont(FontProperties(family=family), fallback_to_default=False)
-        except ValueError:
-            continue
-        return family
-    return FALLBACK_FONT
-
-
-def _style() -> dict:
-    """Matplotlib settings for the hand-drawn look, ``plt.xkcd`` without pyplot.
-
-    The sketch wobbles every path. DejaVu Sans follows the hand font in the
-    family list, so a glyph the hand font lacks, such as λ, falls back to it
-    rather than to an empty box.
-    """
-    font = hand_font()
-    return {
-        "path.sketch": (1.0, 100.0, 2.0),
-        "font.family": [font] if font == FALLBACK_FONT else [font, FALLBACK_FONT],
-        "lines.solid_capstyle": "round",
-        "lines.solid_joinstyle": "round",
-        "lines.dash_capstyle": "round",
-        "text.parse_math": False,
-    }
-
-
-def _blend(ink: str, blend: float) -> np.ndarray:
-    """``ink`` laid on the white board at ``blend``, as RGB from 0 to 1."""
-    board = np.array(matplotlib.colors.to_rgb(BOARD))
-    return blend * np.array(matplotlib.colors.to_rgb(ink)) + (1 - blend) * board
-
-
-def palette(inks: Sequence[str] = INKS) -> Image.Image:
-    """The GIF's palette as an image Pillow can quantize against: white, then
-    each of ``inks`` at each blend with white. A post that draws in its own
-    inks passes them, and every other post keeps this module's."""
-    colours = [np.array(matplotlib.colors.to_rgb(BOARD))]
-    for ink in inks:
-        colours += [_blend(ink, blend) for blend in BLENDS]
-    flat = [round(255 * channel) for colour in colours for channel in colour]
-    holder = Image.new("P", (1, 1))
-    holder.putpalette(flat + flat[:3] * (256 - len(colours)))
-    return holder
-
-
-#: A band's tint for the posts that still draw in the shared inks: their green
-#: at the palette's lightest blend with the board. Being a colour the palette
-#: already holds, it adds none, so those GIFs' palettes, and their bytes, stay
-#: as they were. This post's own scenes use :data:`chan.palette.TINT`.
-TINT = matplotlib.colors.to_hex(_blend(GOOD, BLENDS[-1]))
-#: A reject zone's tint in the shared inks: their red at the same blend, so it
-#: adds no colour to the palette either. This post's own gauges use
-#: :data:`chan.palette.REJECT_TINT`.
-REJECT_TINT = matplotlib.colors.to_hex(_blend(LOST, BLENDS[-1]))
-
-
-def _board(scene: Scene) -> tuple[FigureCanvasAgg, list]:
-    """A canvas holding the scene's title, and one artist for each step, every
-    stroke empty and every tint and label hidden. The title is the last artist.
-
-    A tint is a rectangle at zorder 1, beneath the strokes' 2, so it is drawn
-    first whatever order the steps come in.
-    """
-    fig = Figure(figsize=(WIDTH / DPI, HEIGHT / DPI), dpi=DPI)
-    fig.patch.set_facecolor(BOARD)
-    canvas = FigureCanvasAgg(fig)
-    ax = fig.add_axes((0, 0, 1, 1))
-    ax.set_xlim(*XLIM)
-    ax.set_ylim(*YLIM)
-    ax.set_axis_off()
-    artists = []
-    for step in scene.steps:
-        if isinstance(step, Stroke):
-            (line,) = ax.plot([], [], color=step.color, lw=step.width, gid=step.gid)
-            if step.dashed:
-                line.set_linestyle((0, (4, 3)))
-            if step.points == 1 or step.dots:
-                line.set_linestyle("none")
-                line.set_marker("o")
-                line.set_markersize(step.dots or 9)
-            artists.append(line)
-        elif isinstance(step, Fill):
-            artists.append(
-                ax.add_patch(
-                    Rectangle(
-                        (step.x0, step.y0),
-                        step.x1 - step.x0,
-                        step.y1 - step.y0,
-                        facecolor=step.color,
-                        edgecolor="none",
-                        zorder=1,
-                        gid=step.gid,
-                        visible=False,
-                    )
-                )
-            )
-        else:
-            text = ax.text(
-                step.x,
-                step.y,
-                step.text,
-                color=step.color,
-                fontsize=step.size,
-                ha=step.ha,
-                va="center",
-                parse_math=step.math,
-                visible=False,
-            )
-            artists.append(text)
-    title = ax.text(0.3, 4.3, scene.title, color=INK, fontsize=16, fontweight="bold", va="center")
-    return canvas, artists + [title]
-
-
-def _show(scene: Scene, artists: Sequence, frame: Frame) -> None:
-    for index, (step, artist) in enumerate(zip(scene.steps, artists, strict=False)):
-        if not isinstance(step, Stroke):
-            artist.set_visible(index < frame.done)
-            continue
-        shown = step.points if index < frame.done else 0
-        if index == frame.done:
-            shown = frame.partial
-        artist.set_data(step.x[:shown], step.y[:shown])
-
-
-def render(scene: Scene, frames: Sequence[Frame], inks: Sequence[str] = INKS) -> list[Image.Image]:
-    """Draw every frame of one scene, each mapped onto :func:`palette` of ``inks``."""
-    colours = palette(inks)
-    images = []
-    with matplotlib.rc_context(_style()):
-        canvas, artists = _board(scene)
-        for frame in frames:
-            _show(scene, artists, frame)
-            canvas.draw()
-            rgb = Image.fromarray(np.asarray(canvas.buffer_rgba())[..., :3])
-            images.append(rgb.quantize(palette=colours, dither=Image.Dither.NONE))
-    return images
-
-
-def clearances(scene: Scene) -> dict[str, float]:
-    """How far each label, and the title, sits from the nearest stroke or
-    tint on the finished drawing, in pixels. A text that appears more than
-    once, such as each "round trip" of the opening scene, reports its nearest
-    copy.
-
-    A text's box is the one matplotlib lays it out in. A stroke is its points
-    with each segment filled in every pixel or so, and the distance is measured
-    to the edge of its ink, half its line width out from the line, or the
-    dot's radius for a dot. The wobble the sketch adds is not in the points,
-    so a label needs a few pixels to spare to stay clear of it on the board.
-
-    A tint counts the same as a stroke, measured to its rectangle's edge, and
-    a label over it reads zero. A label could stay readable over a pale tint,
-    but this keeps every label off it, so the tint never has to be checked
-    against the text it would sit behind.
-    """
-    with matplotlib.rc_context(_style()):
-        canvas, artists = _board(scene)
-        _show(scene, artists, Frame(len(scene.steps), 0, 0))
-        canvas.draw()
-        renderer = canvas.get_renderer()
-        to_pixels = artists[0].axes.transData
-        inks = []
-        for step in scene.strokes:
-            xy = to_pixels.transform(np.column_stack([step.x, step.y]))
-            if step.dots:
-                reach = step.dots * DPI / 72 / 2
-            elif step.points > 1:
-                gaps = np.hypot(*np.diff(xy, axis=0).T)
-                xy = np.vstack(
-                    [
-                        np.linspace(a, b, max(2, math.ceil(gap)), endpoint=False)
-                        for a, b, gap in zip(xy[:-1], xy[1:], gaps, strict=True)
-                    ]
-                    + [xy[-1:]]
-                )
-                reach = step.width * DPI / 72 / 2
-            else:
-                reach = 9 * DPI / 72 / 2
-            inks.append((xy, reach))
-        tints = [
-            to_pixels.transform([(fill.x0, fill.y0), (fill.x1, fill.y1)]) for fill in scene.fills
-        ]
-        texts = [
-            (step.text, artist)
-            for step, artist in zip(scene.steps, artists, strict=False)
-            if isinstance(step, Label)
-        ] + [(scene.title, artists[-1])]
-        found = {}
-        for text, artist in texts:
-            box = artist.get_window_extent(renderer)
-            nearest = math.inf
-            for xy, reach in inks:
-                dx = np.maximum.reduce([box.x0 - xy[:, 0], xy[:, 0] - box.x1, np.zeros(len(xy))])
-                dy = np.maximum.reduce([box.y0 - xy[:, 1], xy[:, 1] - box.y1, np.zeros(len(xy))])
-                nearest = min(nearest, float(np.hypot(dx, dy).min()) - reach)
-            for (x0, y0), (x1, y1) in tints:
-                dx = max(box.x0 - x1, x0 - box.x1, 0.0)
-                dy = max(box.y0 - y1, y0 - box.y1, 0.0)
-                nearest = min(nearest, math.hypot(dx, dy))
-            found[text] = min(nearest, found.get(text, math.inf))
-    return found
-
-
 def make_usdcad_tests_whiteboards(
     out_dir: Path | None = None,
     sources: tuple[VintageEntry, pd.Series] | None = None,
@@ -1629,17 +1213,7 @@ def make_usdcad_tests_whiteboards(
     paths = []
     for scene in scenes(run, measured if measured is not None else spread(closes)):
         frames = timeline(scene)
-        first, *rest = render(scene, frames, own.INKS)
-        path = folder / scene.gif
-        first.save(
-            path,
-            save_all=True,
-            append_images=rest,
-            duration=[frame.ms for frame in frames],
-            loop=0,
-            optimize=False,
-        )
-        paths.append(path)
+        paths.append(write_gif(scene, frames, folder / gif_name(scene), own.INKS))
     return paths
 
 

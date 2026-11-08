@@ -38,7 +38,7 @@ rather than drawn. The two windows' dates are this module's choice, in
 :data:`TURN_DAYS` and :data:`DIVISOR_DAYS`.
 
 The strokes, the timeline and the renderer are
-:mod:`chan.usdcad_tests_whiteboard`'s, so an edit there changes these GIFs too,
+:mod:`ithildincore.whiteboard`'s, so an edit there changes these GIFs too,
 and that module's docstring explains why two draws on one machine give the
 same bytes. Each sketch carries more than a reader takes in at that post's
 pace, so both are in :data:`PACED`. Each GIF is named :data:`GIF_PREFIX` plus
@@ -57,23 +57,28 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+# Re-exported, because each post's tests read the pace from its module.
+from ithildincore.whiteboard import PACED_HOLD_MS as PACED_HOLD_MS
+from ithildincore.whiteboard import PACED_LABEL_MS as PACED_LABEL_MS
+from ithildincore.whiteboard import (
+    Frame,
+    Label,
+    Scene,
+    Stroke,
+    paced_timeline,
+    timeline,
+    write_gif,
+)
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import span as _span
+from ithildincore.whiteboard import stroke as _stroke
+
 from chan.bollinger import ENTRY_ZSCORE, EXIT_ZSCORE, example_three_two
 from chan.bollinger_figures import divided_by_n, zscore_divided_by_n
 from chan.paths import FIGURES_DIR
 from chan.price_spread import LOOKBACK, read_sources
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
-from chan.usdcad_tests_whiteboard import (
-    Frame,
-    Label,
-    Scene,
-    Stroke,
-    _line,
-    _span,
-    _stroke,
-    render,
-    timeline,
-)
 from chan.vintage import VintageUnavailable
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
@@ -581,23 +586,11 @@ def _two_divisors(run: BandRun) -> Scene:
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 PACED = ("one_close", "two_divisors")
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
-    frames = timeline(scene)
-    if scene.slug not in PACED:
-        return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = paced[-1]
-    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return paced
+    return paced_timeline(scene) if scene.slug in PACED else timeline(scene)
 
 
 def scenes(run: BandRun | None = None) -> tuple[Scene, ...]:
@@ -613,16 +606,7 @@ def draft() -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

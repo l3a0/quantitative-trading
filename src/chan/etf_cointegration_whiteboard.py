@@ -29,9 +29,9 @@ paragraph it draws.
    the other, and relation 2 is long both. Their lengths and angles are
    schematic.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied: its strokes, labels, timeline and renderer, so these GIFs share
-that post's look, frame rate and pace. The colours are :mod:`chan.palette`'s
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share: its strokes, labels, timeline and renderer, so these GIFs share
+their look, frame rate and pace. The colours are :mod:`chan.palette`'s
 berry, blue and vermilion rather than that post's brass, green and red, so the
 renderer is handed :data:`chan.palette.INKS`, without which every frame would
 be mapped onto the old colours. Only the scenes and the file names are this
@@ -48,21 +48,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+from ithildincore.whiteboard import Label, Scene, timeline, write_gif
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
+
 from chan.etf_cointegration import EtfCointegration, etf_cointegration, read_sources
 from chan.johansen import LEVELS
 from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import MUTED
-from chan.usdcad_tests_whiteboard import (
-    Label,
-    Scene,
-    _arrow,
-    _box,
-    _line,
-    _stroke,
-    render,
-    timeline,
-)
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "etf_cointegration_"
@@ -296,16 +292,7 @@ def scenes(stack: TraceStack) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = timeline(scene)
-    first, *rest = render(scene, frames, INKS)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene), INKS)
     return path
 
 

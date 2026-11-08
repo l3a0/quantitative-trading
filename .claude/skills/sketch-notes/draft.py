@@ -11,8 +11,9 @@ file's folder on ``PYTHONPATH``.
 
 For each scene it writes the GIF and its last frame as a PNG into ``DIR``, which
 must lie outside ``docs/figures``, and prints every rule the scene breaks. The
-layout rules run in the hand font and again in the fallback font, and they are
-the ones the sketch tests hold.
+checks are :func:`ithildincore.whiteboard.draft`'s, the same functions the
+sketch tests and every other repository's call, so a rule changes in one place.
+The layout rules run in the hand font and again in the fallback font.
 
 1. A label or the title sits at least 10 pixels from every stroke and tint.
 2. A label or the title sits at least 5 pixels inside the board.
@@ -25,21 +26,25 @@ the ones the sketch tests hold.
    needs ``frames=1``. This is stricter than the tests' own check, which
    allows as many points as frames.
 6. A scene draws in one palette. Its strokes, labels and tints use either the
-   shared brass, green and red of :mod:`chan.regime_figure` and the shared
-   tints of :mod:`chan.usdcad_tests_whiteboard`, or the berry, blue, vermilion
-   and tints of :mod:`chan.palette`, never both. The ink and the grey belong
-   to both. A helper whose colour defaults to the shared brass, such as
-   ``_dot``, leaves a mark of the old palette in a scene that has moved, and
-   the renderer maps it onto the nearest new ink, which is the grey.
+   brass, green and red of :mod:`chan.regime_figure` and their tints, or the
+   berry, blue, vermilion and tints of :mod:`chan.palette`, never both. The ink
+   and the grey belong to both. A helper whose colour defaults to the brass,
+   such as ``_dot``, leaves a mark of the old palette in a scene that has
+   moved, and the renderer maps it onto the nearest new ink, which is the grey.
 
-A post has moved when ``MODULE`` holds :data:`chan.palette.INKS` or the
-:mod:`chan.palette` module itself, when ``--palette`` says so, or when a scene
-uses any of :mod:`chan.palette`'s own colours. The GIF is drawn the way the
-post's module draws its committed GIFs: on :data:`chan.palette.INKS` for a
-post that has moved, and on the shared inks otherwise. In a post that has
-moved, any shared colour breaks rule 6, even in a scene with no other colour.
-Pass ``--palette`` when ``MODULE`` is a scratch file that builds a moved post's
-scene, since such a file need not import :mod:`chan.palette`.
+What stays here is what belongs to this repository: the refusal to draft into
+``docs/figures``, and the reading of whether a post has moved to the new
+colours. A post has moved when ``MODULE`` holds :data:`chan.palette.INKS`, the
+:mod:`chan.palette` module itself or :mod:`ithildincore.palette`, when
+``--palette`` says so, or when a scene uses any of :mod:`chan.palette`'s own
+colours. The GIF is drawn the way the post's module draws its committed GIFs:
+on :data:`chan.palette.INKS` for a post that has moved, and on the brass inks
+otherwise. In a post that has moved, any brass colour breaks rule 6, even in a
+scene with no other colour. Pass ``--palette`` when ``MODULE`` is a scratch file
+that builds a moved post's scene, since such a file need not import
+:mod:`chan.palette`. ``--paced`` draws on
+:func:`ithildincore.whiteboard.paced_timeline`, which every post module's
+``sketch_timeline`` uses for its ``PACED`` scenes.
 
 A scene that breaks none prints ``ok``. The script exits 1 when any scene
 breaks a rule, so a caller can act on the result.
@@ -49,83 +54,21 @@ from __future__ import annotations
 
 import argparse
 import importlib
-import math
 import os
 import sys
 from pathlib import Path
 
-import matplotlib
-from matplotlib.colors import to_hex
-from PIL import Image
+import ithildincore.palette
+from ithildincore.whiteboard import draft
 
-from chan import palette, regime_figure
-from chan import usdcad_tests_whiteboard as wb
+from chan import palette
 from chan.paths import FIGURES_DIR
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    WIDTH,
-    Fill,
-    Frame,
-    Label,
-    Scene,
-    Stroke,
-    clearances,
-    render,
-)
-
-CLEAR_PX, INSIDE_PX, APART_LABELS_PX = 10, 5, 4
-#: The slower pacing for a sketch a reader finds too fast: each label or tint
-#: shows 900 ms instead of 350, and the finished drawing holds 12 seconds
-#: instead of 4. ``chan.equity_seasonals_whiteboard`` paces its ``PACED`` list
-#: the same way.
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
-
-
-#: The colours that mark a scene as drawn in one palette or the other. The ink
-#: and the grey belong to both, so they decide nothing.
-SHARED_COLOURS = {
-    to_hex(c)
-    for c in (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST, wb.TINT, wb.REJECT_TINT)
-}
-PALETTE_COLOURS = {
-    to_hex(c)
-    for c in (palette.ACCENT, palette.GOOD, palette.LOST, palette.TINT, palette.REJECT_TINT)
-}
 
 
 def has_moved(module: object) -> bool:
     """Whether ``module`` draws in :mod:`chan.palette`, read from what it imports."""
-    return any(value is palette or value is palette.INKS for value in vars(module).values())
-
-
-def inks_for(scene: Scene, moved: bool = False) -> tuple[tuple[str, ...], list[str]]:
-    """Rule 6: the inks the scene is drawn on, and the problem when a post that
-    has moved keeps a shared colour. ``moved`` says the post has moved, and a
-    scene using any of :mod:`chan.palette`'s own colours says so too."""
-    used = {to_hex(step.color) for step in scene.steps}
-    shared = sorted(used & SHARED_COLOURS)
-    if not (moved or used & PALETTE_COLOURS):
-        return wb.INKS, []
-    left = [
-        f"keeps the shared {', '.join(shared)} in a post drawn in chan.palette, "
-        "which the renderer maps onto the nearest new ink"
-    ]
-    return palette.INKS, left if shared else []
-
-
-def frames_for(scene: Scene, paced: bool) -> list[Frame]:
-    frames = wb.timeline(scene)
-    if not paced:
-        return frames
-    frames = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = frames[-1]
-    frames[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return frames
+    marks = (palette, ithildincore.palette, palette.INKS)
+    return any(any(value is mark for mark in marks) for value in vars(module).values())
 
 
 def inside_figures(out: Path) -> bool:
@@ -140,88 +83,6 @@ def inside_figures(out: Path) -> bool:
         place.exists() and os.path.samefile(place, FIGURES_DIR)
         for place in (target, *target.parents)
     )
-
-
-def boxes(scene: Scene) -> list:
-    """Each visible text on the finished drawing with its box in pixels."""
-    with matplotlib.rc_context(wb._style()):
-        canvas, artists = wb._board(scene)
-        wb._show(scene, artists, Frame(len(scene.steps), 0, 0))
-        canvas.draw()
-        renderer = canvas.get_renderer()
-        return [
-            (artist.get_text(), artist.get_window_extent(renderer))
-            for artist in artists
-            if hasattr(artist, "get_text") and artist.get_visible()
-        ]
-
-
-def layout_problems(scene: Scene) -> list[str]:
-    """Rules 1 to 4, each layout rule checked in every font the board can fall back to."""
-    found = []
-    seen: set[str] = set()
-    for step in scene.steps:
-        if isinstance(step, Label) and step.names not in seen:
-            found.append(f"label {step.text!r} names {step.names!r}, which is not drawn before it")
-        if isinstance(step, (Stroke, Fill)):
-            seen.add(step.gid)
-    original = wb.hand_font
-    fonts = [original()]
-    if fonts[0] != wb.FALLBACK_FONT:
-        fonts.append(wb.FALLBACK_FONT)
-    try:
-        for font in fonts:
-            wb.hand_font = (lambda: wb.FALLBACK_FONT) if font == wb.FALLBACK_FONT else original
-            for text, gap in clearances(scene).items():
-                if gap < CLEAR_PX:
-                    found.append(f"{font}: {text!r} is {gap:.1f} px from a stroke")
-            laid = boxes(scene)
-            for text, box in laid:
-                inside = min(box.x0, box.y0, WIDTH - box.x1, HEIGHT - box.y1)
-                if inside < INSIDE_PX:
-                    found.append(f"{font}: {text!r} is {inside:.1f} px inside the board")
-            for k, (one, a) in enumerate(laid):
-                for other, b in laid[k + 1 :]:
-                    gap = math.hypot(
-                        max(a.x0 - b.x1, b.x0 - a.x1, 0.0), max(a.y0 - b.y1, b.y0 - a.y1, 0.0)
-                    )
-                    if gap < APART_LABELS_PX:
-                        found.append(f"{font}: {one!r} and {other!r} are {gap:.1f} px apart")
-    finally:
-        wb.hand_font = original
-    return found
-
-
-def frame_problems(scene: Scene, timeline_frames: int, gif: Path) -> list[str]:
-    """Rule 5: the strokes that will merge frames, and whether the written GIF lost any."""
-    found = [
-        f"stroke {step.gid}: {step.frames} frames for {step.points} points"
-        for step in scene.strokes
-        if step.frames > 1 and step.frames >= step.points
-    ]
-    with Image.open(gif) as image:
-        written = image.n_frames
-    if written != timeline_frames:
-        found.append(f"the GIF holds {written} frames where the timeline has {timeline_frames}")
-    return found
-
-
-def draft(scene: Scene, out: Path, paced: bool, moved: bool = False) -> list[str]:
-    """Write one scene's GIF and last frame into ``out``, and return the rules it breaks."""
-    frames = frames_for(scene, paced)
-    inks, mixed = inks_for(scene, moved)
-    images = render(scene, frames, inks)
-    gif = out / f"{scene.slug}.gif"
-    images[0].save(
-        gif,
-        save_all=True,
-        append_images=images[1:],
-        duration=[f.ms for f in frames],
-        loop=0,
-        optimize=False,
-    )
-    images[-1].convert("RGB").save(out / f"{scene.slug}_last.png")
-    return mixed + frame_problems(scene, len(frames), gif) + layout_problems(scene)
 
 
 def main(argv: list[str] | None = None) -> int:

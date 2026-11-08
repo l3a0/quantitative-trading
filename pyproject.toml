@@ -12,8 +12,10 @@ requires-python = ">=3.12"
 # shares with the sibling trading-strategies repo, the Newey-West
 # significance block the risk-parity ranking rests on, and Khandani and Lo's
 # reversal weights with the MATLAB helpers they call, which ithildin-runtime
-# will run too. It pulls statsmodels
-# in, which is what actually does the arithmetic. numpy and pandas load and align
+# will run too. Its whiteboard extra adds the machinery every post's sketches
+# draw with and the inks they and the charts draw in, which ithildin-runtime's
+# design docs draw with too, and pulls matplotlib and Pillow in for them.
+# ithildincore pulls statsmodels in, which is what actually does the arithmetic. numpy and pandas load and align
 # the committed vintages. scipy supplies the t-distribution behind the
 # return-correlation significance test, and the filter chan.cpo runs Chan's
 # recursions through. scikit-learn supplies Example 7.1's boosted-tree model,
@@ -39,7 +41,7 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy>=2",
     "pandas>=2",
-    "ithildincore @ git+https://github.com/l3a0/ithildin-core@252c959a4b89866a93b9589347233889ff06b01a",
+    "ithildincore[whiteboard] @ git+https://github.com/l3a0/ithildin-core@93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348",
     "scipy>=1.13",
     "statsmodels>=0.14",
     "ta>=0.11.0",

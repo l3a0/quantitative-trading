@@ -42,11 +42,22 @@ import re
 import matplotlib
 import numpy as np
 import pytest
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import kalman_hedge
 from chan import kalman_hedge_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.kalman_hedge_whiteboard import (
     COLUMN_X,
     DOT_OFFSET,
@@ -64,17 +75,6 @@ from chan.kalman_hedge_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "kalman-hedge-lessons.md"
 
@@ -188,9 +188,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [

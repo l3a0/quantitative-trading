@@ -33,11 +33,23 @@ import re
 
 import matplotlib
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT, RED_TINT
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import build_board_whiteboard as sketches
 from chan import palette, regime_figure
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.build_board_whiteboard import (
     AFTER,
     BEFORE,
@@ -54,17 +66,6 @@ from chan.build_board_whiteboard import (
 from chan.palette import ACCENT, GOOD, LOST
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import INK, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "build-board-on-github-lessons.md"
 
@@ -130,9 +131,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -195,7 +196,7 @@ class TestTheScenes:
         """The sketch draws no tint today. One that does would need a blue edge
         like the green one the equity seasonals module's ``_tinted`` draws,
         since the tint alone stands 1.31 to 1 against the board."""
-        pale = {palette.TINT, palette.REJECT_TINT, whiteboard.TINT, whiteboard.REJECT_TINT}
+        pale = {palette.TINT, palette.REJECT_TINT, GREEN_TINT, RED_TINT}
         tints = [fill for scene in every for fill in scene.fills if fill.color in pale]
         assert tints == []
 

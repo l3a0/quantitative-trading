@@ -39,15 +39,9 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
-from PIL import Image
-
-from chan import usdcad_tests_whiteboard as whiteboard
-from chan import vx_calendar_spread_whiteboard as sketches
-from chan.calendar_spread_reversion import NUM_DAYS_END, calendar_schedule
-from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.roll_returns import MONTH_LETTERS, load_strip
-from chan.usdcad_tests_whiteboard import (
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT
+from ithildincore.whiteboard import (
     HEIGHT,
     HOLD_MS,
     TITLE_MS,
@@ -58,6 +52,13 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from PIL import Image
+
+from chan import vx_calendar_spread_whiteboard as sketches
+from chan.calendar_spread_reversion import NUM_DAYS_END, calendar_schedule
+from chan.paths import FIGURES_DIR, REPO_ROOT
+from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
+from chan.roll_returns import MONTH_LETTERS, load_strip
 from chan.vx_calendar_spread import SPREAD_MONTH, START, near_leg_rank
 from chan.vx_calendar_spread_whiteboard import (
     AXIS_X0,
@@ -183,9 +184,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -244,7 +245,7 @@ class TestTheScenes:
         2.1's 3 to 1 for a graphical object, so the one tint gets a green edge
         round all four sides."""
         assert sketches.TINT_EDGE >= 1.0
-        tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
+        tints = [fill for scene in every for fill in scene.fills if fill.color == GREEN_TINT]
         assert [fill.gid for fill in tints] == ["same"]
         scene = every[0]
         for fill in tints:

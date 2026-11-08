@@ -58,6 +58,15 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.dates as mdates
+
+# The essay palette, from the :root tokens in
+# docs/gld-gdx-cointegration-lessons.html, lives in ithildincore.palette, which
+# names this brass set BRASS, GREEN and RED. Here ACCENT is the hedge line, GOOD
+# the cointegrating windows and LOST the critical lines and the breakdown.
+from ithildincore.palette import BRASS as ACCENT
+from ithildincore.palette import GREEN as GOOD
+from ithildincore.palette import GROUND, INK, MUTED, RULE, SURFACE
+from ithildincore.palette import RED as LOST
 from ithildincore.timeseries import EG_CRIT_N2
 from matplotlib.figure import Figure
 
@@ -65,16 +74,6 @@ from chan.pair_cointegration import rolling_cointegration
 from chan.paths import FIGURES_DIR
 from chan.series import WindowCrossesScaleBreak, aligned_closes, vintage_line
 from chan.vintage import VintageUnavailable
-
-# Essay palette, from the :root tokens in docs/gld-gdx-cointegration-lessons.html.
-SURFACE = "#FEFDFA"  # figure ground
-GROUND = "#F7F5EF"  # axes ground
-INK = "#23201A"
-MUTED = "#6B6353"
-RULE = "#CFC8B4"
-ACCENT = "#8B651A"  # brass -- the hedge line (WCAG-AA against the cream ground)
-GOOD = "#4A7C59"  # green -- cointegrating windows
-LOST = "#A24C3C"  # red -- critical lines / breakdown
 
 REPRO_HEDGE = 1.6379  # the reproduced Chan through-origin hedge the essay quotes
 

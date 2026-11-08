@@ -37,8 +37,8 @@ as in the replication. The bars and ticks are to scale in trading days. Only
 the first sketch's row of dots is not, since 69 days 25 apart would run far
 past the board, and its label says so.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look, frame rate and colours.
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so these GIFs share their look, frame rate and colours.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
 longer and their finished drawings for twelve seconds, as
@@ -60,13 +60,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from numpy.typing import ArrayLike, NDArray
-
-from chan import tu_momentum as tu
-from chan.matlab_helpers import backshift, fwdshift
-from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, INK, MUTED
-from chan.usdcad_tests_whiteboard import (
+from ithildincore.whiteboard import (
     DPI,
     WIDTH,
     XLIM,
@@ -74,11 +68,22 @@ from chan.usdcad_tests_whiteboard import (
     Label,
     Scene,
     Stroke,
-    _line,
-    _stroke,
-    render,
+    paced_timeline,
     timeline,
+    write_gif,
 )
+
+# Re-exported, because each post's tests read the pace from its module.
+from ithildincore.whiteboard import PACED_HOLD_MS as PACED_HOLD_MS
+from ithildincore.whiteboard import PACED_LABEL_MS as PACED_LABEL_MS
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
+from numpy.typing import ArrayLike, NDArray
+
+from chan import tu_momentum as tu
+from chan.matlab_helpers import backshift, fwdshift
+from chan.paths import FIGURES_DIR
+from chan.regime_figure import ACCENT, INK, MUTED
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "tu_momentum_sketch_"
@@ -568,23 +573,11 @@ def _no_shared_day(figures: SaveFigures) -> Scene:
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
 #: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
 PACED = ("futures_tile", "no_shared_day")
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
-    frames = timeline(scene)
-    if scene.slug not in PACED:
-        return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = paced[-1]
-    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return paced
+    return paced_timeline(scene) if scene.slug in PACED else timeline(scene)
 
 
 def scenes(figures: SaveFigures | None = None) -> tuple[Scene, ...]:
@@ -598,16 +591,7 @@ def scenes(figures: SaveFigures | None = None) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

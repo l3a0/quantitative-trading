@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -224,11 +224,17 @@ wheels = [
 
 [[package]]
 name = "ithildincore"
-version = "0.4.0"
-source = { git = "https://github.com/l3a0/ithildin-core?rev=252c959a4b89866a93b9589347233889ff06b01a#252c959a4b89866a93b9589347233889ff06b01a" }
+version = "0.5.0"
+source = { git = "https://github.com/l3a0/ithildin-core?rev=93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348#93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348" }
 dependencies = [
     { name = "numpy" },
     { name = "statsmodels" },
+]
+
+[package.optional-dependencies]
+whiteboard = [
+    { name = "matplotlib" },
+    { name = "pillow" },
 ]
 
 [[package]]
@@ -724,7 +730,7 @@ name = "quantitative-trading"
 version = "0.0.0"
 source = { editable = "." }
 dependencies = [
-    { name = "ithildincore" },
+    { name = "ithildincore", extra = ["whiteboard"] },
     { name = "numpy" },
     { name = "pandas" },
     { name = "scikit-learn" },
@@ -743,7 +749,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ithildincore", git = "https://github.com/l3a0/ithildin-core?rev=252c959a4b89866a93b9589347233889ff06b01a" },
+    { name = "ithildincore", extras = ["whiteboard"], git = "https://github.com/l3a0/ithildin-core?rev=93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348" },
     { name = "numpy", specifier = ">=2" },
     { name = "pandas", specifier = ">=2" },
     { name = "scikit-learn", specifier = ">=1.9.1" },
