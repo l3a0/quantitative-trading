@@ -41,7 +41,7 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy>=2",
     "pandas>=2",
-    "ithildincore[whiteboard] @ git+https://github.com/l3a0/ithildin-core@93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348",
+    "ithildincore[whiteboard] @ git+https://github.com/l3a0/ithildin-core@a4094dbac15b4b605d83cb1859a02d705b4cf469",
     "scipy>=1.13",
     "statsmodels>=0.14",
     "ta>=0.11.0",

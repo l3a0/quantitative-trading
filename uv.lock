@@ -225,7 +225,7 @@ wheels = [
 [[package]]
 name = "ithildincore"
 version = "0.5.0"
-source = { git = "https://github.com/l3a0/ithildin-core?rev=93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348#93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348" }
+source = { git = "https://github.com/l3a0/ithildin-core?rev=a4094dbac15b4b605d83cb1859a02d705b4cf469#a4094dbac15b4b605d83cb1859a02d705b4cf469" }
 dependencies = [
     { name = "numpy" },
     { name = "statsmodels" },
@@ -749,7 +749,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ithildincore", extras = ["whiteboard"], git = "https://github.com/l3a0/ithildin-core?rev=93a1048e36dbb87b252dfdc16e0fbb6bd2b3d348" },
+    { name = "ithildincore", extras = ["whiteboard"], git = "https://github.com/l3a0/ithildin-core?rev=a4094dbac15b4b605d83cb1859a02d705b4cf469" },
     { name = "numpy", specifier = ">=2" },
     { name = "pandas", specifier = ">=2" },
     { name = "scikit-learn", specifier = ">=1.9.1" },
