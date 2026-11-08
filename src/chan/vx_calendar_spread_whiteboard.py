@@ -37,8 +37,8 @@ day. Every contract, place and count on the second comes from
 :class:`Shipped`, which reads the same schedule with the shipped
 ``spread_month`` of 12.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look and frame rate. They draw
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so these GIFs share their look and frame rate. They draw
 in the shared colours of :mod:`chan.regime_figure`, as the post's chart does.
 Each sketch carries more than a reader takes in at that post's pace, so both
 are in :data:`PACED`, and :func:`sketch_timeline` holds each of their labels
@@ -62,6 +62,22 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from ithildincore.palette import GREEN_TINT as TINT
+from ithildincore.whiteboard import (
+    PACED_HOLD_MS,
+    PACED_LABEL_MS,
+    Fill,
+    Frame,
+    Label,
+    Scene,
+    Stroke,
+    timeline,
+    write_gif,
+)
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import span as _span
+from ithildincore.whiteboard import stroke as _stroke
 
 from chan.calendar_spread_reversion import NUM_DAYS_END, calendar_schedule
 from chan.calendar_spread_reversion import SPREAD_MONTH as SHIPPED_SPREAD_MONTH
@@ -69,20 +85,6 @@ from chan.matlab_helpers import fwdshift
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.roll_returns import MONTH_LETTERS, load_strip
-from chan.usdcad_tests_whiteboard import (
-    TINT,
-    Fill,
-    Frame,
-    Label,
-    Scene,
-    Stroke,
-    _box,
-    _line,
-    _span,
-    _stroke,
-    render,
-    timeline,
-)
 from chan.vx_calendar_spread import ROOT, SPREAD_MONTH, near_leg_rank
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
@@ -620,9 +622,8 @@ def _twelve_apart(shipped: Shipped) -> Scene:
 #: in at the usual pace: a label longer than one letter shows on its own for
 #: :data:`PACED_LABEL_MS` and the finished drawing holds for
 #: :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("one_hold", "twelve_apart")
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
@@ -654,16 +655,7 @@ def scenes(hold: Hold | None = None, shipped: Shipped | None = None) -> tuple[Sc
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

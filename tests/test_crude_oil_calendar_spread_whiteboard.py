@@ -39,10 +39,22 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import GREEN_TINT
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import crude_oil_calendar_spread_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.calendar_spread_reversion import (
     HOLDDAYS,
     NUM_DAYS_END,
@@ -72,17 +84,6 @@ from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.price_spread import zscore
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
 from chan.roll_returns import load_strip, roll_returns
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 from tests.test_calendar_spread_reversion import VINTAGE, _month
 
 POST = REPO_ROOT / "blog" / "crude-oil-calendar-spread-lessons.md"
@@ -190,9 +191,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
@@ -250,7 +251,7 @@ class TestTheScenes:
         2.1's 3 to 1 for a graphical object, so the Lesson 2 sketch's one tint
         gets a green edge that runs along its top and bottom and spans it."""
         assert sketches.TINT_EDGE >= 1.0
-        tints = [fill for scene in every for fill in scene.fills if fill.color == whiteboard.TINT]
+        tints = [fill for scene in every for fill in scene.fills if fill.color == GREEN_TINT]
         assert [fill.gid for fill in tints] == ["high"]
         scene = every[1]
         for fill in tints:

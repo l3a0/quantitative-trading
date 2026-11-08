@@ -24,19 +24,20 @@ or a comment starts a run the same way. A "blocked by" link starts no run, so
 the box never says "link". The scheduled runs, the runs started by hand and
 the events that start no run are left out.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so this GIF shares that post's look and frame rate. Its colours
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so this GIF shares their look and frame rate. Its colours
 are :mod:`chan.palette`'s, which a colour-blind reader can tell apart, so
-:func:`render` maps each frame onto :data:`chan.palette.INKS`: vermilion for
+:func:`ithildincore.whiteboard.render` maps each frame onto :data:`chan.palette.INKS`: vermilion for
 the refusal and berry for the events GitHub records. Each coloured arrow also
 carries its own words, so colour is never the only cue. The sketch carries
 more than a reader takes in at that post's pace, so it is in :data:`PACED`,
 and :func:`sketch_timeline` holds each label longer and the finished drawing
 for twelve seconds, as :mod:`chan.equity_seasonals_whiteboard` does for its
 slow sketches. Only the scene, the choice to pace it and the file name are
-this module's. :func:`sketch_timeline` and the GIF writer are copied from
-:mod:`chan.equity_seasonals_whiteboard`, with :data:`chan.palette.INKS` passed
-to :func:`render`. The GIF is named :data:`GIF_PREFIX` plus the scene's slug.
+this module's. :func:`sketch_timeline` paces it with
+:func:`ithildincore.whiteboard.paced_timeline`, and
+:func:`ithildincore.whiteboard.write_gif` writes it on :data:`chan.palette.INKS`.
+The GIF is named :data:`GIF_PREFIX` plus the scene's slug.
 
 The sketch is deterministic for the reason that module gives, so a redraw
 with no change is a no-op diff. Redraw it with::
@@ -51,21 +52,26 @@ from pathlib import Path
 
 import numpy as np
 
-from chan.palette import ACCENT, INKS, LOST
-from chan.paths import FIGURES_DIR
-from chan.regime_figure import MUTED
-from chan.usdcad_tests_whiteboard import (
+# Re-exported, because each post's tests read the pace from its module.
+from ithildincore.whiteboard import PACED_HOLD_MS as PACED_HOLD_MS
+from ithildincore.whiteboard import PACED_LABEL_MS as PACED_LABEL_MS
+from ithildincore.whiteboard import (
     Frame,
     Label,
     Scene,
     Stroke,
-    _arrow,
-    _box,
-    _line,
-    _stroke,
-    render,
+    paced_timeline,
     timeline,
+    write_gif,
 )
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
+
+from chan.palette import ACCENT, INKS, LOST
+from chan.paths import FIGURES_DIR
+from chan.regime_figure import MUTED
 
 #: The scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "build_board_sketch_"
@@ -155,7 +161,7 @@ def _row(tag: str, row: Sequence[tuple[str, str, float]]) -> list[Stroke | Label
 
 def _bent_arrow(points: Sequence[tuple[float, float]]) -> tuple:
     """A polyline through ``points`` whose last segment is drawn by
-    :func:`chan.usdcad_tests_whiteboard._arrow`, so its head is that one."""
+    :func:`ithildincore.whiteboard.arrow`, so its head is that one."""
     body_x, body_y = _line(points[:-1])
     head_x, head_y = _arrow(*points[-2], *points[-1])
     return np.concatenate([body_x, head_x[1:]]), np.concatenate([body_y, head_y[1:]])
@@ -219,25 +225,13 @@ def _update_flow() -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("update_flow",)
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
-    frames = timeline(scene)
-    if scene.slug not in PACED:
-        return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = paced[-1]
-    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return paced
+    return paced_timeline(scene) if scene.slug in PACED else timeline(scene)
 
 
 def scenes() -> tuple[Scene, ...]:
@@ -247,16 +241,7 @@ def scenes() -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames, INKS)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene), INKS)
     return path
 
 

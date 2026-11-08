@@ -473,8 +473,8 @@ class TestTheReturn:
     def test_vermilion_falls_short_on_the_spell_band_and_clears_on_white(self, axes) -> None:
         """The 3.64 and 4.69 the ``LABEL_BOX`` comment quotes. The spell label sits
         on the band, which is ``LOST`` at its alpha over the axes' ground, and the
-        trough label straddles its right edge. ``tests/test_palette.py`` pins the
-        ground's 4.30."""
+        trough label straddles its right edge. ithildin-core's
+        ``tests/test_palette.py`` pins the ground's 4.30."""
         ax = axes["returns"]
         *band, alpha = _by_gid(ax.patches)["spell"].get_facecolor()
         ground = to_rgb(ax.get_facecolor())
@@ -485,7 +485,7 @@ class TestTheReturn:
     def test_every_vermilion_label_sits_on_a_white_box(self, axes) -> None:
         """``LOST`` reaches only 4.30 to 1 on the axes' darker ground and 3.64 on
         the spell band's tint, short of the 4.5 a label needs, and clears it on
-        white, as ``tests/test_palette.py`` pins for the ground and white. So
+        white, as ithildin-core's ``tests/test_palette.py`` pins for the ground and white. So
         every label drawn in it inside the axes carries an opaque white box.
         The labels are found by their colour, so a new one is held too."""
         found = [

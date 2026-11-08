@@ -18,8 +18,12 @@ run it came from, and what lets a redraw prove the committed GIF is current.
 
 ## Where the machinery lives
 
-The drawing primitives are in `chan.usdcad_tests_whiteboard`, and every post's
-sketch module imports them.
+The drawing primitives are in `ithildincore.whiteboard`, in
+[l3a0/ithildin-core](https://github.com/l3a0/ithildin-core), and every post's
+sketch module imports them. ithildin-runtime's design docs draw with the same
+module, so the account has one implementation of the look and one set of
+layout rules. `pyproject.toml` pins ithildincore at an exact commit, with its
+`whiteboard` extra.
 
 **Table:** The names in the machinery
 
@@ -29,14 +33,20 @@ sketch module imports them.
 | `Fill` | a flat tint behind every stroke, shown whole on one frame |
 | `Label` | text that appears at its place in the steps, after the stroke or tint it `names` |
 | `Scene` | a title, a slug that names the GIF, and its steps in drawing order |
-| `timeline`, `render` | the frames and their durations, and the images |
-| `clearances` | how far each label and the title sit from the nearest ink, in pixels |
-| `_line`, `_curve`, `_arrow`, `_box`, `_span`, `_check`, `_hatched` | shapes as point arrays |
-| `_stroke`, `_dot` | a `Stroke` from a shape, and a one-point dot drawn in one frame |
+| `timeline`, `paced_timeline` | the frames and their durations, at the usual pace and the slower one |
+| `render`, `write_gif` | the images, and the looping GIF written from them |
+| `clearances`, `draft` | how far each label and the title sit from the nearest ink, in pixels, and every check the draft script runs |
+| `line`, `curve`, `arrow`, `box`, `span`, `check`, `hatched` | shapes as point arrays |
+| `stroke`, `dot` | a `Stroke` from a shape, and a one-point dot drawn in one frame |
+
+The post modules here import the shapes under their old names, as in
+`from ithildincore.whiteboard import line as _line`, so their scene code reads
+as it did before the move. A new module can do the same or use the names as
+they are.
 
 The board is 10 units across and 4.7 up, drawn at 680 by 320 pixels. The inks
-come from `chan.regime_figure`, and each keeps its meaning from sketch to
-sketch.
+come from `chan.regime_figure`, which names `ithildincore.palette`'s brass set,
+and each keeps its meaning from sketch to sketch.
 
 **Table:** What each ink means
 
@@ -52,14 +62,16 @@ Posts are moving one at a time to the colours in `chan.palette`, which a
 colour-blind reader can tell apart, and `docs/design.md` says why. Those
 colours keep the meanings above: a blue `GOOD`, a vermilion `LOST` and a berry
 `ACCENT`. A post that has moved imports `ACCENT`, `GOOD`, `LOST`, `TINT` and
-`REJECT_TINT` from `chan.palette`, and passes `chan.palette.INKS` to `render`.
+`REJECT_TINT` from `chan.palette`, and passes `chan.palette.INKS` to
+`write_gif`. Those names come from `ithildincore.palette` too, where the brass
+set is `BRASS`, `GREEN`, `RED`, `GREEN_TINT` and `RED_TINT`.
 A tint from anywhere else would land on the nearest colour in that post's
 palette rather than its own. So check which colours the post already draws in
 before copying a newer post's imports. The draft script below draws a scene in
 `chan.palette.INKS` when its module imports them, when it is run with
 `--palette`, or when the scene uses the berry, the blue, the vermilion or one
-of their tints. In a post that has moved, it flags any shared colour left in a
-scene, such as a `_dot` on its default brass, which the renderer would turn
+of their tints. In a post that has moved, it flags any brass-set colour left in
+a scene, such as a `_dot` on its default brass, which the renderer would turn
 grey. Pass `--palette` when drafting a moved post's scene from a scratch file.
 
 Each post gets its own module and its own test module, both named for the post,
@@ -67,14 +79,25 @@ such as `chan.usdcad_tests_whiteboard` and `tests/test_usdcad_tests_whiteboard.p
 Each module sets a `GIF_PREFIX` that every one of its GIFs starts with. Copy
 both files' shape from the newest post rather than starting from nothing. The
 test module carries the shared tests listed below, and they apply to a new
-post's sketches only once they are copied. `chan.equity_seasonals_whiteboard`
-adds a `PACED` list of slower sketches, a `sketch_timeline` that paces them,
-`_write` that saves one GIF, and a `main` that redraws every GIF the post
-embeds. A slow sketch on another post adds a `PACED` list the same way.
+post's sketches only once they are copied. A module with slower sketches adds
+a `PACED` list of their slugs, and its `sketch_timeline` returns
+`paced_timeline(scene) if scene.slug in PACED else timeline(scene)`. Its
+`_write` saves one GIF with `write_gif`, and its `main` redraws every GIF the
+post embeds.
 
-An edit to `chan.usdcad_tests_whiteboard` itself changes how every post's GIFs
-draw, so it is followed by a redraw of every post's sketches, not only the one
-being worked on.
+An edit to `ithildincore.whiteboard` changes how every post's GIFs draw, and
+it reaches this repository only when `pyproject.toml` pins the new commit. So
+moving the pin is followed by a redraw of every post's sketches, which must
+leave `git status` clean on `docs/figures` unless the edit meant to change
+them. This loop runs each module in `src/chan` whose name ends in
+`_whiteboard`, so a new post joins it without an edit.
+`chan.equity_seasonals_whiteboard` needs the owner's archive for fifteen of its
+thirty-nine GIFs and `chan.khandani_lo_small_caps_whiteboard` for one of its
+two, and each says so when it is missing:
+
+```bash
+for f in src/chan/*_whiteboard.py; do uv run python -m "chan.$(basename "$f" .py)"; done
+```
 
 ## The loop
 
@@ -95,7 +118,9 @@ before any test exists.
    It writes the GIF and its last frame into the scratch folder, and refuses
    any folder inside `docs/figures`. It prints every rule the scene breaks, in
    the hand font and in the fallback font, or `ok`, and exits 1 when anything
-   is broken. `tests/test_sketch_draft.py` holds each of its checks. Fix the
+   is broken. Its checks are `ithildincore.whiteboard.draft`'s, which
+   ithildin-core's `tests/test_whiteboard.py` holds, and
+   `tests/test_sketch_draft.py` holds the script around them. Fix the
    scene until it prints `ok`, and look at the last frame yourself before
    sending anything.
 3. **Show it, and wait.** Send the GIF to the owner, with `SendUserFile` where

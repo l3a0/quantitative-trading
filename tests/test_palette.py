@@ -1,37 +1,29 @@
-"""The pins for the colours a post moves to, in :mod:`chan.palette`.
+"""The pins that this repository's two sets of colours are ithildincore's.
 
-A colour that fails a reader fails silently: the figure still draws, and only
-the reader who cannot tell two lines apart notices. So this file measures the
-three colours rather than trusting the hex codes.
+The colours live in :mod:`ithildincore.palette`, where ithildin-core's
+``tests/test_palette.py`` measures their contrast against the board and the
+chart grounds and their separation under each kind of colour blindness, and
+pins every hex code. This file holds what stays here: that
+:mod:`chan.palette` names the colour-blind safe set, that
+:mod:`chan.regime_figure` names the brass set under the roles its charts draw
+them in, and that the renderer's defaults are the brass set every post that
+has not moved draws in.
 
-1. Each clears WCAG's 4.5 to 1 contrast against the sketches' white board and
-   a chart's figure ground, the bar for text.
-2. Each pair stays apart in normal vision and under the three kinds of colour
-   blindness, and so does each colour against the shared ink and grey.
-3. The shared brass and red they replace do not, which is the reason for the
-   change.
-4. The sketches' two tints are colours the renderer's palette already holds
-   for the new inks, so a tint adds no colour to a GIF.
-
-Two measurements fall short, and the tests pin them at their values rather
-than leave them unrecorded: the blue and the vermilion on the axes' darker
-ground, and the vermilion against the grey under protanopia.
-
-The measurements were first written for the commodity-seasonals post's figure
-tests, on the pull request that drew in these colours first.
+The contrast and colour-blind separation helpers stay here, because this
+repository's figure tests measure their own charts' colours with them. They
+are the same measurements ithildin-core's palette tests make.
 """
 
 from __future__ import annotations
 
-import itertools
 import math
 
 import pytest
-from matplotlib.colors import to_rgb, to_rgba
+from ithildincore import palette as shared
+from ithildincore import whiteboard
+from matplotlib.colors import to_rgba
 
-from chan import regime_figure
-from chan import usdcad_tests_whiteboard as whiteboard
-from chan.palette import ACCENT, GOOD, INKS, LOST, REJECT_TINT, TINT
+from chan import palette, regime_figure
 
 # Contrast is WCAG's. The colour-blind separation simulates protanopia,
 # deuteranopia and tritanopia with Machado, Oliveira and Fernandes (2009) at
@@ -98,82 +90,48 @@ def _apart(one: str, two: str, kind: str | None = None) -> float:
     return 100 * math.dist(seen(one), seen(two))
 
 
-class TestTheColours:
-    INKS = {"accent": ACCENT, "good": GOOD, "lost": LOST}
-
-    @pytest.mark.parametrize("name", ["accent", "good", "lost"])
-    def test_each_reads_as_text_on_the_board_and_the_ground(self, name) -> None:
-        for ground in (whiteboard.BOARD, regime_figure.SURFACE):
-            assert _contrast(self.INKS[name], ground) >= 4.5, (name, ground)
-
-    def test_every_pair_stays_apart_with_and_without_colour_blindness(self) -> None:
-        pairs = itertools.combinations(self.INKS.values(), 2)
-        for one, two in pairs:
-            assert _apart(one, two) >= 15, (one, two)
-            for kind in _MACHADO:
-                assert _apart(one, two, kind) >= 8, (one, two, kind)
-
-    def test_the_shared_colours_they_replace_do_not(self) -> None:
-        """The brass and red the other posts draw in sit 3.0 apart under deuteranopia."""
-        shared = _apart(regime_figure.ACCENT, regime_figure.LOST, "deutan")
-        assert shared == pytest.approx(3.0, abs=0.05)
-
-    def test_each_stays_apart_from_the_ink_and_the_grey_but_one(self) -> None:
-        """The vermilion sits 7.5 from the grey under protanopia, short of 8."""
-        for one in (regime_figure.INK, regime_figure.MUTED):
-            for two in self.INKS.values():
-                assert _apart(one, two) >= 15, (one, two)
-                for kind in _MACHADO:
-                    if (one, two, kind) == (regime_figure.MUTED, LOST, "protan"):
-                        assert _apart(one, two, kind) == pytest.approx(7.5, abs=0.05)
-                    else:
-                        assert _apart(one, two, kind) >= 8, (one, two, kind)
-
-    def test_only_the_accent_reads_as_text_on_the_axes_ground(self) -> None:
-        """Inside a chart's axes the blue reaches 4.37 to 1 and the vermilion 4.30."""
-        ground = regime_figure.GROUND
-        assert _contrast(ACCENT, ground) >= 4.5
-        assert _contrast(GOOD, ground) == pytest.approx(4.37, abs=0.005)
-        assert _contrast(LOST, ground) == pytest.approx(4.30, abs=0.005)
-
-    def test_the_sketch_inks_keep_the_shared_ink_and_grey(self) -> None:
-        assert INKS == (regime_figure.INK, regime_figure.MUTED, ACCENT, GOOD, LOST)
+@pytest.mark.parametrize(
+    "name", ["ACCENT", "GOOD", "LOST", "INK", "MUTED", "INKS", "TINT", "REJECT_TINT"]
+)
+def test_chan_palette_is_the_colour_blind_safe_set(name) -> None:
+    assert getattr(palette, name) is getattr(shared, name)
 
 
-class TestTheTints:
-    @staticmethod
-    def _colours(inks) -> set[tuple[int, ...]]:
-        flat = whiteboard.palette(inks).getpalette()
-        return {tuple(flat[i : i + 3]) for i in range(0, len(flat), 3)}
+@pytest.mark.parametrize(
+    ("role", "colour"),
+    [
+        ("ACCENT", "BRASS"),
+        ("GOOD", "GREEN"),
+        ("LOST", "RED"),
+        ("INK", "INK"),
+        ("MUTED", "MUTED"),
+        ("SURFACE", "SURFACE"),
+        ("GROUND", "GROUND"),
+        ("RULE", "RULE"),
+    ],
+)
+def test_regime_figure_names_the_brass_set_by_role(role, colour) -> None:
+    assert getattr(regime_figure, role) is getattr(shared, colour)
 
-    @pytest.mark.parametrize(("tint", "ink"), [(TINT, GOOD), (REJECT_TINT, LOST)])
-    def test_each_is_its_ink_at_the_renderers_lightest_blend(self, tint, ink) -> None:
-        blended = whiteboard._blend(ink, whiteboard.BLENDS[-1])
-        assert to_rgb(tint) == pytest.approx(tuple(blended), abs=0.5 / 255)
 
-    @pytest.mark.parametrize("tint", [TINT, REJECT_TINT])
-    def test_each_adds_no_colour_to_the_palette_of_the_new_inks(self, tint) -> None:
-        rgb = tuple(round(255 * c) for c in to_rgb(tint))
-        assert rgb in self._colours(INKS)
-        assert rgb not in self._colours(whiteboard.INKS)
+def test_the_brass_hex_codes_are_the_essays() -> None:
+    """The GLD/GDX essay's page sets these, so the charts read as part of it."""
+    assert (regime_figure.ACCENT, regime_figure.GOOD, regime_figure.LOST) == (
+        "#8B651A",
+        "#4A7C59",
+        "#A24C3C",
+    )
 
-    def test_the_renderer_still_defaults_to_the_shared_inks(self) -> None:
-        """The default palette is the shared one. ``test_each_is_a_fresh_draw_byte_for_byte``
-        in ``tests/test_usdcad_tests_whiteboard.py`` holds the GIFs themselves."""
-        shared = (
-            regime_figure.INK,
-            regime_figure.MUTED,
-            regime_figure.ACCENT,
-            regime_figure.GOOD,
-            regime_figure.LOST,
-        )
-        assert whiteboard.INKS == shared
-        assert whiteboard.palette().getpalette() == whiteboard.palette(shared).getpalette()
 
-    def test_render_draws_onto_the_palette_of_the_inks_it_is_given(self) -> None:
-        """A post that moves passes these inks to ``render``, and its frames use them."""
-        scene = whiteboard.Scene("t", "t", ())
-        images = whiteboard.render(scene, whiteboard.timeline(scene)[-1:], INKS)
-        assert images
-        for image in images:
-            assert image.getpalette() == whiteboard.palette(INKS).getpalette()
+def test_the_renderer_still_defaults_to_the_brass_inks() -> None:
+    """``test_each_is_a_fresh_draw_byte_for_byte`` in each post's whiteboard
+    tests holds the GIFs themselves."""
+    brass = (
+        regime_figure.INK,
+        regime_figure.MUTED,
+        regime_figure.ACCENT,
+        regime_figure.GOOD,
+        regime_figure.LOST,
+    )
+    assert shared.BRASS_INKS == brass
+    assert whiteboard.palette().getpalette() == whiteboard.palette(brass).getpalette()

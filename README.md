@@ -3288,7 +3288,7 @@ regime map.
 
 The post also carries thirty-nine looping whiteboard sketches, drawn by
 [src/chan/equity_seasonals_whiteboard.py](src/chan/equity_seasonals_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `equity_seasonals_which_years.gif`, in the opening, the years each source
    reads on one axis to scale: the years behind Heston and Sadka's 13
@@ -3497,10 +3497,9 @@ tests in [tests/test_equity_seasonals.py](tests/test_equity_seasonals.py) hold
 that the registered runs give those figures where the archive is. The test
 compares each committed GIF with a fresh draw byte for byte only on macOS arm64
 in Comic Sans MS, as the USD.CAD sketches' test does. The sketches draw with
-the USD.CAD module's strokes, timeline and renderer, so an edit there needs
-the USD.CAD, equity seasonals, USD.CAD holdout, price spread, AUD.CAD rollover,
-calendar spreads, Johansen ETF, VX against ES, small-caps, roll returns,
-buy-on-gap, cross-sectional momentum and post-earnings drift redraw commands.
+the shared sketch machinery in `ithildincore.whiteboard`, so moving its pin in
+`pyproject.toml` needs every post's sketches redrawn, which the `sketch-notes`
+skill's loop does.
 
 [blog/post-earnings-drift-lessons.md](blog/post-earnings-drift-lessons.md) is
 a ninth post, about post-earnings drift, Example 7.2 of Chan's *Algorithmic
@@ -3594,8 +3593,8 @@ uv run python -m chan.pead_figures
 rather than its bytes, for the reason given above for the regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
-[src/chan/pead_whiteboard.py](src/chan/pead_whiteboard.py) on the USD.CAD
-post's sketch machinery. Each sits after the text it draws.
+[src/chan/pead_whiteboard.py](src/chan/pead_whiteboard.py) on the shared
+sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `pead_sketch_one_trade.gif`, after the strategy's rules, one stock's price
    across the day before and the trading day, with the gap read overnight and
@@ -3750,7 +3749,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/factor_models_whiteboard.py](src/chan/factor_models_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `factor_models_residuals_cancel.gif`, in Lesson 2 after the display
    equation, draws a dozen daily returns as bars, the fitted value beside each
@@ -3903,7 +3902,7 @@ regime map.
 
 The post also carries thirty looping whiteboard sketches, drawn by
 [src/chan/commodity_seasonals_whiteboard.py](src/chan/commodity_seasonals_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `commodity_sketch_two_trades.gif`, in the opening, each trade's entry and
    exit as a bar on a calendar from February to May, with the demand behind
@@ -4157,7 +4156,7 @@ map.
 The post also carries one looping whiteboard sketch,
 `buy_on_gap_where_the_open_lands.gif`, drawn by
 [src/chan/buy_on_gap_whiteboard.py](src/chan/buy_on_gap_whiteboard.py) on the
-USD.CAD post's sketch machinery. It sits after the paragraph on Chan's reason
+shared sketch machinery in `ithildincore.whiteboard`. It sits after the paragraph on Chan's reason
 for rule 2, and draws to scale the two levels an open has to land between, on
 PCS on 2011-01-06. The open of 13.01 lands in a blue band under the dashed
 line at 13.39, one standard deviation below the previous low of 13.68, and
@@ -4271,7 +4270,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/calendar_spreads_whiteboard.py](src/chan/calendar_spreads_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `calendar_spreads_both_orientations.gif`, in Lesson 2 after the figure's
    caption, draws natural gas's null counts as circles whose areas stand for
@@ -4434,8 +4433,8 @@ the committed file. A public clone can check what the code draws but cannot
 redraw the committed figure.
 
 The post also carries two looping whiteboard sketches, drawn by
-[src/chan/cpo_whiteboard.py](src/chan/cpo_whiteboard.py) on the USD.CAD
-post's sketch machinery. Each sits after the text it draws.
+[src/chan/cpo_whiteboard.py](src/chan/cpo_whiteboard.py) on the shared
+sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `cpo_sketch_rule.gif`, after the list of the strategy, the grid and the
    bars, draws a z-score path against lines at +entry, +0.6 times the entry, 0,
@@ -4577,7 +4576,7 @@ regime map.
 
 The post also carries two whiteboard sketches, drawn slowly by
 [src/chan/cross_sectional_momentum_whiteboard.py](src/chan/cross_sectional_momentum_whiteboard.py)
-on the USD.CAD post's sketch machinery, and neither is schematic.
+on the shared sketch machinery in `ithildincore.whiteboard`, and neither is schematic.
 
 1. `cross_sectional_momentum_cohorts.gif` follows the four steps of the
    strategy. It stacks 25 cohorts of 50 longs and 50 shorts, each held 25
@@ -4721,7 +4720,7 @@ regime map.
 
 The post also carries one looping whiteboard sketch, in Lesson 4, drawn by
 [src/chan/price_spread_whiteboard.py](src/chan/price_spread_whiteboard.py) on
-the USD.CAD post's sketch machinery. It shows why the spread is mostly the
+the shared sketch machinery in `ithildincore.whiteboard`. It shows why the spread is mostly the
 20-day fit's intercept. Two real windows a trading week apart, the second
 ending on the day the spread is lowest, have clouds of points that barely
 move, while the fitted line turns. The clouds sit about 91.5 dollars from
@@ -4870,7 +4869,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/gold_miners_oil_whiteboard.py](src/chan/gold_miners_oil_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `gold_miners_oil_sketch_counting.gif`, in Lesson 1 after the list item on
    the three funds, draws to one scale how the trace test counts on GLD, GDX
@@ -5026,7 +5025,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/etf_cointegration_whiteboard.py](src/chan/etf_cointegration_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `etf_cointegration_trace_stack.gif`, in Lesson 3, the eigen test's one
    piece of 16.897 stopping short of its 90 percent bar beside the trace
@@ -5048,8 +5047,9 @@ the run on the committed file, and holds that each block's height is affine in
 its statistic, that the stack's top is the trace statistic, and that figures
 which would make its words false are refused. It compares each committed GIF
 with a fresh draw byte for byte only on macOS arm64 in Comic Sans MS, as the
-USD.CAD sketches' test does. The sketches draw with the USD.CAD module's
-strokes, timeline and renderer, so an edit there needs this redraw too.
+USD.CAD sketches' test does. The sketches draw with the shared sketch
+machinery in `ithildincore.whiteboard`, so moving its pin needs this redraw
+too.
 
 [blog/vx-es-lessons.md](blog/vx-es-lessons.md) is a nineteenth post, about
 locations 2546 to 2559 of Chan's *Algorithmic Trading*, which hedge VX, the
@@ -5170,8 +5170,8 @@ uv run python -m chan.vx_es_figures
 rather than its bytes, for the reason given above for the regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
-[src/chan/vx_es_whiteboard.py](src/chan/vx_es_whiteboard.py) on the USD.CAD
-post's sketch machinery. Each sits after the paragraph it draws.
+[src/chan/vx_es_whiteboard.py](src/chan/vx_es_whiteboard.py) on the shared
+sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `vx_es_sketch_one_shift.gif`, in Lesson 2, falling dots and their fit, the
    same dots moved right by one amount with a parallel fit, and the same dots
@@ -5309,7 +5309,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/aud_cad_rollover_whiteboard.py](src/chan/aud_cad_rollover_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `aud_cad_rollover_five_pay_seven.gif`, in Lesson 2, the days of interest
    each weekday pays, read from the script's tripling rule on a week at a
@@ -5467,7 +5467,7 @@ it draws rather than its bytes, for the reason given above for the regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/bollinger_whiteboard.py](src/chan/bollinger_whiteboard.py) on the
-USD.CAD post's sketch machinery. Each sits after the text it draws, and both
+shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws, and both
 build slowly and hold their finished drawing for twelve seconds. Neither is
 schematic. Each draws every day's z-score as a dot to one scale, above a strip
 of the units held.
@@ -5643,7 +5643,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/kalman_hedge_whiteboard.py](src/chan/kalman_hedge_whiteboard.py) on
-the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the passage it draws.
 Both build more slowly than the USD.CAD post's sketches and hold their
 finished drawings for twelve seconds. Neither is schematic: every figure
 either one draws is read from `kalman_hedge` on the committed file, as
@@ -5800,7 +5800,7 @@ regime map.
 The post also carries one looping whiteboard sketch,
 `index_arbitrage_sketch_one_unit.gif`, drawn by
 [src/chan/index_arbitrage_whiteboard.py](src/chan/index_arbitrage_whiteboard.py)
-on the USD.CAD post's sketch machinery. It sits in "What one unit holds, and when it
+on the shared sketch machinery in `ithildincore.whiteboard`. It sits in "What one unit holds, and when it
 first earns", after the paragraph on one unit, and draws the 98 stocks as green dots of
 $1.09386 each, gathered into a green column long $107.198 beside a red column
 short SPY $105.560. Both columns stand on one baseline at one scale, so their
@@ -6097,7 +6097,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/khandani_lo_book_two_whiteboard.py](src/chan/khandani_lo_book_two_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it
 draws, and both build slowly and hold their finished drawing for twelve
 seconds. Neither is schematic.
 
@@ -6244,7 +6244,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/aud_cad_johansen_whiteboard.py](src/chan/aud_cad_johansen_whiteboard.py)
-on the USD.CAD post's sketch machinery, in the shared inks the post's chart
+on the shared sketch machinery in `ithildincore.whiteboard`, in the shared inks the post's chart
 draws in. Each sits after the text it draws.
 
 1. `aud_cad_johansen_no_return_moves.gif`, in Lesson 2, AUD.USD's closes
@@ -6383,7 +6383,7 @@ map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/roll_returns_whiteboard.py](src/chan/roll_returns_whiteboard.py) on
-the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the passage it draws.
 
 1. `roll_returns_sketch_one_line.gif`, in "The model and the files", a spot
    line rising at α and three contracts below it, each rising at α + γ to end
@@ -6527,7 +6527,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/tu_hypothesis_tests_whiteboard.py](src/chan/tu_hypothesis_tests_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `tu_hypothesis_tests_sketch_wrong_array.gif`, in Lesson 4, the script's
    third test as written. The shuffled trades are added to `pos`, the real
@@ -6696,7 +6696,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/crude_oil_calendar_spread_whiteboard.py](src/chan/crude_oil_calendar_spread_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the passage it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the passage it draws.
 Both build more slowly than the USD.CAD post's sketches and hold their
 finished drawing for twelve seconds.
 
@@ -6852,7 +6852,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/tu_momentum_whiteboard.py](src/chan/tu_momentum_whiteboard.py) on
-the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `tu_momentum_sketch_futures_tile.gif`, in "The correlation table", the
    first three days the 250/25 cell keeps on the 2012-05-11 save, from
@@ -7023,7 +7023,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/roll_momentum_whiteboard.py](src/chan/roll_momentum_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws. Both
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws. Both
 build more slowly than the USD.CAD post's sketches and hold their finished
 drawings for twelve seconds. Both draw in the post chart's colours. The first
 uses brown for Example 6.1's rule and green for the declared rule, and the
@@ -7164,7 +7164,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/vx_calendar_spread_whiteboard.py](src/chan/vx_calendar_spread_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws,
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws,
 and neither is schematic. Both build more slowly than the USD.CAD post's
 sketches and hold their finished drawings for twelve seconds.
 
@@ -7376,7 +7376,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/kelly_allocation_whiteboard.py](src/chan/kelly_allocation_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 Both build more slowly than the USD.CAD post's sketches and hold their finished
 drawings for twelve seconds. Neither is schematic. Every bar, tick, bracket,
 line and dot sits to scale at a figure the run computes, and only the axes'
@@ -7518,7 +7518,7 @@ regime map.
 
 The post also carries three looping whiteboard sketches, drawn by
 [src/chan/cl_reversal_momentum_whiteboard.py](src/chan/cl_reversal_momentum_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the text it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the text it draws.
 
 1. `cl_reversal_momentum_sketch_dip_and_bounce.gif`, in "The rule and the
    file", the join's first long on 2008-07-30 and its first short on
@@ -7682,7 +7682,7 @@ draws rather than its bytes, for the reason given above for the regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/gld_gc_whiteboard.py](src/chan/gld_gc_whiteboard.py) on the
-USD.CAD post's sketch machinery. Each sits after the paragraph it draws. Both
+shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws. Both
 build more slowly than the USD.CAD post's sketches and hold their finished
 drawings for twelve seconds.
 
@@ -7871,7 +7871,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/xle_uso_roll_return_whiteboard.py](src/chan/xle_uso_roll_return_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the list it draws. Both
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the list it draws. Both
 build more slowly than the USD.CAD post's sketches and hold their finished
 drawings for twelve seconds. Neither is schematic.
 
@@ -8183,7 +8183,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/khandani_lo_small_caps_whiteboard.py](src/chan/khandani_lo_small_caps_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it
 draws, and both build slowly and hold their finished drawing for twelve
 seconds. Neither is schematic.
 
@@ -8378,7 +8378,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/pead_rerun_whiteboard.py](src/chan/pead_rerun_whiteboard.py) on the
-USD.CAD post's sketch machinery. Each sits after the list it draws.
+shared sketch machinery in `ithildincore.whiteboard`. Each sits after the list it draws.
 
 1. `pead_rerun_sketch_where_the_56_go.gif`, in Lesson 1, after the list of
    why the 56 stocks outside U fail. A box of ALL's 497 holds CAL's 488 and
@@ -8566,7 +8566,7 @@ map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/opening_gap_whiteboard.py](src/chan/opening_gap_whiteboard.py) on
-the USD.CAD post's sketch machinery. Both sit in Lesson 1, each after the
+the shared sketch machinery in `ithildincore.whiteboard`. Both sit in Lesson 1, each after the
 paragraph it draws.
 
 1. `opening_gap_sketch_two_signs.gif`, the worked day: a long day falling
@@ -8755,7 +8755,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/pca_factor_momentum_whiteboard.py](src/chan/pca_factor_momentum_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it
 draws.
 
 1. `pca_factor_momentum_sketch_window.gif`, in Lesson 1, draws one day axis
@@ -8952,7 +8952,7 @@ regime map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/monte_carlo_leverage_whiteboard.py](src/chan/monte_carlo_leverage_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `monte_carlo_leverage_sketch_least_draw.gif`, in Lesson 4, three rows of
    dots on one return scale, each dot a value below −0.012: Chan's 612 saved
@@ -9104,7 +9104,7 @@ line.
 
 The post also carries two looping whiteboard sketches in Lesson 3, drawn by
 [src/chan/levered_low_beta_whiteboard.py](src/chan/levered_low_beta_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `levered_low_beta_sketch_ruin_line.gif`, after the paragraph giving June
    2001's ruin line. It draws two levered lines through the point (rf, rf),
@@ -9209,7 +9209,7 @@ day and the return table, could be checked by a test and is not.
 
 The post also carries one looping whiteboard sketch, drawn by
 [src/chan/build_board_whiteboard.py](src/chan/build_board_whiteboard.py) on
-the USD.CAD post's sketch machinery, after the paragraph saying a session no
+the shared sketch machinery in `ithildincore.whiteboard`, after the paragraph saying a session no
 longer writes the board. `build_board_sketch_update_flow.gif` draws the board
 before and after the move as two rows of boxes. The top row is the update a
 session or sub-agent made by hand, with a vermilion arrow labelled "refused"
@@ -9393,7 +9393,7 @@ diamond, then the title.
 
 The post also carries one looping whiteboard sketch in Lesson 5, drawn by
 [src/chan/capped_low_beta_whiteboard.py](src/chan/capped_low_beta_whiteboard.py)
-on the USD.CAD post's sketch machinery.
+on the shared sketch machinery in `ithildincore.whiteboard`.
 `capped_low_beta_sketch_break_even.gif` sits after the paragraph giving the
 break-even spreads. It draws each ceiling's yearly gap falling to 0 as a
 borrowing spread is charged. The black line, at a ceiling of 2, falls from
@@ -9590,7 +9590,7 @@ map.
 
 The post also carries two looping whiteboard sketches, drawn by
 [src/chan/vix_filter_whiteboard.py](src/chan/vix_filter_whiteboard.py) on the
-USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `vix_filter_sketch_one_holiday.gif`, in Lesson 3, one US holiday read four
    ways. VIX closed 54.92 on 2008-11-26, had no close on 2008-11-27, and
@@ -9810,7 +9810,7 @@ redraw it.
 
 The post also carries three looping whiteboard sketches, drawn by
 [src/chan/low_beta_holdout_whiteboard.py](src/chan/low_beta_holdout_whiteboard.py)
-on the USD.CAD post's sketch machinery. Each sits after the paragraph it draws.
+on the shared sketch machinery in `ithildincore.whiteboard`. Each sits after the paragraph it draws.
 
 1. `low_beta_holdout_sketch_bound_and_y.gif`, in Lesson 1, after the
    paragraph giving the one-sided upper bound. On one axis of the yearly gap,
@@ -9951,7 +9951,7 @@ the committed file with a fresh draw.
 The post also carries one looping whiteboard sketch,
 `usdcad_holdout_sign_and_t.gif`, drawn by
 [src/chan/usdcad_holdout_whiteboard.py](src/chan/usdcad_holdout_whiteboard.py)
-on the earlier USD.CAD post's sketch machinery. It sits in Lesson 1, after the
+on the shared sketch machinery in `ithildincore.whiteboard`. It sits in Lesson 1, after the
 paragraph on the t, and sets the sum of 0.1132, above 0 with a check mark,
 over a t gauge drawn to scale, where the t of 0.2670 sits far left of the
 zone past 1.645. It reads the sum and the t from the same `read_holdout` as

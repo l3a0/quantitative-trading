@@ -32,7 +32,7 @@ not all carry one weight, whose stocks' weight is not long, or whose SPY
 weight is not short.
 
 The strokes, the timeline and the renderer are
-:mod:`chan.usdcad_tests_whiteboard`'s, so an edit there changes this GIF too,
+:mod:`ithildincore.whiteboard`'s, so an edit there changes this GIF too,
 and that module's docstring explains why two draws on one machine give the
 same bytes. The GIF is named :data:`GIF_PREFIX` plus the scene's slug, a
 prefix chosen so no GIF name starts like the post's chart,
@@ -48,22 +48,16 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+from ithildincore.whiteboard import Label, Scene, Stroke, timeline, write_gif
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
 
 from chan import index_arbitrage as run
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import GOOD, INK, LOST, MUTED
 from chan.series import WindowCrossesScaleBreak
-from chan.usdcad_tests_whiteboard import (
-    Label,
-    Scene,
-    Stroke,
-    _arrow,
-    _box,
-    _line,
-    _stroke,
-    render,
-    timeline,
-)
 from chan.vintage import VintageUnavailable
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
@@ -243,16 +237,7 @@ def scenes(unit: OneUnit | None = None) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

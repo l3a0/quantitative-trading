@@ -957,8 +957,12 @@ deuteranopia, and the shared green and red 4.2. In normal vision the brass sits
 profit and a vermilion for a loss. Each clears 4.5 to 1 against the sketches'
 white board and a chart's cream figure ground. The closest pair sits 14.5 apart
 under deuteranopia and under tritanopia, and 21.8 in normal vision.
+The colours now live in `ithildincore.palette`, in
+[l3a0/ithildin-core](https://github.com/l3a0/ithildin-core), so the account's
+other repositories draw in the same ones. That repository's
 `tests/test_palette.py` measures all of it, and pins the two places the new
-colours fall short.
+colours fall short. This repository's `tests/test_palette.py` holds that
+`chan.palette` and `chan.regime_figure` name those colours.
 
 1. On the darker ground inside a chart's axes, the blue reaches 4.37 to 1 and
    the vermilion 4.30, so a label in either that sits on the axes goes on a

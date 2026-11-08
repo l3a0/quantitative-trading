@@ -250,8 +250,8 @@ June is contract 3. 2007 is left out because its entry falls on March's own
 last day, the edge case the post's third check of the expiry rule covers.
 Both years' calendars are drawn on one axis of month and day.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so these GIFs share that post's look and frame rate. Their
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so these GIFs share their look and frame rate. Their
 colours are :mod:`chan.palette`'s, which this post moved to first.
 Each sketch carries more than a reader takes in at that post's pace, so
 all thirty are in :data:`PACED`, and :func:`sketch_timeline` holds each of their
@@ -282,6 +282,23 @@ from decimal import Decimal
 from pathlib import Path
 
 import numpy as np
+from ithildincore.whiteboard import (
+    FRAME_MS,
+    PACED_HOLD_MS,
+    PACED_LABEL_MS,
+    Frame,
+    Label,
+    Scene,
+    Stroke,
+    timeline,
+    write_gif,
+)
+from ithildincore.whiteboard import arrow as _arrow
+from ithildincore.whiteboard import box as _box
+from ithildincore.whiteboard import dot as _dot
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import span as _span
+from ithildincore.whiteboard import stroke as _stroke
 from scipy import stats
 
 from chan import commodity_seasonals as seasonals
@@ -296,21 +313,6 @@ from chan.futures import (
 from chan.palette import ACCENT, GOOD, INKS, LOST
 from chan.paths import FIGURES_DIR
 from chan.regime_figure import INK, MUTED
-from chan.usdcad_tests_whiteboard import (
-    FRAME_MS,
-    Frame,
-    Label,
-    Scene,
-    Stroke,
-    _arrow,
-    _box,
-    _dot,
-    _line,
-    _span,
-    _stroke,
-    render,
-    timeline,
-)
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "commodity_sketch_"
@@ -4512,7 +4514,7 @@ def _closed_date(f: ClosedDateFigures) -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = (
     "two_trades",
     "after_book",
@@ -4545,7 +4547,6 @@ PACED = (
     "plateau",
     "closed_date",
 )
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 #: Paced scenes the owner still found too fast, with each one's stroke frame
 #: and label hold in milliseconds. At the usual pace each finished before a
 #: reader had followed it.
@@ -4673,16 +4674,7 @@ def scenes(
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames, INKS)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene), INKS)
     return path
 
 

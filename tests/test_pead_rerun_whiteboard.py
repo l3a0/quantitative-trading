@@ -44,11 +44,24 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.palette import RED_TINT as REJECT_TINT
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    Stroke,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import pead_rerun
 from chan import pead_rerun_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.earnings_filings import Release, read_index
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.pead_rerun_figures import GROUP_STYLE, RERUN_FIGURE
@@ -76,19 +89,6 @@ from chan.pead_rerun_whiteboard import (
     sketch_timeline,
 )
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    REJECT_TINT,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    Stroke,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "pead-edgar-rerun-lessons.md"
 
@@ -169,9 +169,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [

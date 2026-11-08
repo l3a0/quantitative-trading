@@ -58,10 +58,21 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import pytest
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
+    HEIGHT,
+    HOLD_MS,
+    TITLE_MS,
+    WIDTH,
+    Frame,
+    Label,
+    clearances,
+    hand_font,
+    timeline,
+)
 from PIL import Image
 
 from chan import low_beta_holdout_whiteboard as sketches
-from chan import usdcad_tests_whiteboard as whiteboard
 from chan.archive import ArchiveUnavailable
 from chan.low_beta_holdout import HoldoutRefused
 from chan.low_beta_holdout_whiteboard import (
@@ -89,17 +100,6 @@ from chan.low_beta_holdout_whiteboard import (
 )
 from chan.paths import FIGURES_DIR, REPO_ROOT
 from chan.regime_figure import ACCENT, GOOD, INK, LOST, MUTED
-from chan.usdcad_tests_whiteboard import (
-    HEIGHT,
-    HOLD_MS,
-    TITLE_MS,
-    WIDTH,
-    Frame,
-    Label,
-    clearances,
-    hand_font,
-    timeline,
-)
 
 POST = REPO_ROOT / "blog" / "low-beta-holdout-lessons.md"
 
@@ -228,9 +228,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [

@@ -41,8 +41,8 @@ this board. So the straight lines are faithful to the run, and the test
 module checks the run's own ``charged_gap`` against each line at 21 evenly
 spaced spreads.
 
-The drawing machinery is :mod:`chan.usdcad_tests_whiteboard`'s, reused rather
-than copied, so this GIF shares that post's look, frame rate and colours. This
+The drawing machinery is :mod:`ithildincore.whiteboard`'s, the machinery every
+post's sketches share, so this GIF shares their look, frame rate and colours. This
 post's chart still draws in :mod:`chan.regime_figure`'s shared inks, so the
 sketch does too. It carries more than a reader takes in at that post's pace,
 so it is in :data:`PACED`, and :func:`sketch_timeline` holds each of its
@@ -52,7 +52,7 @@ is named :data:`GIF_PREFIX` plus the scene's slug. The post's chart,
 ``low_beta_capped.png``, does not start with that prefix, so nothing that
 looks for the sketch by prefix finds the chart.
 
-The sketch is deterministic for the reason :mod:`chan.usdcad_tests_whiteboard`
+The sketch is deterministic for the reason :mod:`ithildincore.whiteboard`
 gives, so a redraw with no change is a no-op diff. Redraw it with::
 
     uv run python -m chan.capped_low_beta_whiteboard
@@ -65,20 +65,25 @@ from pathlib import Path
 
 import numpy as np
 
-from chan import low_beta_capped as lbc
-from chan import low_beta_leverage as llb
-from chan.paths import FIGURES_DIR
-from chan.regime_figure import ACCENT, INK, MUTED
-from chan.usdcad_tests_whiteboard import (
+# Re-exported, because each post's tests read the pace from its module.
+from ithildincore.whiteboard import PACED_HOLD_MS as PACED_HOLD_MS
+from ithildincore.whiteboard import PACED_LABEL_MS as PACED_LABEL_MS
+from ithildincore.whiteboard import (
     Frame,
     Label,
     Scene,
     Stroke,
-    _line,
-    _stroke,
-    render,
+    paced_timeline,
     timeline,
+    write_gif,
 )
+from ithildincore.whiteboard import line as _line
+from ithildincore.whiteboard import stroke as _stroke
+
+from chan import low_beta_capped as lbc
+from chan import low_beta_leverage as llb
+from chan.paths import FIGURES_DIR
+from chan.regime_figure import ACCENT, INK, MUTED
 
 #: Each scene's GIF is this prefix, the scene's slug, and ``.gif``.
 GIF_PREFIX = "capped_low_beta_sketch_"
@@ -292,25 +297,13 @@ def _break_even(f: BreakEvenFigures) -> Scene:
 #: The scenes that build slowly, because each carries more than a reader takes
 #: in at the usual pace: a label shows on its own for :data:`PACED_LABEL_MS`
 #: and the finished drawing holds for :data:`PACED_HOLD_MS` before the loop.
-#: Both match :mod:`chan.equity_seasonals_whiteboard`'s, which the tests check.
+#: Both are :mod:`ithildincore.whiteboard`'s, and the tests pin them.
 PACED = ("break_even",)
-PACED_LABEL_MS, PACED_HOLD_MS = 900, 12000
 
 
 def sketch_timeline(scene: Scene) -> list[Frame]:
     """:func:`timeline`'s frames, slowed for the scenes in :data:`PACED`."""
-    frames = timeline(scene)
-    if scene.slug not in PACED:
-        return frames
-    paced = [
-        Frame(f.done, f.partial, PACED_LABEL_MS)
-        if f.partial == 0 and f.done and not isinstance(scene.steps[f.done - 1], Stroke)
-        else f
-        for f in frames
-    ]
-    last = paced[-1]
-    paced[-1] = Frame(last.done, last.partial, PACED_HOLD_MS)
-    return paced
+    return paced_timeline(scene) if scene.slug in PACED else timeline(scene)
 
 
 def scenes(figures: BreakEvenFigures | None = None) -> tuple[Scene, ...]:
@@ -324,16 +317,7 @@ def scenes(figures: BreakEvenFigures | None = None) -> tuple[Scene, ...]:
 
 def _write(scene: Scene, folder: Path) -> Path:
     frames = sketch_timeline(scene)
-    first, *rest = render(scene, frames)
-    path = folder / gif_name(scene)
-    first.save(
-        path,
-        save_all=True,
-        append_images=rest,
-        duration=[frame.ms for frame in frames],
-        loop=0,
-        optimize=False,
-    )
+    path = write_gif(scene, frames, folder / gif_name(scene))
     return path
 
 

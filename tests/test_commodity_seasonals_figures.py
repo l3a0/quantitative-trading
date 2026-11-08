@@ -313,7 +313,7 @@ def test_any_other_failure_still_ends_in_a_traceback(monkeypatch) -> None:
 
 
 def test_the_post_draws_in_the_shared_palette() -> None:
-    """The colours are measured once, in ``tests/test_palette.py``. Here it is
+    """The colours are measured once, in ithildin-core's ``tests/test_palette.py``. Here it is
     enough that the chart's and the sketches' inks are that module's."""
     from chan import commodity_seasonals_whiteboard as sketches
     from chan import palette

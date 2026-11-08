@@ -41,14 +41,8 @@ import re
 import matplotlib
 import numpy as np
 import pytest
-from PIL import Image
-
-from chan import usdcad_tests_whiteboard as whiteboard
-from chan import xle_uso_roll_return as trade
-from chan import xle_uso_roll_return_whiteboard as sketches
-from chan.paths import FIGURES_DIR, REPO_ROOT
-from chan.regime_figure import ACCENT, GOOD, INK, MUTED
-from chan.usdcad_tests_whiteboard import (
+from ithildincore import whiteboard
+from ithildincore.whiteboard import (
     HEIGHT,
     HOLD_MS,
     TITLE_MS,
@@ -59,6 +53,12 @@ from chan.usdcad_tests_whiteboard import (
     hand_font,
     timeline,
 )
+from PIL import Image
+
+from chan import xle_uso_roll_return as trade
+from chan import xle_uso_roll_return_whiteboard as sketches
+from chan.paths import FIGURES_DIR, REPO_ROOT
+from chan.regime_figure import ACCENT, GOOD, INK, MUTED
 from chan.xle_uso_roll_return_whiteboard import (
     PER_LOG,
     ZERO_Y,
@@ -178,9 +178,9 @@ def _font(monkeypatch, fallback: bool) -> None:
 
 
 def _boxes(scene):
-    with matplotlib.rc_context(whiteboard._style()):
-        canvas, artists = whiteboard._board(scene)
-        whiteboard._show(scene, artists, Frame(len(scene.steps), 0, 0))
+    with matplotlib.rc_context(whiteboard.style()):
+        canvas, artists = whiteboard.new_board(scene)
+        whiteboard.show(scene, artists, Frame(len(scene.steps), 0, 0))
         canvas.draw()
         renderer = canvas.get_renderer()
         return [
