@@ -982,13 +982,14 @@ class TestTheSwitchSketch:
             assert set(part.y) == {SAVE_Y}, part.gid
         assert NEW_Y < SAVE_Y < OLD_Y
         spans = [(p.x.min(), p.x.max()) for p in parts]
-        assert spans == pytest.approx(
-            [
-                (AXIS_X0, x(switch.before)),
-                (x(switch.before), x(switch.switch)),
-                (x(switch.switch), AXIS_X1),
-            ]
-        )
+        expected = [
+            (AXIS_X0, x(switch.before)),
+            (x(switch.before), x(switch.switch)),
+            (x(switch.switch), AXIS_X1),
+        ]
+        # pytest 9.2 refuses approx on a list of tuples, so each span is compared alone.
+        for got, want in zip(spans, expected, strict=True):
+            assert got == pytest.approx(want)
         assert parts[1].width > parts[0].width == parts[2].width
 
     def test_the_guides_tie_chans_close_to_march_then_june(self, every, switch) -> None:
