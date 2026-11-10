@@ -17,14 +17,15 @@ Here is the ledger of what reproduced and what didn't, then the six detours that
 
 **Table:** Chan's numbers vs. reproduced, raw close
 
-| Quantity | Book → reproduced | Status |
+| Quantity | Book | Now |
 | --- | --- | --- |
-| Hedge ratio (through-origin) | 1.6766 → 1.6379 | vintage drift |
-| CADF test statistic (full / training) | −3.36 / −3.18 → −3.45 / −3.09 | reproduced |
-| Mean-reversion half-life | \~10 days → \~10 days | reproduced |
-| Cointegration verdict | >90% conf. → rejects null at one lag | reproduced at one lag |
+| Hedge (origin) | 1.6766 | 1.6379 |
+| CADF t, full | −3.36 | −3.45 |
+| CADF t, training | −3.18 | −3.09 |
+| Half-life | \~10 days | \~10 days |
+| Verdict | >90% | rejects null |
 
-The verdict reproduces at the one lag Chan used. Detour 5 says what is left of it once that lag is checked.
+Only the hedge ratio moved, with the data vintage. The test statistics and the half-life reproduced, and so did the verdict, at the one lag Chan used. Detour 5 says what is left of it once that lag is checked.
 
 ## Six detours
 
@@ -54,10 +55,12 @@ Anchoring the series at a fixed start, instead of today, sidesteps the drift. Th
 
 **Table:** The hedge ratio by reproduction
 
-| Reproduction | Hedge ratio | Note |
-| --- | --- | --- |
-| Book, 2007 vintage | 1.6766 | not reproducible from any modern download |
-| Everyone since | \~1.6379 | independent reproductions converge here, this one included |
+| Reproduction | Hedge ratio |
+| --- | --- |
+| Book, 2007 vintage | 1.6766 |
+| Everyone since | \~1.6379 |
+
+No modern download reproduces the book's figure. Independent reproductions converge on the second, this one included.
 
 ### 4. Separate what moved with the vintage from what did not
 
@@ -98,10 +101,10 @@ The statistic drops to −1.45, well short of significance. The spread's half-li
 
 **Table:** The verdict in each window
 
-| Window | t-statistic | Verdict |
+| Window | t-statistic | Cointegrated |
 | --- | --- | --- |
-| 2006–2008 | −3.18 | cointegrated at one lag |
-| 2006–2026 | −1.45 | not cointegrated |
+| 2006–2008 | −3.18 | at one lag |
+| 2006–2026 | −1.45 | no |
 
 The relationship the book documented held on its own window. It also had a shelf life.
 
@@ -115,14 +118,22 @@ Cointegration flickers on and off, and just 31 of the 231 windows clear even the
 
 ## The two runs, reproduced
 
-**Table:** Each run's window, hedge and verdict
+The Chapter 7 run covers 2006-05 to 2007-11 in full. The Chapter 3 run, on p.63, covers the first 252 days. Both hedges are fitted through the origin.
 
-| Run | Window | Hedge (origin) | CADF t | Verdict | Residuals clean |
-| --- | --- | --- | --- | --- | --- |
-| Ch. 7 full | 2006-05 – 2007-11 | 1.6766 → 1.6379 | −3.36 → −3.45 | \~95% | 10 lags, −3.30, \~90% |
-| Ch. 3 (p.63) | first 252 days | none → 1.6283 | −3.18 → −3.09 | \~90% | 6 lags, −2.30, no rejection |
+**Table:** Each run's hedge and verdict, book against now
 
-*Exploratory reproduction, not investment advice. Figures are from a from-scratch Python re-run on yfinance data and will not match the book to the last digit, by design. The last column is the residual check from detour 5, which is exploratory too.*
+| Run | Ch. 7 full | Ch. 3 (p.63) |
+| --- | --- | --- |
+| Hedge, book | 1.6766 | none |
+| Hedge, now | 1.6379 | 1.6283 |
+| CADF t, book | −3.36 | −3.18 |
+| CADF t, now | −3.45 | −3.09 |
+| Verdict | \~95% | \~90% |
+| Clean lags | 10 | 6 |
+| Clean CADF t | −3.30 | −2.30 |
+| Clean verdict | \~90% | no rejection |
+
+*Exploratory reproduction, not investment advice. Figures are from a from-scratch Python re-run on yfinance data and will not match the book to the last digit, by design. The three rows marked clean are the residual check from detour 5, which is exploratory too.*
 
 ## So what
 
